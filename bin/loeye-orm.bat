@@ -1,0 +1,5 @@
+@ECHO OFF
+setlocal DISABLEDELAYEDEXPANSION
+SET BIN_TARGET=%~dp0/loeye-orm
+php "%BIN_TARGET%" %*
+

@@ -1,0 +1,44 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * cli.php
+ *
+ * @author  Zhang Yi <loeyae@gmail.com>
+ * @version SVN: $Id: Zhang Yi $
+ */
+
+mb_internal_encoding('UTF-8');
+
+define('BASE_DIR', realpath(__DIR__ . '/../'));
+
+$projectDirs = [
+    __DIR__ . '/../app',
+    __DIR__ . '/../../app',
+    __DIR__ . '/../../../app',
+    __DIR__ . '/../../../../app',
+];
+
+foreach ($projectDirs as $projectDir) {
+    if (file_exists($projectDir)) {
+        define('LOEYE_MODE', 'dev');
+        define("PROJECT_DIR", realpath($projectDir));
+        break;
+    }
+}
+
+$autoloadFiles = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php'
+];
+
+foreach ($autoloadFiles as $autoloadFile) {
+    if (file_exists($autoloadFile)) {
+        require_once $autoloadFile;
+        break;
+    }
+}
+
+$application = new \loeye\console\Application('Loeye Cli', '1.0');
+$exitCode = $application->run();
+exit($exitCode);

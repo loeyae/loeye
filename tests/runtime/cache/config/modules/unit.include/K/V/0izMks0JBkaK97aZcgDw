@@ -1,0 +1,14 @@
+<?php //master
+
+return [PHP_INT_MAX, [
+    'loeyae.include.conten_list_category' => [
+        'module' => [
+            'module_id' => 'loeyae.include.conten_list_category',
+            'plugin' => [
+                [
+                    'name' => '\\app\\plugins\\loeyae\\common\\DefaultSetPlugin',
+                ],
+            ],
+        ],
+    ],
+]];

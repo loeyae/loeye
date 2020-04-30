@@ -1,0 +1,5 @@
+<?php //loeyae.login
+
+return [1587363540, [
+    'cache' => 'O:22:"loeye\\base\\ContextData":3:{s:4:"data";s:4:"test";s:19:"'."\0".'*'."\0".'allowAccessTimes";i:1;s:16:"'."\0".'*'."\0".'accessedTimes";i:0;}',
+]];

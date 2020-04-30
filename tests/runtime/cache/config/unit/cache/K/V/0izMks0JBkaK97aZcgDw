@@ -1,0 +1,33 @@
+<?php //master
+
+return [PHP_INT_MAX, [
+    'apc' => [
+        'lifetime' => 3600,
+    ],
+    'file' => [
+        'lifetime' => 3600,
+    ],
+    'memcached' => [
+        'persistent_id' => 'unit',
+        'servers' => [
+            [
+                '127.0.0.1',
+                1121,
+                100,
+            ],
+            [
+                '127.0.0.1',
+                1122,
+                80,
+            ],
+        ],
+    ],
+    'pfile' => [
+        'lifetime' => 3600,
+    ],
+    'redis' => [
+        'host' => '127.0.0.1',
+        'port' => 6379,
+        'password' => 'foobared',
+    ],
+]];

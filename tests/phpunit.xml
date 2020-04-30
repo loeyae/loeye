@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/7.5/phpunit.xsd"
+         bootstrap="bootstrap.php"
+         cacheResult="true"
+         colors="true"
+         verbose="true">
+    <testsuites>
+        <testsuite name="unit">
+            <directory suffix="Test.php">pear</directory>
+            <file phpVersionOperator="&gt;=" phpVersion="7.1">*.php</file>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">../pear</directory>
+            <exclude>
+                <directory>../pear/resource</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+
+    <php>
+        <const name="PHPUNIT_TESTSUITE" value="true"/>
+    </php>
+</phpunit>
