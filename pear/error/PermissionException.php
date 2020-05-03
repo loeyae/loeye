@@ -12,7 +12,7 @@
  * @package  LOEYE
  * @author   Zhang Yi <loeyae@gmail.com>
  * @version  Expression GitVersion is undefined on line 14, column 16 in Templates/Scripting/LoeyeNewClass.php.
- * @link     https://github.com/loeyae/loeye2.git
+ * @link     https://github.com/loeyae/loeye.git
  */
 
 namespace loeye\error;

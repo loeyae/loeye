@@ -12,7 +12,7 @@
  * @package  LOEYE
  * @author   Zhang Yi <loeyae@gmail.com>
  * @version  2019-4-8 14:43:09
- * @link     https://github.com/loeyae/loeye2.git
+ * @link     https://github.com/loeyae/loeye.git
  */
 
 namespace loeye\error;

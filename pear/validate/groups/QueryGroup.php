@@ -11,7 +11,7 @@
  * @package  LOEYE
  * @author   Zhang Yi <loeyae@gmail.com>
  * @version  2020/4/14 11:01
- * @link     https://github.com/loeyae/loeye2.git
+ * @link     https://github.com/loeyae/loeye.git
  */
 
 
