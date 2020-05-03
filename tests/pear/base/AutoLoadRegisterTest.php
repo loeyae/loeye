@@ -23,15 +23,14 @@ class AutoLoadRegisterTest extends TestCase
 {
 
     /**
-     * @covers \loeye\base\AutoLoadRegister::addAlias
-     * @covers \loeye\base\AutoLoadRegister::realAliasFile
+     * @covers \loeye\base\AutoLoadRegister
      */
     public function testAddAlias()
     {
         AutoLoadRegister::addAlias('resource', PROJECT_DIR . D_S . 'resource');
-        $this->assertNotNull(AutoLoadRegister::realAliasFile('@resource/unit/messages.zh_CN.yml'));
-        $this->assertEquals(PROJECT_DIR . D_S . 'resource' . D_S . 'unit' . D_S . 'messages.zh_CN.yml',
-            AutoLoadRegister::realAliasFile('@resource/unit/messages.zh_CN.yml'));
+        $this->assertNotNull(AutoLoadRegister::realAliasFile('@resource/messages.zh_CN.yml'));
+        $this->assertEquals(PROJECT_DIR . D_S . 'resource' . D_S . 'messages.zh_CN.yml',
+            AutoLoadRegister::realAliasFile('@resource/messages.zh_CN.yml'));
     }
 
     /**
@@ -40,11 +39,11 @@ class AutoLoadRegisterTest extends TestCase
      */
     public function testInitApp()
     {
-        $this->assertFalse(AutoLoadRegister::realAliasFile('@conf/unit/app/master.yml'));
+        $this->assertFalse(AutoLoadRegister::realAliasFile('@conf/app/master.yml'));
         AutoLoadRegister::initApp();
-        $this->assertNotNull(AutoLoadRegister::realAliasFile('@conf/unit/app/master.yml'));
-        $this->assertEquals(PROJECT_DIR . D_S . 'conf' . D_S . 'unit' . D_S . 'app'.D_S.'master.yml',
-            AutoLoadRegister::realAliasFile('@conf/unit/app/master.yml'));
+        $this->assertNotNull(AutoLoadRegister::realAliasFile('@conf/app/master.yml'));
+        $this->assertEquals(PROJECT_DIR . D_S . 'conf' . D_S . 'app'.D_S.'master.yml',
+            AutoLoadRegister::realAliasFile('@conf/app/master.yml'));
     }
 
     /**

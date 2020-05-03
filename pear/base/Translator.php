@@ -52,7 +52,7 @@ class Translator
         $this->translator = new I18n\Translator($this->_locale);
         $loader           = new I18n\Loader\YamlFileLoader();
         $this->initFrameworkResource();
-        $this->initProjectResource($appConfig);
+        $this->initProjectResource();
         $this->translator->addLoader('yml', $loader);
     }
 
@@ -70,19 +70,12 @@ class Translator
     /**
      * initProjectResource
      *
-     * @param AppConfig $appConfig AppConfig instance
-     *
      * @return void
      */
-    protected function initProjectResource(AppConfig $appConfig = null): void
+    protected function initProjectResource(): void
     {
-        if (!$appConfig) {
-            return ;
-        }
-        $resourceDir = PROJECT_LOCALE_DIR . DIRECTORY_SEPARATOR . $appConfig->getPropertyName();
-                
-        if (file_exists($resourceDir)) {
-            $this->initResourceDir($resourceDir);
+        if (file_exists(PROJECT_LOCALE_DIR)) {
+            $this->initResourceDir(PROJECT_LOCALE_DIR);
         }
     }
 

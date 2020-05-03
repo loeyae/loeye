@@ -53,6 +53,9 @@ class ResourceException extends Exception
     public const RECORD_NOT_FOUND_CODE   = 404032;
     public const RECORD_NOT_FOUND_MSG   = 'Record Not Exists';
 
+    public const INVALID_CONTROLLER_CODE = 404033;
+    public const INVALID_CONTROLLER_MSG = 'Invalid controller';
+
     public function __construct(string $errorMessage = self::DEFAULT_ERROR_MSG, int $errorCode =
     self::DEFAULT_ERROR_CODE, $parameter = array())
     {

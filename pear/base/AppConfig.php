@@ -28,29 +28,29 @@ use loeye\std\ConfigTrait;
  *
  * @author  Zhang Yi <loeyae@gmail.com>
  */
-class AppConfig implements ArrayAccess
+class AppConfig
 {
 
     use ConfigTrait;
 
     public const BUNDLE = 'app';
 
-    private $_config;
-    private $_propertyName;
     private $_timezone;
     private $_locale;
+    /**
+     * @var Configuration
+     */
+    private $configuration;
 
     /**
      * __construct
      *
-     * @param string $property config $property
      */
-    public function __construct($property)
+    public function __construct()
     {
         $definitions = [new ConfigDefinition(), new DeltaDefinition()];
-        $configuration = $this->propertyConfig($property, self::BUNDLE, $definitions);
-        $this->processConfiguration($configuration);
-        $this->_propertyName = $property;
+        $this->configuration = $this->bundleConfig($definitions);
+        $this->processConfiguration($this->configuration);
     }
 
     /**
@@ -60,104 +60,15 @@ class AppConfig implements ArrayAccess
      */
     protected function processConfiguration(Configuration $configuration): void
     {
-        $masterConfig = $configuration->getConfig();
         $profile = $configuration->get('profile');
+        $cloneConfig = clone $configuration;
         $deltaConfig = [];
         if ($profile) {
-            $deltaConfig = $configuration->getConfig(null, ['profile' => $profile]) ?? [];
+            $deltaConfig = $cloneConfig->getConfig(null, ['profile' => $profile]) ?? [];
         }
-        $this->mergeConfiguration($masterConfig, $deltaConfig);
+        $this->configuration->merge($deltaConfig);
     }
 
-    /**
-     * mergeConfiguration
-     *
-     * @param array $mater
-     * @param array $delta
-     */
-    protected function mergeConfiguration(array $mater, array $delta): void
-    {
-        foreach ($delta as $key => $value) {
-            if ($value) {
-                $mater[$key] = $value;
-            }
-        }
-        $this->_config = $mater;
-    }
-
-    /**
-     * offsetExists
-     *
-     * @param mixed $offset offset
-     *
-     * @return boolean
-     */
-    public function offsetExists($offset): bool
-    {
-        switch ($offset) {
-            case 'property_name':
-            case 'timezone':
-            case 'base_dir':
-                return true;
-            default :
-                if (isset($this->_config[$offset])) {
-                    return true;
-                }
-        }
-        return false;
-    }
-
-    /**
-     * offsetGet
-     *
-     * @param mixed $offset offset
-     *
-     * @return mixed
-     */
-    public function offsetGet($offset)
-    {
-        switch ($offset) {
-            case 'property_name':
-                return $this->getPropertyName();
-            case 'timezone':
-                return $this->getTimezone();
-            default :
-                return $this->getSetting($offset);
-        }
-    }
-
-    /**
-     * offsetSet
-     *
-     * @param mixed $offset offset
-     * @param mixed $value value
-     *
-     * @return void
-     */
-    public function offsetSet($offset, $value): void
-    {
-        switch ($offset) {
-            case 'property_name':
-                $this->setPropertyName($value);
-                break;
-            case 'timezone':
-                $this->setTimezone($value);
-                break;
-            default :
-                break;
-        }
-    }
-
-    /**
-     * offsetUnset
-     *
-     * @param mixed $offset offset
-     *
-     * @return void
-     */
-    public function offsetUnset($offset): void
-    {
-    }
 
     /**
      * getSetting
@@ -169,51 +80,9 @@ class AppConfig implements ArrayAccess
      */
     public function getSetting($key, $default = null)
     {
-        if (empty($key)) {
-            Logger::trace(BusinessException::INVALID_CONFIG_SET_MSG,
-                BusinessException::INVALID_CONFIG_SET_CODE, __FILE__, __LINE__);
-            return null;
-        }
-        $keyList = explode('.', $key);
-        $config = $this->_config;
-        foreach ($keyList as $k) {
-            if (isset($config[$k])) {
-                $config = $config[$k];
-            } else {
-                return $default;
-            }
-        }
-        return $config;
+        return $this->configuration->get($key, $default);
     }
 
-    /**
-     * setPropertyName
-     *
-     * @param string $propertyName property name
-     *
-     * @return void
-     */
-    public function setPropertyName($propertyName): void
-    {
-        $this->_propertyName = $propertyName;
-    }
-
-    /**
-     * getPropertyName
-     *
-     * @return string
-     */
-    public function getPropertyName(): string
-    {
-        if (!empty($this->_propertyName)) {
-            return $this->_propertyName;
-        }
-        $propertyName = $this->getSetting('configuration.property_name');
-        if (!empty($propertyName)) {
-            return $propertyName;
-        }
-        return null;
-    }
 
     /**
      * setTimezone
@@ -278,11 +147,31 @@ class AppConfig implements ArrayAccess
     /**
      * getActiveProfile
      *
-     * @return string
+     * @return string|null
      */
-    public function getActiveProfile(): string
+    public function getActiveProfile(): ?string
     {
         return $this->getSetting('profile');
+    }
+
+    /**
+     * getServerPort
+     *
+     * @return int
+     */
+    public function getServerPort(): int
+    {
+        return $this->getSetting('server.port') ?? 80;
+    }
+
+    /**
+     * getServerName
+     *
+     * @return string
+     */
+    public function getServerName(): string
+    {
+        return $this->getSetting('server.name') ?? gethostname();
     }
 
 }

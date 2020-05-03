@@ -17,6 +17,7 @@
 
 namespace loeye\render;
 
+use loeye\std\Render;
 use loeye\std\Response;
 use SimpleXMLElement;
 
@@ -25,7 +26,7 @@ use SimpleXMLElement;
  *
  * @author   Zhang Yi <loeyae@gmail.com>
  */
-class XmlRender implements \loeye\std\Render
+class XmlRender extends Render
 {
 
     private $_rootNodeName;
@@ -35,16 +36,18 @@ class XmlRender implements \loeye\std\Render
     /**
      * __construct
      *
-     * @param string  $rootNodeName    root node name
-     * @param boolean $hasCDATA        has CDATA
-     * @param string  $defaultNodeName default node name prefix (num key of array will add prefix)
+     * @param Response $response
+     * @param string $rootNodeName root node name
+     * @param boolean $hasCDATA has CDATA
+     * @param string $defaultNodeName default node name prefix (num key of array will add prefix)
      *
-     * @return void
      */
     public function __construct(
-            $rootNodeName = 'xml', $hasCDATA = false, $defaultNodeName = 'item'
+            Response $response, $rootNodeName = 'xml', $hasCDATA = false,
+            $defaultNodeName = 'item'
     )
     {
+        parent::__construct($response);
         $this->_rootNodeName    = $rootNodeName;
         $this->_hasCDATA        = $hasCDATA;
         $this->_defaultNodeName = $defaultNodeName;
@@ -53,30 +56,24 @@ class XmlRender implements \loeye\std\Render
     /**
      * header
      *
-     * @param Response $response response
-     *
-     * @return void
+     * @return array|null
      */
-    public function header(Response $response): void
+    public function header(): ?array
     {
-        $response->addHeader('Content-Type', 'application/xml; charset=UTF-8');
-        $response->setHeaders();
+        $this->response->addHeader('Content-Type', 'application/xml; charset=UTF-8');
+        return $this->response->getHeaders();
     }
 
     /**
      * output
      *
-     * @param Response $response response
-     *
-     * @return void
+     * @return string|null
      */
-    public function output(Response $response): void
+    public function output(): ?string
     {
-        $output = $response->getOutput();
+        $output = $this->response->getOutput();
 
-        $xml = $this->array2xml($output);
-
-        echo $xml;
+        return $this->array2xml($output);
     }
 
     /**

@@ -23,7 +23,7 @@ class TranslatorTest extends TestCase
      */
     protected function setUp()
     {
-        $appConfig = new AppConfig('unit');
+        $appConfig = new AppConfig();
         $this->object = new Translator($appConfig);
     }
 

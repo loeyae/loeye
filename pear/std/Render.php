@@ -22,24 +22,30 @@ namespace loeye\std;
  *
  * @author   Zhang Yi <loeyae@gmail.com>
  */
-interface Render
+abstract class Render
 {
+
+    /**
+     * @var Response
+     */
+    protected $response;
+
+    public function __construct(Response $response)
+    {
+        $this->response = $response;
+    }
 
     /**
      * header
      *
-     * @param Response $response response
-     *
-     * @return void
+     * @return array|null
      */
-    public function header(Response $response): void ;
+    abstract public function header(): ?array ;
 
     /**
      * output
      *
-     * @param Response $response response
-     *
-     * @return void
+     * @return string|null
      */
-    public function output(Response $response): void ;
+    abstract public function output(): ?string ;
 }

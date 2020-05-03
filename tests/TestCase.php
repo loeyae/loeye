@@ -29,7 +29,7 @@ class TestCase extends BaseTestCase
     }
     
     protected function setUp() {
-        $this->appConfig = new AppConfig('unit');
+        $this->appConfig = new AppConfig();
     }
     
     public static function tearDownAfterClass() {

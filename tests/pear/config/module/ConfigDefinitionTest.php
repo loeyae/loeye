@@ -51,11 +51,17 @@ class ConfigDefinitionTest extends TestCase {
         $this->assertStringContainsString('0', $dumper->dumpAtPath($this->object, 'settings'));
         $processor  = new Processor();
         $parser     = new Parser();
-        $configs    = $parser->parseFile(PROJECT_CONFIG_DIR . DIRECTORY_SEPARATOR . 'modules/unit/login.yml');
+        $configs    = $parser->parseFile(PROJECT_CONFIG_DIR . DIRECTORY_SEPARATOR . 'modules/loeyae/login.yml');
         $settings    = $processor->processConfiguration($this->object, $configs);
         $this->assertIsArray($settings);
         $this->assertArrayHasKey('settings', $settings);
         $this->assertArrayHasKey('module', $settings);
+        $this->assertArrayHasKey('module_id', $settings['module']);
+        $this->assertArrayHasKey('inputs', $settings['module']);
+        $this->assertArrayHasKey('setting', $settings['module']);
+        $this->assertArrayHasKey('error_page', $settings['module']['setting']);
+        $this->assertArrayHasKey('plugin', $settings['module']);
+        $this->assertArrayHasKey('view', $settings['module']);
     }
 
 }

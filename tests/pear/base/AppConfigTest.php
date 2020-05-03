@@ -23,7 +23,7 @@ class AppConfigTest extends TestCase
     protected function setUp()
     {
         $_ENV['LOEYE_PROFILE_ACTIVE'] = 'dev';
-        $this->object = new AppConfig('unit');
+        $this->object = new AppConfig();
     }
 
     /**
@@ -36,51 +36,9 @@ class AppConfigTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\AppConfig::offsetExists
+     * @covers \loeye\base\AppConfig
      */
-    public function testOffsetExists(): void
-    {
-        $this->assertTrue(isset($this->object['constants']));
-    }
-
-    /**
-     * @covers \loeye\base\AppConfig::offsetGet
-     */
-    public function testOffsetGet(): void
-    {
-
-        $actual = $this->object['constants.BASE_SERVER_URL'];
-        $expected = 'http://localhost:8088';
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @covers \loeye\base\AppConfig::offsetSet
-     */
-    public function testOffsetSet()
-    {
-
-        $this->object['constants.BASE_SERVER_URL'] = 'http://localhost:8089';
-        $actual = $this->object['constants.BASE_SERVER_URL'];
-        $expected = 'http://localhost:8088';
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @covers \loeye\base\AppConfig::offsetUnset
-     */
-    public function testOffsetUnset()
-    {
-        unset($this->object['constants.BASE_SERVER_URL']);
-        $actual = $this->object['constants.BASE_SERVER_URL'];
-        $expected = 'http://localhost:8088';
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @covers \loeye\base\AppConfig::getSetting
-     */
-    public function testGetSetting()
+    public function testGetSetting(): void
     {
         $actual = $this->object->getSetting('constants.BASE_SERVER_URL');
         $expected = 'http://localhost:8088';
@@ -88,30 +46,9 @@ class AppConfigTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\AppConfig::setPropertyName
+     * @covers \loeye\base\AppConfig
      */
-    public function testSetPropertyName()
-    {
-        $this->object->setPropertyName('unit');
-        $actual = $this->object->getPropertyName();
-        $expected = 'unit';
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @covers \loeye\base\AppConfig::getPropertyName
-     */
-    public function testGetPropertyName()
-    {
-        $actual = $this->object->getPropertyName();
-        $expected = 'unit';
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @covers \loeye\base\AppConfig::setTimezone
-     */
-    public function testSetTimezone()
+    public function testSetTimezone(): void
     {
         $this->object->setTimezone('Asia/Chongqing');
         $actual = $this->object->getTimezone();
@@ -120,9 +57,9 @@ class AppConfigTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\AppConfig::getTimezone
+     * @covers \loeye\base\AppConfig
      */
-    public function testGetTimezone()
+    public function testGetTimezone(): void
     {
         $actual = $this->object->getTimezone();
         $expected = 'Asia/Shanghai';
@@ -130,9 +67,9 @@ class AppConfigTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\AppConfig::setLocale
+     * @covers \loeye\base\AppConfig
      */
-    public function testSetLocale()
+    public function testSetLocale(): void
     {
         $this->object->setLocale('en_US');
         $actual = $this->object->getLocale();
@@ -141,13 +78,42 @@ class AppConfigTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\AppConfig::getLocale
+     * @covers \loeye\base\AppConfig
      */
-    public function testGetLocale()
+    public function testGetLocale(): void
     {
         $actual = $this->object->getLocale();
         $expected = 'zh_CN';
         $this->assertEquals($expected, $actual);
     }
 
+    /**
+     * @covers \loeye\base\AppConfig
+     */
+    public function testGetActiveProfile(): void
+    {
+        $actual = $this->object->getActiveProfile();
+        $expected = 'dev';
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @covers \loeye\base\AppConfig
+     */
+    public function testGetServerName(): void
+    {
+        $actual = $this->object->getServerName();
+        $expected = 'dev-demo';
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @covers \loeye\base\AppConfig
+     */
+    public function testGetServerPort(): void
+    {
+        $actual = $this->object->getServerPort();
+        $expected = 80;
+        $this->assertEquals($expected, $actual);
+    }
 }

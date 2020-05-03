@@ -35,16 +35,13 @@ trait ConfigTrait
     /**
      * bundleConfig
      *
-     * @param string $property property
-     * @param string $bundle bundle
      * @param array|ConfigurationInterface|null $definition definition
+     * @param string $bundle bundle
      *
      * @return Configuration
      */
-    protected function bundleConfig($property, $bundle = null, $definition = null): Configuration
+    protected function bundleConfig($definition, $bundle = null): Configuration
     {
-        $bundle = $property . ($bundle ? '/' . $bundle : '');
-        $definition = property_exists($this, 'definition') ? $this->definition : $definition;
         return new Configuration(static::BUNDLE, $bundle, $definition);
     }
 
@@ -52,39 +49,36 @@ trait ConfigTrait
      * propertyConfig
      *
      * @param string $property property
-     * @param string $bundle bundle
      * @param array|ConfigurationInterface|null $definition definition
+     * @param string $bundle bundle
      *
      * @return Configuration
      */
-    protected function propertyConfig($property, $bundle = null, $definition = null): Configuration
+    protected function propertyConfig($property, $definition, $bundle = null): Configuration
     {
-        $definition = property_exists($this, 'definition') ? $this->definition : $definition;
         return new Configuration($property, $bundle, $definition);
     }
 
     /**
      * cacheConfig
      *
-     * @param AppConfig $appConfig
      * @return Configuration
      */
-    protected function cacheConfig(AppConfig $appConfig): Configuration
+    protected function cacheConfig(): Configuration
     {
         $definition = new ConfigDefinition();
-        return $this->propertyConfig($appConfig->getPropertyName(), Cache::BUNDLE, $definition);
+        return $this->propertyConfig(Cache::BUNDLE, $definition);
     }
 
     /**
      * databaseConfig
      *
-     * @param AppConfig $appConfig
      * @return Configuration
      */
-    protected function databaseConfig(AppConfig $appConfig): Configuration
+    protected function databaseConfig(): Configuration
     {
         $definition = new \loeye\config\database\ConfigDefinition();
-        return $this->propertyConfig($appConfig->getPropertyName(), DB::BUNDLE, $definition);
+        return $this->propertyConfig(DB::BUNDLE, $definition);
     }
 
 

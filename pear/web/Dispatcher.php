@@ -27,6 +27,7 @@ use loeye\error\BusinessException;
 use loeye\error\ResourceException;
 use loeye\lib\ModuleParse;
 use loeye\std\ParallelPlugin;
+use loeye\std\Render;
 use Psr\Cache\InvalidArgumentException;
 use ReflectionException;
 use Symfony\Component\Cache\Exception\CacheException;
@@ -54,10 +55,11 @@ class Dispatcher extends \loeye\std\Dispatcher
      *
      * @param mixed $moduleId module id
      *
-     * @return void
+     * @return Render|null
      */
-    public function dispatch($moduleId = null): void
+    public function dispatch($moduleId = null): ?Render
     {
+        $render = null;
         try {
             $moduleId = $this->parseUrl($moduleId);
             $this->initIOObject($moduleId);
@@ -81,17 +83,18 @@ class Dispatcher extends \loeye\std\Dispatcher
             $this->redirectUrl();
             $view = $this->getView();
             $this->executeView($view);
-            $this->executeOutput();
+            $render = $this->executeOutput();
         } catch (InvalidArgumentException $e) {
-            ExceptionHandler($e, $this->context);
+            $render = ExceptionHandler($e, $this->context);
         } catch (Throwable $e) {
-            ExceptionHandler($e, $this->context);
+            $render = ExceptionHandler($e, $this->context);
         } finally {
             if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL) {
                 $this->setTraceDataIntoContext(array());
                 Utils::logContextTrace($this->context, null, false);
             }
         }
+        return $render;
     }
 
 
@@ -186,15 +189,13 @@ class Dispatcher extends \loeye\std\Dispatcher
     /**
      * _executeRouter
      *
-     * @param string $routerDir router dir
-     *
      * @return string|null
      * @throws BusinessException
      */
-    private function _executeRouter($routerDir): ?string
+    private function _executeRouter(): ?string
     {
         $moduleId = null;
-        $router = new Router($routerDir);
+        $router = new Router();
         $this->context->setRouter($router);
         if (filter_has_var(INPUT_GET, 'm_id')) {
             $moduleId = filter_input(INPUT_GET, 'm_id', FILTER_SANITIZE_STRING);
@@ -647,16 +648,7 @@ class Dispatcher extends \loeye\std\Dispatcher
             if ($this->context->getRouter() instanceof UrlManager) {
                 $moduleId = $this->context->getRouter()->match(filter_input(INPUT_SERVER, 'REQUEST_URI'));
             } else {
-                if (filter_has_var(INPUT_SERVER, 'REDIRECT_routerDir')) {
-                    $routerDir = filter_input(INPUT_SERVER, 'REDIRECT_routerDir', FILTER_SANITIZE_STRING);
-                } else if (filter_has_var(INPUT_SERVER, 'routerDir')) {
-                    $routerDir = filter_input(INPUT_SERVER, 'routerDir', FILTER_SANITIZE_STRING);
-                } else if (filter_has_var(INPUT_GET, 'routerDir')) {
-                    $routerDir = filter_input(INPUT_GET, 'routerDir', FILTER_SANITIZE_STRING);
-                } else {
-                    $routerDir = defined('PROJECT_PROPERTY') ? PROJECT_PROPERTY : PROJECT_NAMESPACE;
-                }
-                $moduleId = $this->_executeRouter($routerDir);
+                $moduleId = $this->_executeRouter();
             }
         }
         return $moduleId;

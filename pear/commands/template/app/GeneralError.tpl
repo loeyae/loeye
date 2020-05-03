@@ -3,7 +3,7 @@
 Licensed under the Apache License, Version 2.0 (the "License"),
 see LICENSE for more details: http://www.apache.org/licenses/LICENSE-2.0.
 -->
-<html>
+<html lang="zh_CN">
     <head>
         <title>出错了</title>
         <meta charset="UTF-8">

@@ -39,33 +39,38 @@ class ConfigDefinitionTest extends TestCase {
     }
 
     /**
-     * @covers \loeye\config\app\ConfigDefinition::getConfigTreeBuilder
+     * @covers \loeye\config\app\ConfigDefinition
      */
     public function testGetConfigTreeBuilder()
     {
         $dumper = new YamlReferenceDumper();
         $definition = $dumper->dump($this->object);
         $this->assertStringContainsString('settings', $definition);
+        $this->assertStringContainsString('server', $definition);
         $this->assertStringContainsString('constants', $definition);
         $this->assertStringContainsString('application', $definition);
         $this->assertStringContainsString('configuration', $definition);
         $this->assertStringContainsString('0', $dumper->dumpAtPath($this->object, 'settings'));
+        $this->assertStringContainsString('name', $dumper->dumpAtPath
+        ($this->object, 'server'));
+        $this->assertStringContainsString('port', $dumper->dumpAtPath
+        ($this->object, 'server'));
         $processor = new Processor();
         $parser = new Parser();
-        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'unit/app/master.yml');
+        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'app/master.yml');
         $settings = $processor->processConfiguration($this->object, $configs);
         $this->assertIsArray($settings);
         $this->assertArrayHasKey('settings', $settings);
     }
 
     /**
-     * @covers \loeye\config\app\ConfigDefinition::getConfigTreeBuilder
+     * @covers \loeye\config\app\ConfigDefinition
      */
     public function testGetConfigTreeBuilderTest()
     {
         $processor = new Processor();
         $parser = new Parser();
-        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'unit/app/test.yml');
+        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'app/test.yml');
         $settings = $processor->processConfiguration($this->object, $configs);
         $this->assertIsArray($settings);
         $this->assertArrayHasKey('settings', $settings);
@@ -78,7 +83,7 @@ class ConfigDefinitionTest extends TestCase {
     {
         $processor = new Processor();
         $parser = new Parser();
-        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'unit/app/multi.yml');
+        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'app/multi.yml');
         $settings = $processor->processConfiguration($this->object, $configs);
         $this->assertIsArray($settings);
         $this->assertArrayHasKey('settings', $settings);

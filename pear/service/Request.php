@@ -39,57 +39,6 @@ class Request extends \loeye\std\Request
     );
 
     /**
-     * offsetExists
-     *
-     * @param string $offset offset
-     *
-     * @return bool
-     */
-    public function offsetExists($offset): bool
-    {
-        if ($offset === 'content'):
-            return $this->_content ? true : false;
-        elseif ($offset === 'contentLength'):
-            return $this->_content ? true : false;
-        else:
-            return parent::offsetExists($offset);
-        endif;
-    }
-
-    /**
-     * offsetGet
-     *
-     * @param string $offset offset
-     *
-     * @return mixed
-     */
-    public function offsetGet($offset)
-    {
-        if ($offset === 'content'):
-            return $this->getContent();
-        elseif ($offset === 'contentLength'):
-            return $this->getContentLength();
-        else:
-            return parent::offsetGet($offset);
-        endif;
-    }
-
-    /**
-     * getFormatType
-     *
-     * @return string
-     */
-    public function getFormatType(): string
-    {
-        $format = $this->getParameterGet('fmt') ?? RENDER_TYPE_JSON;
-        if (in_array($format, $this->_allowedFormatType, true)) {
-            return $format;
-        }
-
-        return RENDER_TYPE_SEGMENT;
-    }
-
-    /**
      * getContent
      *
      * @return string
@@ -133,15 +82,4 @@ class Request extends \loeye\std\Request
         return $this->server['SERVER_PROTOCOL'] ?? 'HTTP/1.0';
     }
 
-//
-//    /**
-//     * getFormatType
-//     *
-//     * @return mixed
-//     */
-//    public function getFormatType()
-//    {
-//        $queryData = $this->getUri()->getQueryData();
-//        return isset($queryData['fmt']) ? $queryData['fmt'] : null;
-//    }
 }

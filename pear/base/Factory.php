@@ -142,11 +142,13 @@ class Factory
      * getRender
      *
      * @param string $format format
+     * @param \loeye\std\Response $response
      *
      * @return Render
      * @throws ReflectionException
      */
-    public static function getRender($format = 'segment'): Render
+    public static function getRender($format = 'segment', \loeye\std\Response $response = null):
+    Render
     {
         $renderFormat = array(
             RENDER_TYPE_HTML,
@@ -157,10 +159,13 @@ class Factory
         if (!in_array($format, $renderFormat, true)) {
             $format = 'segment';
         }
+        if (null === $response) {
+            $response = self::response();
+        }
         $class = '' . ucfirst($format) . 'Render';
         $className = '\\loeye\\render\\' . $class;
         $renderObj = new ReflectionClass($className);
-        return $renderObj->newInstanceArgs();
+        return $renderObj->newInstance($response);
     }
 
     /**
@@ -176,51 +181,53 @@ class Factory
         Context $context, Throwable $e, $errorPage = null
     ): ?string
     {
-        $defaultError = 'General';
-        $property = null;
-        if ($context->getAppConfig() instanceof AppConfig) {
-            $property = $context->getAppConfig()->getPropertyName();
-        }
         $errorPath = PROJECT_ERRORPAGE_DIR . '/';
-        $defaultErrorPage = $errorPath . $defaultError . 'Error.php';
-        if (!empty($property)) {
-            $propertyErrorPath = PROJECT_ERRORPAGE_DIR . '/' . $property . '/';
-            $propertyErrorPage = $propertyErrorPath . $defaultError . 'Error.php';
-        }
-        if (empty($errorPage)) {
-            if (isset($propertyErrorPath)) {
-                $errorPage = $propertyErrorPath . 'Error' . substr($e->getCode(), 0, 3) . '.php';
-            }
-            if (!is_file($errorPage)) {
-                $errorPage = $errorPath . 'Error' . substr($e->getCode(), 0, 3) . '.php';
-            }
+        $errorPage = $errorPage ? $errorPath . $errorPage : null;
+        if (!is_file($errorPage)) {
+            $errorPage = $errorPath . 'Error' . substr($e->getCode(), 0, 3) . '.php';
         }
         if (is_file($errorPage)) {
-            return include $errorPage;
+            return self::fetchFile($errorPage, ['context' => $context, 'exc' => $e]);
         }
 
-        if (isset($propertyErrorPage) && is_file($propertyErrorPage)) {
-            return include $propertyErrorPage;
-        }
-
+        $defaultError = 'General';
+        $defaultErrorPage = $errorPath . $defaultError . 'Error.php';
         if (is_file($defaultErrorPage)) {
-            return include $defaultErrorPage;
+            return self::fetchFile($defaultErrorPage, ['context' => $context, 'exc' => $e]);
         }
 
         return self::_getErrorPageInfo($context, $e);
     }
 
     /**
+     * fetchFile
+     *
+     * @param string $file file path
+     * @param array $parameter
+     *
+     * @return string
+     */
+    public static function fetchFile($file, $parameter = []): string
+    {
+        if ($parameter) {
+            extract($parameter, EXTR_OVERWRITE & EXTR_PREFIX_INVALID, 'var');
+        }
+        ob_start();
+        include $file;
+        return ob_get_clean();
+    }
+
+    /**
      * _getErrorPageInfo
      *
      * @param Context $context context
-     * @param \Exception $e e
+     * @param Throwable $e e
      *
      * @return string
      */
     private static function _getErrorPageInfo(Context $context, $e): string
     {
-        $appConfig = $context->getAppConfig();
+        $appConfig = $context->getAppConfig() ?? self::appConfig();
         $debug = $appConfig ? $appConfig->getSetting('debug', false) : false;
         if ($debug) {
             $traceInfo = nl2br($e->getTraceAsString());
@@ -385,10 +392,7 @@ EOF;
     {
         static $appConfig = null;
         if (null === $appConfig) {
-            if (!defined('PROJECT_PROPERTY')) {
-                throw new RuntimeException('project property not exists');
-            }
-            $appConfig = new AppConfig(PROJECT_PROPERTY);
+            $appConfig = new AppConfig();
         }
         return $appConfig;
     }
@@ -414,15 +418,14 @@ EOF;
      * translator
      *
      * @staticvar \loeye\base\Translator $translator
-     * @param AppConfig $appConfig instance of AppConfig
      *
      * @return Translator
      */
-    public static function translator(AppConfig $appConfig = null): Translator
+    public static function translator(): Translator
     {
         static $translator = null;
         if (null === $translator) {
-            $translator = new Translator($appConfig ?? self::appConfig());
+            $translator = new Translator(self::appConfig());
         }
         return $translator;
     }

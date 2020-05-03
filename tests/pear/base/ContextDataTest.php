@@ -32,8 +32,7 @@ class ContextDataTest extends TestCase {
 
 
     /**
-     * @covers \loeye\base\ContextData::init
-     * @todo   Implement testInit().
+     * @covers \loeye\base\ContextData
      */
     public function testInit()
     {
@@ -45,8 +44,7 @@ class ContextDataTest extends TestCase {
 
 
     /**
-     * @covers \loeye\base\ContextData::__toString
-     * @todo   Implement test__toString().
+     * @covers \loeye\base\ContextData
      */
     public function test__toString()
     {
@@ -58,8 +56,7 @@ class ContextDataTest extends TestCase {
 
 
     /**
-     * @covers \loeye\base\ContextData::__invoke
-     * @todo   Implement test__invoke().
+     * @covers \loeye\base\ContextData
      */
     public function test__invoke()
     {
@@ -72,8 +69,7 @@ class ContextDataTest extends TestCase {
     
     
     /**
-     * @covers \loeye\base\ContextData::getData
-     * @todo   Implement testGetData().
+     * @covers \loeye\base\ContextData
      */
     public function testGetData()
     {
@@ -85,8 +81,7 @@ class ContextDataTest extends TestCase {
 
 
     /**
-     * @covers \loeye\base\ContextData::isEmpty
-     * @todo   Implement testIsEmpyt().
+     * @covers \loeye\base\ContextData
      */
     public function testIsEmpty()
     {
@@ -100,8 +95,7 @@ class ContextDataTest extends TestCase {
 
 
     /**
-     * @covers \loeye\base\ContextData::isExpire
-     * @todo   Implement testIsExpire().
+     * @covers \loeye\base\ContextData
      */
     public function testIsExpire()
     {
@@ -114,8 +108,7 @@ class ContextDataTest extends TestCase {
 
 
     /**
-     * @covers \loeye\base\ContextData::expire
-     * @todo   Implement testExpire().
+     * @covers \loeye\base\ContextData
      */
     public function testExpire()
     {
@@ -132,8 +125,7 @@ class ContextDataTest extends TestCase {
 
 
     /**
-     * @covers \loeye\base\ContextData::getExpire
-     * @todo   Implement testGetExpire().
+     * @covers \loeye\base\ContextData
      */
     public function testGetExpire()
     {

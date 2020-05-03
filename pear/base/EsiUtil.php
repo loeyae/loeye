@@ -47,12 +47,9 @@ class EsiUtil
         if (empty($moduleServer)) {
             if (defined('MODULE_SERVER')) {
                 $moduleServer = MODULE_SERVER;
-            } else if (filter_has_var(INPUT_SERVER, 'HTTP_HOST')) {
-                $moduleServer = filter_input(INPUT_SERVER, 'HTTP_HOST');
-            } else if (filter_has_var(INPUT_SERVER, 'SERVER_NAME')) {
-                $moduleServer = filter_input(INPUT_SERVER, 'SERVER_NAME');
             } else {
-                $moduleServer = '';
+                $moduleServer = ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost')
+                    .':'. ($_SERVER['SERVER_PORT'] ?? '80');
             }
         }
         $this->setModuleServer($moduleServer);
@@ -130,7 +127,7 @@ class EsiUtil
      */
     public function getModuleIdPrefix(): string
     {
-        return $this->_idPrefix;
+        return $this->_idPrefix ?? '';
     }
 
     /**
@@ -218,15 +215,8 @@ class EsiUtil
     ): void
     {
         $queryString = http_build_query($extraParam);
-        $includeString = $this->getEsiSpecialIncludeStringWithModuleServer(
-            $specialIncludeParam,
-            $this->_moduleServer,
-            $moduleId,
-            $queryString,
-            $exceptString
-        );
-
-        echo $includeString;
+        $this->specialIncludeModuleWithQueryString($specialIncludeParam, $moduleId, $queryString,
+            $exceptString);
     }
 
     /**
@@ -307,7 +297,7 @@ class EsiUtil
     ): string
     {
         $scheme = ($this->_isHttps) ? 'https' : 'http';
-        $fullModuleId = $this->_idPrefix . $moduleId;
+        $fullModuleId = $this->getModuleIdPrefix() . $moduleId;
         $includeString = "<esi:include src=\"$scheme://$moduleServer";
         $includeString .= '/_remote/?m_id=' . $fullModuleId;
 
@@ -343,7 +333,7 @@ class EsiUtil
         }
 
         $scheme = ($this->_isHttps) ? 'https' : 'http';
-        $fullModuleId = $this->_idPrefix . $moduleId;
+        $fullModuleId = $this->getModuleIdPrefix() . $moduleId;
         $includeString = '<esi:special-include ';
 
         foreach ($specialIncludeParam as $key => $value) {
@@ -443,7 +433,7 @@ class EsiUtil
                 if (empty($arg)) {
                     continue;
                 }
-                list($key, $value) = explode('=', $arg);
+                [$key, $value] = explode('=', $arg);
                 $this->_queryArray[$key] = $value;
             }
         }

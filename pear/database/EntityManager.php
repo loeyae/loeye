@@ -58,14 +58,13 @@ class EntityManager
      * getManager
      *
      * @param array $dbSetting database setting
-     * @param string $property property name
      * @param Cache $cache cache instance
      *
      * @return \Doctrine\ORM\EntityManager
      * @throws AnnotationException
      * @throws ORMException
      */
-    public static function getManager($dbSetting, $property, Cache $cache = null): \Doctrine\ORM\EntityManager
+    public static function getManager($dbSetting, Cache $cache = null): \Doctrine\ORM\EntityManager
     {
         // Second configure ORM
         // globally used cache driver, in production use APC or memcached
@@ -90,7 +89,7 @@ class EntityManager
         // for that we need another metadata driver used for Entity namespace
         $annotationDriver = new \Doctrine\ORM\Mapping\Driver\AnnotationDriver(
             $cachedAnnotationReader, // our cached annotation reader
-            array(realpath(self::$entitiesDir . '/' . $property)) // paths to look in
+            array(self::$entitiesDir) // paths to look in
         );
         // NOTE: driver for application Entity can be different, Yaml, Xml or whatever
         // register annotation driver for our application Entity fully qualified namespace

@@ -25,8 +25,7 @@ class RouterTest extends TestCase
      */
     protected function setUp()
     {
-        $property = 'unit';
-        $this->object = new Router($property);
+        $this->object = new Router();
     }
 
     /**

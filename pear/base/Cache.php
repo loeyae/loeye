@@ -73,7 +73,6 @@ class Cache
      */
     public function __construct(AppConfig $appConfig, $type = null)
     {
-        $property = $appConfig->getPropertyName();
         $settings = $appConfig->getSetting('application.cache');
         if (is_string($settings)) {
             $this->defaultType = $settings;
@@ -83,25 +82,24 @@ class Cache
             $this->defaultType = $settings['default'] ?? self::CACHE_TYPE_FILE;
             $this->defaultLifetime = $settings['lifetime'] ?? 0;
         }
-        $config = $this->cacheConfig($appConfig);
-        $this->_buildInstance($property, $type, $config);
+        $config = $this->cacheConfig();
+        $this->_buildInstance($type, $config);
     }
 
     /**
      * _buildInstance
      *
-     * @param string $property property name
      * @param string $type type name
      * @param Configuration $config Configuration
      *
      * @throws Exception
      * @throws CacheException
      */
-    private function _buildInstance($property, $type, Configuration $config): void
+    private function _buildInstance($type, Configuration $config): void
     {
         $type = $type ?? $this->defaultType;
         $setting = $config->get($type) ?? [];
-        $namespace = PROJECT_NAMESPACE . '.' . $property . '.' . ($setting['namespace'] ?? $type);
+        $namespace = PROJECT_NAMESPACE . '.' . ($setting['namespace'] ?? $type);
         $defaultLifetime = $setting['lifetime'] ?? $this->defaultLifetime;
         switch ($type) {
             case self::CACHE_TYPE_APC:

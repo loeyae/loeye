@@ -128,7 +128,7 @@ abstract class Dispatcher
     }
 
 
-    abstract public function dispatch($moduleId = null);
+    abstract public function dispatch($moduleId = null): ?Render;
 
 
     abstract protected function initIOObject($moduleId);
@@ -457,20 +457,17 @@ abstract class Dispatcher
     /**
      * executeOutput
      *
-     * @return void
+     * @return Render
      * @throws ReflectionException
      */
-    protected function executeOutput(): void
+    protected function executeOutput(): Render
     {
         $format = $this->context->getResponse()->getFormat();
         if ($format === null) {
             $format = $this->context->getRequest()->getFormatType();
         }
 
-        $renderObj = Factory::getRender($format);
-
-        $renderObj->header($this->context->getResponse());
-        $renderObj->output($this->context->getResponse());
+        return Factory::getRender($format, $this->context->getResponse());
     }
 
 }

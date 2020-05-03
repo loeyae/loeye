@@ -1,6 +1,13 @@
 - settings: [master]
   module:
     module_id: loeyae.login
+    inputs:
+      login: false
+      set: [id, nickname, gender, figureurl, res, isAdmin]
+    setting:
+      error_page:
+        default: GeneralError.php
+        501: Error501.php
     plugin:
       -
         name: \app\plugins\loeyae\common\DefaultSetPlugin

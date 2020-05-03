@@ -33,59 +33,11 @@ class ContextTest extends TestCase
 {
 
     /**
-     * @covers \loeye\base\Context::offsetExists
-     * @covers \loeye\base\Context::offsetSet
-     * @covers \loeye\base\Context::offsetGet
-     * @covers \loeye\base\Context::offsetUnset
-     * @covers \loeye\base\Context::getAppConfig
-     * @covers \loeye\base\Context::setAppConfig
-     * @covers \loeye\base\Context::addErrors
-     * @covers \loeye\base\Context::__construct
-     * @covers \loeye\base\Context::get
-     */
-    public function testOffset()
-    {
-        $context = new Context();
-        $this->assertFalse(isset($context['test']));
-        $this->assertFalse(isset($context['AppConfig']));
-        $this->assertFalse(isset($context['errors']));
-        $context['test'] = 'sample';
-        $context['errors'] = new Exception();
-        $context['AppConfig'] = new AppConfig('unit');
-        $this->assertTrue(isset($context['test']));
-        $this->assertEquals('sample', $context['test']);
-        $this->assertNull( $context->get('test'));
-        $this->assertTrue(isset($context['errors']));
-        $this->assertIsArray($context['errors']);
-        $this->assertEquals(1, count($context['errors']));
-        $this->assertTrue(isset($context['AppConfig']));
-        $this->assertInstanceOf(AppConfig::class, $context['AppConfig']);
-        $context['errors'] = [new \RuntimeException(), new \Exception()];
-        $this->assertIsArray($context['errors']);
-        $this->assertEquals(3, count($context['errors']));
-        unset($context['AppConfig']);
-        $this->assertFalse(isset($context['AppConfig']));
-        $this->assertNull($context->getAppConfig());
-        unset($context['test']);
-        $this->assertFalse(isset($context['test']));
-        unset($context['errors']);
-        $this->assertFalse(isset($context['errors']));
-        $this->assertFalse($context->hasErrors());
-    }
-
-    /**
-     * @covers \loeye\base\Context::__set
-     * @covers \loeye\base\Context::__get
-     * @covers \loeye\base\Context::__unset
-     * @covers \loeye\base\Context::__isset
-     * @covers \loeye\base\Context::__construct
-     * @covers \loeye\base\Context::isExistKey
-     * @covers \loeye\base\Context::isExist
-     * @covers \loeye\base\Context::get
+     * @covers \loeye\base\Context
      */
     public function testMagic()
     {
-        $context = new Context(new AppConfig('unit'));
+        $context = new Context(new AppConfig());
         $this->assertFalse(isset($context->test));
         $context->test = 'sample';
         $this->assertTrue(isset($context->test));
@@ -102,8 +54,7 @@ class ContextTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\Context::setTraceData
-     * @covers \loeye\base\Context::getTraceData
+     * @covers \loeye\base\Context
      */
     public function testTraceData()
     {
@@ -115,21 +66,7 @@ class ContextTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\Context::set
-     * @covers \loeye\base\Context::get
-     * @covers \loeye\base\Context::isEmpty
-     * @covers \loeye\base\Context::isExist
-     * @covers \loeye\base\Context::getData
-     * @covers \loeye\base\Context::getDataGenerator
-     * @covers \loeye\base\Context::getWithTrace
-     * @covers \loeye\base\Context::unsetKey
-     * @covers \loeye\base\ContextData::init
-     * @covers \loeye\base\ContextData::expire
-     * @covers \loeye\base\ContextData::isEmpty
-     * @covers \loeye\base\ContextData::isExpire
-     * @covers \loeye\base\ContextData::__invoke
-     * @covers \loeye\base\ContextData::getData
-     * @covers \loeye\base\ContextData::getExpire
+     * @covers \loeye\base\Context
      */
     public function testData()
     {
@@ -192,31 +129,16 @@ class ContextTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\Context::setAppConfig
-     * @covers \loeye\base\Context::getAppConfig
-     * @covers \loeye\base\Context::setModule
-     * @covers \loeye\base\Context::getModule
-     * @covers \loeye\base\Context::setParallelClientManager
-     * @covers \loeye\base\Context::getParallelClientManager
-     * @covers \loeye\base\Context::setRequest
-     * @covers \loeye\base\Context::getRequest
-     * @covers \loeye\base\Context::setResponse
-     * @covers \loeye\base\Context::getResponse
-     * @covers \loeye\base\Context::setRouter
-     * @covers \loeye\base\Context::getRouter
-     * @covers \loeye\base\Context::setTemplate
-     * @covers \loeye\base\Context::getTemplate
+     * @covers \loeye\base\Context
      */
     public function testObject()
     {
         $context = new Context();
-        $this->assertNull($context->getAppConfig());
-        $context->setAppConfig(new AppConfig('unit'));
         $this->assertInstanceOf(AppConfig::class, $context->getAppConfig());
         $this->assertNull($context->getModule());
         $context->setModule(new ModuleDefinition($context->getAppConfig(), 'loeyae.login'));
         $this->assertInstanceOf(ModuleDefinition::class, $context->getModule());
-        $this->assertNotNull($context->getParallelClientManager());
+        $this->assertNull($context->getParallelClientManager());
         $context->setParallelClientManager(new ParallelClientManager());
         $this->assertInstanceOf(ParallelClientManager::class, $context->getParallelClientManager());
         $this->assertNull($context->getRequest());
@@ -226,7 +148,7 @@ class ContextTest extends TestCase
         $context->setResponse(new Response());
         $this->assertInstanceOf(\loeye\std\Response::class, $context->getResponse());
         $this->assertNull($context->getRouter());
-        $context->setRouter(new Router($context->getAppConfig()->getPropertyName()));
+        $context->setRouter(new Router());
         $this->assertInstanceOf(\loeye\std\Router::class, $context->getRouter());
         $context->setRouter(new UrlManager($context->getAppConfig()));
         $this->assertInstanceOf(\loeye\std\Router::class, $context->getRouter());
@@ -236,10 +158,7 @@ class ContextTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\Context::addErrors
-     * @covers \loeye\base\Context::getErrors
-     * @covers \loeye\base\Context::removeErrors
-     * @covers \loeye\base\Context::hasErrors
+     * @covers \loeye\base\Context
      */
     public function testErrors()
     {
@@ -266,15 +185,10 @@ class ContextTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\Context::cacheData
-     * @covers \loeye\base\Context::loadCacheData
-     * @covers \loeye\base\Context::isExpire
-     * @covers \loeye\base\Context::setExpire
-     * @covers \loeye\base\Context::getExpire
+     * @covers \loeye\base\Context
      */
     public function testCacheData()
     {
-        define('PROJECT_PROPERTY', 'unit');
         $context = new Context();
         $context->setRequest(new Request('loeyae.login'));
         $context->setExpire(3);
@@ -298,10 +212,7 @@ class ContextTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\ContextData::init
-     * @covers \loeye\base\ContextData::__construct
-     * @covers \loeye\base\ContextData::expire
-     * @covers \loeye\base\ContextData::__toString
+     * @covers \loeye\base\ContextData
      */
     public function testContextData()
     {

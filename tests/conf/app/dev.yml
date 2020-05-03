@@ -12,11 +12,16 @@
 #               rule: rule name
 #
 - settings: [profile: dev]
+  server:
+    name: dev-demo
+    port: 80
   constants:
       BASE_SERVER_URL: http://localhost:8088
       BASE_VALUE: aaa
   application:
       cache: file
+      database:
+        default: sqlite
       setting:
         test: test1
         text:

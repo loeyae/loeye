@@ -25,56 +25,33 @@ use loeye\std\Response;
  *
  * @author   Zhang Yi <loeyae@gmail.com>
  */
-class SegmentRender implements Render
+class SegmentRender extends Render
 {
 
     /**
      * header
      *
-     * @param Response $response response
-     *
-     * @return void
+     * @return array|null
      */
-    public function header(Response $response): void
+    public function header(): ?array
     {
-        $headers = $response->getHeaders();
+        $headers = $this->response->getHeaders();
         if (!array_key_exists('Content-Type', $headers) && !array_key_exists('Content-type', $headers) && !array_key_exists('content-type', $headers)) {
-            $response->addHeader('Content-Type', 'text/html; charset=UTF-8');
+            $this->response->addHeader('Content-Type', 'text/html; charset=UTF-8');
         }
-        $response->setHeaders();
+        return $this->response->getHeaders();
     }
 
     /**
      * output
      *
-     * @param Response $response response
-     *
-     * @return void
+     * @return string|null
      */
-    public function output(Response $response): void
+    public function output(): ?string
     {
-        $output = $response->getOutput();
-        foreach ($output as $segment) {
-            $this->fprint($segment);
-        }
-    }
-
-    /**
-     * fprint
-     *
-     * @param mixed $item item
-     *
-     * @reutn void
-     */
-    protected function fprint($item): void
-    {
-        if (is_array($item)) {
-            foreach ($item as $value) {
-                $this->fprint($value . PHP_EOL);
-            }
-        } else {
-            echo $item;
-        }
+        $output = $this->response->getOutput();
+        $mapped = array_map([HtmlRender::class, 'format'], $output);
+        return HtmlRender::format($mapped);
     }
 
 }

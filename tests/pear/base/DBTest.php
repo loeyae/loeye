@@ -17,17 +17,20 @@
 namespace loeye\unit\base;
 
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\NativeQuery;
+use Doctrine\ORM\QueryBuilder;
+use loeye\base\AppConfig;
 use loeye\base\DB;
+use loeye\models\repository\TestRepository;
 use loeye\unit\TestCase;
+use loeye\models\entity\Test;
 
 class DBTest extends TestCase
 {
 
     /**
-     * @covers \loeye\base\DB::getInstance
-     * @covers \loeye\base\DB::__construct
-     * @covers \loeye\base\DB::_getEntityManager
-     * @covers \loeye\base\DB::getCache
+     * @covers \loeye\base\DB
+     * @covers \loeye\database\EntityManager
      */
     public function testInstance()
     {
@@ -41,9 +44,7 @@ class DBTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\DB::getInstance
-     * @covers \loeye\base\DB::__construct
-     * @covers \loeye\base\DB::_getEntityManager
+     * @covers \loeye\base\DB
      * @expectedException \loeye\error\BusinessException
      * @expectedExceptionMessage 无效的数据库设置
      */
@@ -53,9 +54,7 @@ class DBTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\DB::getInstance
-     * @covers \loeye\base\DB::__construct
-     * @covers \loeye\base\DB::_getEntityManager
+     * @covers \loeye\base\DB
      * @expectedException \loeye\error\BusinessException
      * @expectedExceptionMessage 无效的数据库类型
      */
@@ -65,8 +64,8 @@ class DBTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\DB::entityManager
-     * @covers \loeye\base\DB::em
+     * @covers \loeye\base\DB
+     * @covers \loeye\database\EntityManager
      */
     public function testEntityManager()
     {
@@ -75,6 +74,100 @@ class DBTest extends TestCase
         $entityManager = $db->entityManager();
         $this->assertSame($entityManager, $em);
         $this->assertInstanceOf(EntityManager::class, $em);
+    }
+
+    /**
+     * @covers \loeye\base\DB
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \Throwable
+     */
+    public function testQueryBuilder()
+    {
+        $db = DB::getInstance($this->appConfig);
+        $queryBuilder = $db->createQueryBuilder();
+        $qb = $db->qb();
+        $this->assertEquals($qb, $queryBuilder);
+        $this->assertInstanceOf(QueryBuilder::class, $queryBuilder);
+        $nativeQueryBuilder = $db->createNativeQuery('SELECT * FROM test');
+        $this->assertInstanceOf(NativeQuery::class, $nativeQueryBuilder);
+    }
+
+    /**
+     * @return DB
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \Throwable
+     */
+    private function initDB()
+    {
+        $_ENV['LOEYE_PROFILE_ACTIVE'] = 'dev';
+        $appConfig = new AppConfig();
+        $db = DB::getInstance($appConfig);
+        $qb = $db->createNativeQuery('CREATE TABLE test (
+            `id` int(10) NOT NULL,
+            `name` varchar(64) NOT NULL,
+            `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )');
+        $qb->execute();
+        return $db;
+    }
+
+    /**
+     * @covers \loeye\base\DB
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \Throwable
+     */
+    public function testQuery()
+    {
+        $db = $this->initDB();
+        $result = $db->query('SELECT * FROM test');
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * @covers \loeye\base\DB
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \Throwable
+     */
+    public function testRepository()
+    {
+        $db = DB::getInstance($this->appConfig);
+        $object = $db->repository(Test::class);
+        $this->assertInstanceOf(TestRepository::class, $object);
+    }
+
+    /**
+     * @covers \loeye\base\DB
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \Throwable
+     */
+    public function testDatabaseOperation()
+    {
+        $db = $this->initDB();
+        $test = new Test();
+        $test->setId(1);
+        $test->setName('test');
+        $ret = $db->save($test);
+        $this->assertSame($test, $ret);
+        $entity = $db->entity(Test::class, 1);
+        $this->assertSame($test, $entity);
+        $this->assertInstanceOf(Test::class, $entity);
+        $this->assertEquals($test->getId(), $entity->getId());
+        $this->assertEquals($test->getName(), $entity->getName());
+        $this->assertInstanceOf(\DateTime::class, $entity->getCreateTime());
+        $one = $db->one(Test::class, ['id' => 1]);
+        $this->assertSame($entity, $one);
+        $one->setName('testNew');
+        $db->save($one);
+        $db->refresh($test);
+        $this->assertSame($entity, $one);
+        $this->assertEquals($test->getName(), $one->getName());
+        $deleted = $db->remove($one);
+        $this->assertTrue($deleted);
+        $one = $db->one(Test::class, ['id' => 1]);
+        $this->assertNull($one);
     }
 
 }

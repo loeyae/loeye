@@ -25,6 +25,7 @@ use loeye\base\Utils;
 use loeye\error\ResourceException;
 use loeye\error\ValidateError;
 use loeye\render\SegmentRender;
+use loeye\std\Render;
 use ReflectionClass;
 use ReflectionException;
 use Throwable;
@@ -59,10 +60,11 @@ class Dispatcher extends \loeye\std\Dispatcher
      * @params string $moduleId
      *
      * @param null $moduleId
-     * @return void
+     * @return Render|null
      */
-    public function dispatch($moduleId = null): void
+    public function dispatch($moduleId = null): ?Render
     {
+        $render = null;
         try {
             $this->parseUrl();
             $this->initIOObject($moduleId ?? $this->module);
@@ -85,7 +87,7 @@ class Dispatcher extends \loeye\std\Dispatcher
                 throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
             }
             $handlerObject->handle();
-            $this->executeOutput();
+            $render = $this->executeOutput();
         } catch (ValidateError $exc) {
             $request = ($this->getContext()->getRequest() ?? new Request());
             $response = ($this->getContext()->getResponse() ?? new Response($request));
@@ -99,15 +101,9 @@ class Dispatcher extends \loeye\std\Dispatcher
                 ['code' => $exc->getCode(), 'message' => $exc->getMessage()], 'status');
             $response->addOutput($exc->getValidateMessage(), 'data');
             try {
-                $renderObj = Factory::getRender($response->getFormat());
-
-                $renderObj->header($response);
-                $renderObj->output($response);
+                $render = Factory::getRender($response->getFormat(), $response);
             } catch (ReflectionException $e) {
                 Logger::exception($e);
-                $renderObj = new SegmentRender();
-                $renderObj->header($response);
-                $renderObj->output($response);
             }
         } catch (Throwable $exc) {
             Utils::errorLog($exc);
@@ -122,15 +118,9 @@ class Dispatcher extends \loeye\std\Dispatcher
             $response->addOutput(
                 ['code' => $exc->getCode(), 'message' => $exc->getMessage()], 'status');
             try {
-                $renderObj = Factory::getRender($response->getFormat());
-
-                $renderObj->header($response);
-                $renderObj->output($response);
+                $render = Factory::getRender($response->getFormat(), $response);
             } catch (ReflectionException $e) {
                 Logger::exception($e);
-                $renderObj = new SegmentRender();
-                $renderObj->header($response);
-                $renderObj->output($response);
             }
         } finally {
             if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL) {
@@ -138,6 +128,7 @@ class Dispatcher extends \loeye\std\Dispatcher
                 Utils::logContextTrace($this->context, null, false);
             }
         }
+        return $render;
     }
 
     /**

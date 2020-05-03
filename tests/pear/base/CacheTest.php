@@ -37,7 +37,7 @@ class CacheTest extends TestCase
     {
         $_ENV['LOEYE_PROFILE_ACTIVE'] = 'dev';
         parent::setUp();
-        $cacheDir = RUNTIME_CACHE_DIR .D_S.'app.unit.file';
+        $cacheDir = RUNTIME_CACHE_DIR .D_S.'app.file';
         $fileSystem = new Filesystem();
         if(realpath($cacheDir)) {
             $fileSystem->remove($cacheDir);
@@ -47,7 +47,7 @@ class CacheTest extends TestCase
     protected function tearDown()
     {
         parent::tearDown();
-        $cacheDir = RUNTIME_CACHE_DIR .D_S.'app.unit.file';
+        $cacheDir = RUNTIME_CACHE_DIR .D_S.'app.file';
         $fileSystem = new Filesystem();
         if(realpath($cacheDir)) {
             $fileSystem->remove($cacheDir);
@@ -55,10 +55,7 @@ class CacheTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\Cache::setMulti
-     * @covers \loeye\base\Cache::getMulti
-     * @covers \loeye\base\Cache::delete
-     * @covers \loeye\base\Cache::_buildInstance
+     * @covers \loeye\base\Cache
      */
     public function testSetMulti()
     {
@@ -84,9 +81,7 @@ class CacheTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\Cache::set
-     * @covers \loeye\base\Cache::get
-     * @covers \loeye\base\Cache::has
+     * @covers \loeye\base\Cache
      */
     public function testSet()
     {
@@ -99,10 +94,7 @@ class CacheTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\Cache::append
-     * @covers \loeye\base\Cache::remove
-     * @covers \loeye\base\Cache::set
-     * @covers \loeye\base\Cache::get
+     * @covers \loeye\base\Cache
      *
      * @throws CacheException
      * @throws Exception
@@ -126,10 +118,7 @@ class CacheTest extends TestCase
     }
 
     /**
-     * @covers \loeye\base\Cache::getInstance
-     * @covers \loeye\base\Cache::init
-     * @covers \loeye\base\Cache::_buildInstance
-     * @covers \loeye\base\Cache::__construct
+     * @covers \loeye\base\Cache
      *
      * @throws CacheException
      * @throws Exception
@@ -140,9 +129,11 @@ class CacheTest extends TestCase
         $cache = Cache::getInstance($this->appConfig);
         $this->assertInstanceOf(FilesystemAdapter::class, $this->getAdapter($cache));
         unset($cache);
-        $cache = Cache::getInstance($this->appConfig, Cache::CACHE_TYPE_APC);
-        $this->assertInstanceOf(ApcuAdapter::class, $this->getAdapter($cache));
-        unset($cache);
+        if (function_exists('apcu_add')) {
+            $cache = Cache::getInstance($this->appConfig, Cache::CACHE_TYPE_APC);
+            $this->assertInstanceOf(ApcuAdapter::class, $this->getAdapter($cache));
+            unset($cache);
+        }
         $cache = Cache::getInstance($this->appConfig, Cache::CACHE_TYPE_PHP_ARRAY);
         $this->assertInstanceOf(PhpArrayAdapter::class, $this->getAdapter($cache));
         unset($cache);
@@ -175,6 +166,11 @@ class CacheTest extends TestCase
         return $property->getValue($cache);
     }
 
+    /**
+     * @covers \loeye\base\Cache
+     * @throws CacheException
+     * @throws Exception
+     */
     public function test__call()
     {
         $cache = Cache::getInstance($this->appConfig);

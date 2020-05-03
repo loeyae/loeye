@@ -58,48 +58,33 @@ class Template
      * __construct
      *
      * @param Context $context Context instance
-     * @param string $propertyName property name
      *
      * @return void
      * @throws SmartyException
      */
-    public function __construct(Context $context, $propertyName = null)
+    public function __construct(Context $context)
     {
         $this->smarty = new Smarty();
         $this->smarty->registerObject('context', $context);
-        if (empty($propertyName)) {
-            $propertyName = $context->getAppConfig()->getPropertyName();
-        }
-        $this->init($propertyName);
+        $this->init();
     }
 
     /**
      * init
      *
-     * @param string $propertyName property name
-     *
      * @return void
      */
-    public function init($propertyName = null): void
+    public function init(): void
     {
         $this->smarty->left_delimiter  = '<{';
         $this->smarty->right_delimiter = '}>';
         $this->smarty->setTemplateDir(PROJECT_VIEWS_DIR);
         $configDir                      = PROJECT_CONFIG_DIR . '/' . self::B_D;
-        if (!empty($propertyName)) {
-            $configDir .= '/' . $propertyName;
-        }
         $this->smarty->setConfigDir($configDir);
         $this->smarty->addPluginsDir(PROJECT_DIR . '/lib/' . self::B_D);
         $compileDir = RUNTIME_DIR . '/' . self::B_D . '/compile';
-        if (!empty($propertyName)) {
-            $compileDir .= '/' . $propertyName;
-        }
         $this->smarty->setCompileDir($compileDir);
         $cacheDir = RUNTIME_DIR . '/' . self::B_D . '/' . self::C_D;
-        if (!empty($propertyName)) {
-            $cacheDir .= '/' . $propertyName;
-        }
         $this->smarty->setCacheDir($cacheDir);
         $this->smarty->use_sub_dirs = true;
     }

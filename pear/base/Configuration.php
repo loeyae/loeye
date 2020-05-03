@@ -18,10 +18,12 @@
 namespace loeye\base;
 
 use InvalidArgumentException;
+use JmesPath\Env;
 use loeye\config\ConfigurationLoader;
 use loeye\config\general\DeltaConfigDefinition;
 use loeye\config\general\RulesetConfigDefinition;
 use loeye\config\module\ConfigDefinition;
+use loeye\error\BusinessException;
 use loeye\lib\Secure;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -57,7 +59,8 @@ class Configuration
      * @param null $baseDir
      * @param null $cacheDir
      */
-    public function __construct($property, $bundle, $definition = null, $context = null, $baseDir = null, $cacheDir = null)
+    public function __construct($property, $bundle = null, $definition = null, $context = null,
+                                $baseDir = null, $cacheDir = null)
     {
         $this->property = $property;
         if (null === $baseDir) {
@@ -95,7 +98,7 @@ class Configuration
      *
      * @return string
      */
-    public function getBundle(): string
+    public function getBundle(): ?string
     {
         return $this->_bundle ?? $this->_baseBundle;
     }
@@ -173,20 +176,17 @@ class Configuration
      * @param string $key     key
      * @param string $default default
      *
-     * @return null
+     * @return mixed
      */
     public function get($key, $default = null)
     {
-        $keyList = explode('.', $key);
-
-        $config = $this->_config;
-        foreach ($keyList as $k) {
-            $config = $this->_getConfig($k, $config);
-            if (null === $config) {
-                return $default;
-            }
+        if (empty($key)) {
+            Logger::trace(BusinessException::INVALID_CONFIG_SET_MSG,
+                BusinessException::INVALID_CONFIG_SET_CODE, __FILE__, __LINE__);
+            return null;
         }
-        return $config;
+        $config = Env::search($key, $this->_config);
+        return $this->getEnv($config) ?? $default;
     }
 
     /**
@@ -219,6 +219,30 @@ class Configuration
             $this->bundle($bundle, null);
         }
         return $this->_config;
+    }
+
+    /**
+     * merge
+     *
+     * @param array $config config settings
+     * @param bool $replace is replace exists key
+     */
+    public function merge(array $config, $replace = false): void
+    {
+        foreach ($config as $key => $value) {
+            if ($value) {
+                if ($replace) {
+                    $this->_config[$key] = $value;
+                } else if (!isset($this->_config[$key]) || $this->_config[$key] === null) {
+                    $this->_config[$key] = $value;
+                } else if (is_array($value) || is_array($this->_config[$key])) {
+                    $this->_config[$key] = array_merge((array)
+                    $this->_config[$key], (array)$value);
+                } else {
+                    $this->_config[$key] = $value;
+                }
+            }
+        }
     }
 
     /**
@@ -295,6 +319,9 @@ class Configuration
             $l          = mb_strlen(self::ENV_TAG);
             $envSetting = mb_substr($var, $l, - 1);
             $envArray   = explode(':', $envSetting);
+            if ((count($envArray) === 1) && ($val = $this->get($envSetting)) !== null) {
+                return $val;
+            }
             $key        = array_shift($envArray);
             $default    = count($envArray) > 0 ? implode(':', $envArray) : null;
             if ($value = getenv($key)) {

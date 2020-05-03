@@ -30,7 +30,7 @@ use Throwable;
  *
  * @author   Zhang Yi <loeyae@gmail.com>
  */
-class Context implements ArrayAccess
+class Context
 {
 
     public const ERRORS_KEY = 'errors';
@@ -115,7 +115,7 @@ class Context implements ArrayAccess
      */
     public function __construct(AppConfig $appConfig = null)
     {
-        $this->_appConfig = $appConfig;
+        $this->_appConfig = $appConfig ?? Factory::appConfig();
         $this->_data = array();
         $this->_cdata = array();
         $this->_traceData = array();
@@ -190,111 +190,6 @@ class Context implements ArrayAccess
                 }
             }
         }
-    }
-
-    /**
-     * offsetSet
-     *
-     * @param mixed $offset offset
-     * @param mixed $value value
-     *
-     * @return void
-     */
-    public function offsetSet($offset, $value): void
-    {
-        if ($offset === self::ERRORS_KEY) {
-            if (is_array($value)) {
-                foreach ($value as $key => $error) {
-                    if (is_numeric($key)) {
-                        $key = $this->_errors ? count($this->_errors) : $key;
-                    }
-                    $this->addErrors($key, $error);
-                }
-            } else {
-                $this->addErrors($this->_errors ? count($this->_errors) : 0, $value);
-            }
-        } else if (in_array($offset, $this->_object, true)) {
-            $method = 'set' . $offset;
-            $this->$method($value);
-        } else {
-            $this->_data[$offset] = ContextData::init($value);
-        }
-    }
-
-    /**
-     * offsetExists
-     *
-     * @param mixed $offset offset
-     *
-     * @return boolean
-     */
-    public function offsetExists($offset): bool
-    {
-        if ($offset === self::ERRORS_KEY) {
-            return $this->hasErrors();
-        }
-        if (in_array($offset, $this->_object, true)) {
-            $method = 'get' . $offset;
-            return $this->$method() ? true : false;
-        }
-        return isset($this->_data[$offset]);
-    }
-
-    /**
-     * offsetGet
-     *
-     * @param mixed $offset offset
-     *
-     * @return  mixed
-     */
-    public function offsetGet($offset)
-    {
-        if ($offset === self::ERRORS_KEY) {
-            return $this->getErrors();
-        }
-        if (in_array($offset, $this->_object, true)) {
-            $method = 'get' . $offset;
-            return $this->$method();
-        }
-
-        return isset($this->_data[$offset]) ? $this->_data[$offset]->getData() : null;
-    }
-
-    /**
-     * offsetUnset
-     *
-     * @param mixed $offset offset
-     *
-     * @return void
-     */
-    public function offsetUnset($offset): void
-    {
-        if ($offset === self::ERRORS_KEY) {
-            $this->_errors = [];
-        } else if (in_array($offset, $this->_object, true)) {
-            $method = 'set' . $offset;
-            $this->$method(null);
-        } else if (isset($this->_data[$offset])) {
-            unset($this->_data[$offset]);
-        }
-    }
-
-    /**
-     * __destruct
-     *
-     * @return void
-     */
-    public function __destruct()
-    {
-        $this->_appConfig = null;
-        $this->_data = null;
-        $this->_errors = null;
-        $this->_parallelClientManager = null;
-        $this->_request = null;
-        $this->_response = null;
-        $this->_router = null;
-        $this->_template = null;
-        $this->_traceData = null;
     }
 
     /**
@@ -617,11 +512,8 @@ class Context implements ArrayAccess
      *
      * @return ParallelClientManager
      */
-    public function getParallelClientManager(): ParallelClientManager
+    public function getParallelClientManager()
     {
-        if ($this->_parallelClientManager === null) {
-            $this->_parallelClientManager = Factory::parallelClientManager();
-        }
         return $this->_parallelClientManager;
     }
 

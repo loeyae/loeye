@@ -46,9 +46,16 @@ class DeltaDefinitionTest extends TestCase
         $definition = $dumper->dump($this->object);
         $this->assertStringContainsString('settings', $definition);
         $this->assertStringContainsString('profile', $definition);
+        $this->assertStringContainsString('profile', $dumper->dumpAtPath
+        ($this->object, 'settings'));
+        $this->assertStringContainsString('server', $definition);
+        $this->assertStringContainsString('name', $dumper->dumpAtPath
+        ($this->object, 'server'));
+        $this->assertStringContainsString('port', $dumper->dumpAtPath
+        ($this->object, 'server'));
         $processor = new Processor();
         $parser = new Parser();
-        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'unit/app/dev.yml');
+        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'app/dev.yml');
         $settings = $processor->processConfiguration($this->object, $configs);
         $this->assertIsArray($settings);
         $this->assertArrayHasKey('settings', $settings);

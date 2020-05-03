@@ -25,7 +25,8 @@ class ConfigurationTest extends TestCase {
         $baseDir = PROJECT_CONFIG_DIR;
         $cacheDir = RUNTIME_CACHE_DIR;
         $definition = [new \loeye\config\app\ConfigDefinition(), new DeltaDefinition()];
-        $this->object = new Configuration('unit', 'app', $definition, null, $baseDir, $cacheDir);
+        $this->object = new Configuration('app', null, $definition, null,
+        $baseDir, $cacheDir);
     }
 
 
@@ -36,32 +37,30 @@ class ConfigurationTest extends TestCase {
 
 
     /**
-     * @covers \loeye\base\Configuration::getBaseDir
-     * @covers \loeye\base\Configuration::__construct
+     * @covers \loeye\base\Configuration
      */
     public function testGetBaseDir()
     {
-        $expected = PROJECT_UNIT_DIR .DIRECTORY_SEPARATOR. 'conf'.DIRECTORY_SEPARATOR.'unit';
+        $expected = PROJECT_UNIT_DIR .DIRECTORY_SEPARATOR. 'conf'
+            .DIRECTORY_SEPARATOR.'app';
         $actual = $this->object->getBaseDir();
         $this->assertEquals($expected, $actual);
     }
 
 
     /**
-     * @covers \loeye\base\Configuration::getBundle
-     * @covers \loeye\base\Configuration::__construct
+     * @covers \loeye\base\Configuration
      */
     public function testGetBundle()
     {
-        $expected = 'app';
+        $expected = null;
         $actual = $this->object->getBundle();
         $this->assertEquals($expected, $actual);
     }
 
 
     /**
-     * @covers \loeye\base\Configuration::getContext
-     * @covers \loeye\base\Configuration::__construct
+     * @covers \loeye\base\Configuration
      */
     public function testGetContext()
     {
@@ -72,26 +71,19 @@ class ConfigurationTest extends TestCase {
 
 
     /**
-     * @covers \loeye\base\Configuration::setDefinition
-     * @covers \loeye\base\Configuration::__construct
-     * @covers \loeye\base\Configuration::_getConfig
-     * @covers \loeye\base\Configuration::_computeHash
-     * @covers \loeye\base\Configuration::_loadConfig
-     * @covers \loeye\base\Configuration::isFresh
-     * @covers \loeye\base\Configuration::getEnv
-     * @covers \loeye\base\Configuration::bundle()
+     * @covers \loeye\base\Configuration
      * @expectedException InvalidArgumentException
      */
     public function testSetDefinition()
     {
-        $configuration = new Configuration('unit', 'app');
+        $configuration = new Configuration('app', null);
         $configuration->setDefinition(new \loeye\config\app\ConfigDefinition());
-        $configuration->bundle('app/test');
-        $this->assertEquals('app/test', $configuration->getBundle());
+        $configuration->bundle('test');
+        $this->assertEquals('test', $configuration->getBundle());
         $this->assertNull($configuration->getContext());
         $this->assertEquals('aaa', $configuration->get('test'));
         unset($configuration);
-        $configuration = new Configuration('modules', 'unit', new ConfigDefinition());
+        $configuration = new Configuration('modules', 'loeyae', new ConfigDefinition());
         $config = $configuration->getConfig();
         $this->assertArrayHasKey('loeyae.login', $config);
         $this->assertArrayHasKey('loeyae.logout', $config);
@@ -100,8 +92,7 @@ class ConfigurationTest extends TestCase {
 
 
     /**
-     * @covers \loeye\base\Configuration::getDefinition
-     * @covers \loeye\base\Configuration::__construct
+     * @covers \loeye\base\Configuration
      */
     public function testGetDefinition()
     {
@@ -109,9 +100,7 @@ class ConfigurationTest extends TestCase {
     }
 
     /**
-     * @covers \loeye\base\Configuration::context
-     * @covers \loeye\base\Configuration::__construct
-     * @covers \loeye\base\Configuration::_loadConfig
+     * @covers \loeye\base\Configuration
      */
     public function testContext()
     {
@@ -122,10 +111,7 @@ class ConfigurationTest extends TestCase {
 
 
     /**
-     * @covers \loeye\base\Configuration::get
-     * @covers \loeye\base\Configuration::getEnv
-     * @covers \loeye\base\Configuration::_loadConfig
-     * @covers \loeye\base\Configuration::__construct
+     * @covers \loeye\base\Configuration
      */
     public function testGet()
     {
@@ -142,8 +128,7 @@ class ConfigurationTest extends TestCase {
 
 
     /**
-     * @covers \loeye\base\Configuration::getConfig
-     * @covers \loeye\base\Configuration::__construct
+     * @covers \loeye\base\Configuration
      */
     public function testGetConfig()
     {
@@ -153,22 +138,21 @@ class ConfigurationTest extends TestCase {
         $actual = $this->object->getConfig(null, 'profile=dev');
         $this->assertIsArray($actual);
         $this->assertEquals('http://localhost:8088', $actual['constants']['BASE_SERVER_URL']);
-        $actual = $this->object->getConfig('app/test');
+        $actual = $this->object->getConfig('test');
         $this->assertIsArray($actual);
         $this->assertEquals('aaa', $actual['test']);
     }
 
 
     /**
-     * @covers \loeye\base\Configuration::getSettings
-     * @covers \loeye\base\Configuration::__construct
+     * @covers \loeye\base\Configuration
      */
     public function testGetSettings()
     {
         $actual = $this->object->getSettings();
         $this->assertIsArray($actual);
         $this->assertEquals('http://localhost', $actual['constants']['BASE_SERVER_URL']);
-        $actual = $this->object->getSettings('app/test');
+        $actual = $this->object->getSettings('test');
         $this->assertIsArray($actual);
         $this->assertEquals('aaa', $actual['test']);
     }

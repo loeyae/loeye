@@ -18,6 +18,7 @@
 namespace loeye\base;
 
 use loeye\render\SegmentRender;
+use loeye\std\Render;
 use loeye\web\Request;
 use loeye\web\Response;
 use ReflectionException;
@@ -29,28 +30,23 @@ use Throwable;
  * @param Throwable $exc exception
  * @param Context $context context
  *
- * @return void
+ * @return Render
  */
-function ExceptionHandler(Throwable $exc, Context $context)
+function ExceptionHandler(Throwable $exc, Context $context): Render
 {
     if (!($exc instanceof Exception)) {
         Logger::exception($exc);
     }
     $format = null;
-    $appConfig = $context->getAppConfig();
-    if ($context->getRequest() instanceof Request) {
-        $format = $appConfig ? $appConfig->getSetting('application.response.format', $context->getRequest()
-            ->getFormatType()) : $context->getRequest()->getFormatType();
-    }
-    $response = $context->getResponse();
-    if (!$response instanceof Response) {
-        $response = new Response();
-    }
-    $renderObj = new SegmentRender();
+    $appConfig = Factory::appConfig();
+    $request = $context->getRequest() ?? Factory::request();
+    $format = $appConfig->getSetting('application.response.format', $request->getFormatType());
+    $response = $context->getResponse() ?? Factory::response();
+    $renderObj = new SegmentRender($response);
     switch ($format) {
         case 'xml':
         case 'json':
-            $debug = $appConfig ? $appConfig->getSetting('debug', false) : false;
+            $debug = $appConfig->getSetting('debug', false);
             $res = ['status' => ['code' => LOEYE_REST_STATUS_BAD_REQUEST, 'message' => 'Internal Error']];
             if ($debug) {
                 $res['data'] = [
@@ -59,11 +55,12 @@ function ExceptionHandler(Throwable $exc, Context $context)
                     'traceInfo' => $exc->getTraceAsString(),
                 ];
             } else {
-                $res['data'] = $exc->getCode();
+                $res['data'] = $exc->getMessage();
             }
-            $response->addOutput($res);
+            $response->addOutput($res['status'], 'status');
+            $response->addOutput($res['data'], 'data');
             try {
-                $renderObj = Factory::getRender($format);
+                $renderObj = Factory::getRender($format, $response);
             } catch (ReflectionException $e) {
                 Logger::exception($e);
             }
@@ -73,22 +70,16 @@ function ExceptionHandler(Throwable $exc, Context $context)
             if ($context->getModule() instanceof ModuleDefinition) {
                 $setting = $context->getModule()->getSetting();
                 if (isset($setting['error_page'])) {
-                    if (is_array($setting['error_page'])) {
-                        $code = $exc->getCode();
-                        if (isset($setting['error_page'][$code])) {
-                            $errorPage = $setting['error_page'][$code];
-                        }
-                    } else {
-                        $errorPage = PROJECT_ERRORPAGE_DIR . DIRECTORY_SEPARATOR . $setting['error_page'];
-                    }
+                    $code = $exc->getCode();
+                    var_dump($setting, $code);
+                    $errorPage = $setting['error_page'][$code] ?? $setting['error_page']['default'] ?? null;
                 }
             }
             $html = Factory::includeErrorPage($context, $exc, $errorPage);
             $response->addOutput($html);
             break;
     }
-    $renderObj->header($response);
-    $renderObj->output($response);
+    return $renderObj;
 }
 
 /**
@@ -118,7 +109,7 @@ class Exception extends \Exception
      */
     public function __construct(string $errorMessage = self::DEFAULT_ERROR_MSG, int $errorCode = self::DEFAULT_ERROR_CODE, array $parameter = [])
     {
-        $translator = defined('PROJECT_PROPERTY') ? Factory::translator() : new Translator();
+        $translator = Factory::translator();
         $parameters = [];
         foreach ($parameter as $key => $value) {
             $parameters['%' . $key . '%'] = $value;

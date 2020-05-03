@@ -80,10 +80,11 @@ class Logger
      * @param string $message message
      * @param string $file file
      * @param int $line line
+     * @param string $logFile
      *
      * @return void
      */
-    public static function handle($no, $message, $file, $line): void
+    public static function handle($no, $message, $file, $line, $logFile = null): void
     {
         switch ($no) {
             case E_ERROR:
@@ -117,7 +118,7 @@ class Logger
         }
         $log = [$message, '(' . $file . ':' . $line . ')', 'Stack trace:'];
         $log = array_merge($log, self::getTraceInfo());
-        self::log($log, $type);
+        self::log($log, $type, $logFile);
     }
 
     /**
@@ -127,15 +128,16 @@ class Logger
      * @param string $file file
      * @param string $line line
      * @param int $type logger type
+     * @param string $logFile
      *
      * @return void
      */
     public static function trigger(
-        $message, $file, $line, $type = Logger::LOEYE_LOGGER_TYPE_WARNING
+        $message, $file, $line, $type = Logger::LOEYE_LOGGER_TYPE_WARNING, $logFile = null
     ): void
     {
         $log = [$message, '(' . $file . ':' . $line . ')'];
-        self::log($log, $type);
+        self::log($log, $type, $logFile);
     }
 
     /**
@@ -146,10 +148,12 @@ class Logger
      * @param string $file file
      * @param string $line line
      * @param int $type log type
+     * @param string $logFile
      *
      * @return void
      */
-    public static function trace($message, $code, $file, $line, $type = self::LOEYE_LOGGER_TYPE_DEBUG): void
+    public static function trace($message, $code, $file, $line, $type =
+    self::LOEYE_LOGGER_TYPE_DEBUG, $logFile = null): void
     {
         $log = [];
         $log[] = $message;
@@ -157,19 +161,21 @@ class Logger
         $log[] = '(' . $file . ':' . $line . ')';
         $log[] = 'Stack trace:';
         $log = array_merge($log, self::getTraceInfo());
-        self::log($log, $type);
+        self::log($log, $type, $logFile);
     }
 
     /**
      * exception
      *
      * @param Throwable $exc
+     * @param string $logFile
      *
      * @return void
      */
-    public static function exception(Throwable $exc): void
+    public static function exception(Throwable $exc, $logFile = null): void
     {
-        self::trace($exc->getMessage(), $exc->getCode(), $exc->getFile(), $exc->getLine(), self::LOEYE_LOGGER_TYPE_ERROR);
+        self::trace($exc->getMessage(), $exc->getCode(), $exc->getFile(), $exc->getLine(),
+            self::LOEYE_LOGGER_TYPE_ERROR, $logFile);
     }
 
     /**
@@ -183,11 +189,7 @@ class Logger
      */
     public static function log($message, $type = self::LOEYE_LOGGER_TYPE_ERROR, $file = null): void
     {
-        if (defined('PROJECT_PROPERTY')) {
-            $name = PROJECT_PROPERTY;
-        } else {
-            $name = PROJECT_NAMESPACE;
-        }
+        $name = PROJECT_NAMESPACE;
         $logger = self::getLogger($name, $file);
         if (is_array($message)) {
             foreach ($message as $msg) {
@@ -202,69 +204,76 @@ class Logger
      * critical
      *
      * @param string|array $message
+     * @param string $file
      */
-    public static function critical($message): void
+    public static function critical($message, $file = null): void
     {
-        static::log($message, static::LOEYE_LOGGER_TYPE_CRITICAL);
+        static::log($message, static::LOEYE_LOGGER_TYPE_CRITICAL, $file);
     }
 
     /**
      * error
      *
      * @param string|array $message
+     * @param string $file
      */
-    public static function error($message): void
+    public static function error($message, $file = null): void
     {
-        static::log($message, static::LOEYE_LOGGER_TYPE_ERROR);
+        static::log($message, static::LOEYE_LOGGER_TYPE_ERROR, $file);
     }
 
     /**
      * warning
      *
      * @param string|array $message
+     * @param string $file
      */
-    public static function warning($message): void
+    public static function warning($message, $file = null): void
     {
-        static::warn($message);
+        static::warn($message, $file);
     }
 
     /**
      * warn
      * @param string|array $message
+     * @param string $file
      */
-    public static function warn($message): void
+    public static function warn($message, $file = null): void
     {
-        static::log($message, static::LOEYE_LOGGER_TYPE_WARNING);
+        static::log($message, static::LOEYE_LOGGER_TYPE_WARNING, $file);
     }
 
     /**
      * debug
      *
      * @param string|array $message
+     * @param string $file
      */
-    public static function debug($message): void
+    public static function debug($message, $file = null): void
     {
-        static::log($message, static::LOEYE_LOGGER_TYPE_DEBUG);
+        static::log($message, static::LOEYE_LOGGER_TYPE_DEBUG, $file);
     }
 
     /**
      * info
      *
      * @param string|array $message
+     * @param string $file
      */
-    public static function info($message): void
+    public static function info($message, $file = null): void
     {
-        static::log($message, static::LOEYE_LOGGER_TYPE_INFO);
+        static::log($message, static::LOEYE_LOGGER_TYPE_INFO, $file);
     }
 
     /**
      * notice
      *
      * @param string|array $message
+     * @param string $file
      */
-    public static function notice($message): void
+    public static function notice($message, $file = null): void
     {
-        static::log($message, static::LOEYE_LOGGER_TYPE_NOTICE);
+        static::log($message, static::LOEYE_LOGGER_TYPE_NOTICE, $file);
     }
 
     /**

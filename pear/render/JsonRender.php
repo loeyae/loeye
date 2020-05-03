@@ -25,37 +25,33 @@ use loeye\std\Response;
  *
  * @author   Zhang Yi <loeyae@gmail.com>
  */
-class JsonRender implements Render
+class JsonRender extends Render
 {
     //put your code here
 
     /**
      * header
      *
-     * @param Response $response response
-     *
-     * @return void
+     * @return array|null
      */
-    public function header(Response $response): void
+    public function header(): ?array
     {
-        $response->addHeader('Content-Type', 'application/json; charset=UTF-8');
-        $response->setHeaders();
+        $this->response->addHeader('Content-Type', 'application/json; charset=UTF-8');
+        return $this->response->getHeaders();
     }
 
     /**
      * output
      *
-     * @param Response $response response
-     *
-     * @return void
+     * @return string|null
      */
-    public function output(Response $response): void
+    public function output(): ?string
     {
-        $output = $response->getOutput();
+        $output = $this->response->getOutput();
 
         $json = json_encode($output, true);
 
-        echo $json;
+        return $json;
     }
 
 }

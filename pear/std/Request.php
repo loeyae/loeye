@@ -17,7 +17,6 @@
 
 namespace loeye\std;
 
-use ArrayAccess;
 use GuzzleHttp\Psr7\Uri;
 use const loeye\base\RENDER_TYPE_SEGMENT;
 
@@ -26,7 +25,7 @@ use const loeye\base\RENDER_TYPE_SEGMENT;
  *
  * @author   Zhang Yi <loeyae@gmail.com>
  */
-class Request implements ArrayAccess
+class Request
 {
 
     private $_lang = 'zh_CN';
@@ -69,110 +68,11 @@ class Request implements ArrayAccess
         if ($argc > 0) {
             $moduleId = func_get_arg(0);
         }
-        $this['moduleId'] = $moduleId;
+        $this->setModuleId($moduleId);
         $this->_getIsAjaxRequest();
         $this->_getIsFlashRequest();
         $this->_getIsSecureConnection();
         $this->_getRequestType();
-    }
-
-    /**
-     * offsetExists
-     *
-     * @param mixed $offset offset
-     *
-     * @return boolean
-     */
-    public function offsetExists($offset): bool
-    {
-        $methodList = array(
-            'parameter',
-            'get',
-            'post',
-            'cookie',
-            'env',
-            'session',
-            'server',
-            'browser',
-            'property',
-            'moduleId',
-            'device',
-            'language',
-            'formatType',
-            'uri',
-        );
-        $propertyList = array(
-            'isAjaxRequest',
-            'isHttps',
-            'isFlashRequest',
-            'requestMethod',
-        );
-        return in_array($offset, $methodList, true) || in_array($offset, $propertyList, true);
-    }
-
-    /**
-     * offsetGet
-     *
-     * @param mixed $offset offset
-     *
-     * @return mixed|void
-     */
-    public function offsetGet($offset)
-    {
-        switch ($offset) {
-            case 'get':
-                return $this->getParameterGet();
-            case 'post':
-                return $this->getParameterPost();
-            case 'parameter':
-            case 'cookie':
-            case 'env':
-            case 'session':
-            case 'server':
-            case 'browser':
-            case 'property':
-            case 'moduleId':
-            case 'device':
-            case 'language':
-            case 'formatType':
-            case 'uri':
-            case 'method':
-            case 'requestTime':
-            case 'requestTimeFloat':
-                $method = 'get' . ucfirst($offset);
-                return $this->$method();
-            case 'isAjaxRequest':
-            case 'isHttps':
-            case 'isFlashRequest':
-            case 'requestMethod':
-                return $this->$offset;
-        }
-    }
-
-    /**
-     * offsetSet
-     *
-     * @param mixed $offset offset
-     * @param mixed $value value
-     *
-     * @return void
-     */
-    public function offsetSet($offset, $value): void
-    {
-        if ($offset === 'moduleId') {
-            $this->setModuleId($value);
-        }
-    }
-
-    /**
-     * offsetUnset
-     *
-     * @param mixed $offset offset
-     *
-     * @return mixed|void
-     */
-    public function offsetUnset($offset)
-    {
     }
 
     /**
@@ -217,60 +117,8 @@ class Request implements ArrayAccess
      */
     private function _setUri(): void
     {
-        $url = $this->getServer('SCRIPT_URI');
-        if (!empty($url)) {
-            $this->_uri = new Uri($url);
-        } else {
-            $uri = new Uri();
-            $scheme = $this->getServer('REQUEST_SCHEME');
-            if (!empty($scheme)) {
-                $uri = $uri->withScheme($scheme);
-            } else {
-                $isHttps = $this->getServer('HTTPS');
-                if (!empty($isHttps) && $isHttps !== 'off') {
-                    $uri = $uri->withScheme('https');
-                } else {
-                    $uri = $uri->withScheme('http');
-                }
-            }
-            $httpHost = $this->getServer('HTTP_HOST');
-            $httpHostArr = explode(':', $httpHost);
-            if (count($httpHostArr) > 1) {
-                [$host, $port] = $httpHostArr;
-            } else {
-                $host = $httpHost;
-                $port = null;
-            }
-            if (empty($host)) {
-                $host = $this->getServer('SERVER_NAME');
-            }
-            $uri = $uri->withHost($host);
-            if (empty($port)) {
-                $port = $this->getServer('SERVER_PORT');
-            }
-            if ($port != 80) {
-                $uri = $uri->withPort($port);
-            }
-            $requestUrl = $this->getServer('REQUEST_URI');
-            [$path,] = explode('?', $requestUrl);
-            if (empty($path)) {
-                $path = $this->getServer('SCRIPT_NAME');
-            }
-            if ($path !== '/') {
-                $uri = $uri->withPath($path);
-            }
-            $this->_uri = $uri;
-        }
-        $queryString = $this->getServer('QUERY_STRING');
-        if (empty($queryString)) {
-            $query = $this->getParameterGet();
-            if (!empty($query)) {
-                $queryString = http_build_query($query);
-            }
-        }
-        if (!empty($queryString)) {
-            $this->_uri = $this->_uri->withQuery($queryString);
-        }
+        $url = $this->getServer('REQUEST_URI');
+        $this->_uri = new Uri($url);
     }
 
     /**
@@ -792,7 +640,7 @@ class Request implements ArrayAccess
      */
     public function getFormatType(): string
     {
-        $format = $this['get']['fmt'] ?? RENDER_TYPE_SEGMENT;
+        $format = $this->getParameterGet('fmt') ?? RENDER_TYPE_SEGMENT;
         if (in_array($format, $this->_allowedFormatType, true)) {
             return $format;
         }

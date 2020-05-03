@@ -26,42 +26,41 @@ use loeye\web\Resource;
  *
  * @author   Zhang Yi <loeyae@gmail.com>
  */
-class HtmlRender implements Render
+class HtmlRender extends Render
 {
 
     /**
      * header
      *
-     * @param Response $response response
-     *
-     * @return void
+     * @return array|null
      */
-    public function header(Response $response): void
+    public function header(): ?array
     {
-        $response->addHeader('Content-Type', 'text/html; charset=UTF-8');
-        $response->setHeaders();
+        $this->response->addHeader('Content-Type', 'text/html; charset=UTF-8');
+        return $this->response->getHeaders();
     }
 
     /**
      * output
      *
-     * @param Response $response response
-     *
-     * @return void
+     * @return string|null
      */
-    public function output(Response $response): void
+    public function output(): ?string
     {
-        echo '<!DOCTYPE html>';
-        echo '<html lang="zh">';
-        echo '<head>';
-        echo $this->_renderHead($response);
-        echo $this->_renderResource($response, Resource::RESOURCE_TYPE_CSS);
-        echo '</head>';
-        echo '<body>';
-        $this->_renderBody($response);
-        echo $this->_renderResource($response, Resource::RESOURCE_TYPE_JS);
-        echo '</body>';
-        echo '</html>';
+        $html = '<!DOCTYPE html>';
+        $html .= '<html lang="zh">';
+        $html .= '<head>';
+        $html .= $this->_renderHead($this->response);
+        $html .= $this->_renderResource($this->response,
+            Resource::RESOURCE_TYPE_CSS);
+        $html .= '</head>';
+        $html .= '<body>';
+        $html .= $this->_renderBody($this->response);
+        $html .= $this->_renderResource($this->response,
+            Resource::RESOURCE_TYPE_JS);
+        $html .= '</body>';
+        $html .= '</html>';
+        return $html;
     }
 
     /**
@@ -82,14 +81,13 @@ class HtmlRender implements Render
      *
      * @param Response $response response
      *
-     * @return void
+     * @return string|null
      */
-    private function _renderBody(Response $response): void
+    private function _renderBody(Response $response): ?string
     {
         $output = $response->getOutput();
-        foreach ($output as $item) {
-            $this->_fprint($item);
-        }
+        $mapped = array_map([__CLASS__, 'format'], $output);
+        return self::format($mapped);
     }
 
     /**
@@ -107,25 +105,23 @@ class HtmlRender implements Render
             return $resource->toHtml();
         }
 
-        return null;
+        return '';
     }
 
     /**
-     * _fprint
+     * format
      *
      * @param mixed $item item
      *
-     * @reutn void;
+     * @return string
      */
-    private function _fprint($item): void
+    public static function format($item): string
     {
         if (is_array($item)) {
-            foreach ($item as $value) {
-                $this->_fprint($value);
-            }
-        } else {
-            echo $item . PHP_EOL;
+            return implode(PHP_EOL, $item);
         }
+
+        return $item;
     }
 
 }

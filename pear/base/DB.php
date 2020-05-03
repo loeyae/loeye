@@ -74,13 +74,12 @@ class DB
      */
     public function __construct(AppConfig $appConfig, $type = null)
     {
-        $property = $appConfig->getPropertyName();
         $settings = $appConfig->getSetting('application.database');
-        $config = $this->databaseConfig($appConfig);
+        $config = $this->databaseConfig();
         $this->defaultType = $settings['default'] ?? null;
         $this->isDevMode = $settings['is_dev_mode'] ?? false;
         $this->encryptMode = $settings['encrypt_mode'] ?? ENCRYPT_MODE_EXPLICIT;
-        $this->_getEntityManager($appConfig, $config, $property, $type);
+        $this->_getEntityManager($appConfig, $config, $type);
     }
 
     /**
@@ -118,7 +117,6 @@ class DB
      *
      * @param AppConfig $appConfig AppConfig
      * @param Configuration $config Configuration
-     * @param string $property property
      * @param string $type type
      *
      * @return void
@@ -128,7 +126,7 @@ class DB
      * @throws InvalidArgumentException
      * @throws ORMException
      */
-    private function _getEntityManager(AppConfig $appConfig, Configuration $config, $property, $type): void
+    private function _getEntityManager(AppConfig $appConfig, Configuration $config, $type): void
     {
         $key = $type ?? $this->defaultType;
         if (!$key) {
@@ -139,12 +137,12 @@ class DB
             throw new BusinessException('Invalid db setting', BusinessException::INVALID_CONFIG_SET_CODE);
         }
         if (ENCRYPT_MODE_CRYPT === $this->encryptMode && $dbSetting['password']) {
-            $dbSetting['password'] = Secure::crypt($property, $dbSetting['password'], true);
+            $dbSetting['password'] = Secure::crypt($key, $dbSetting['password'], true);
         } elseif (ENCRYPT_MODE_KEYDB === $this->encryptMode && $dbSetting['password']) {
-            $dbSetting['password'] = Secure::getKeyDb($property, $dbSetting['password']);
+            $dbSetting['password'] = Secure::getKeyDb($key, $dbSetting['password']);
         }
         $cache = $this->getCache($appConfig);
-        $this->em = \loeye\database\EntityManager::getManager($dbSetting, $property, $cache);
+        $this->em = \loeye\database\EntityManager::getManager($dbSetting, $cache);
     }
 
     /**
@@ -164,13 +162,13 @@ class DB
         $cacheType = $appConfig->getSetting('application.cache');
         if (Cache::CACHE_TYPE_REDIS === $cacheType) {
             $cache = new RedisCache();
-            $config = $this->cacheConfig($appConfig);
+            $config = $this->cacheConfig();
             $setting = $config->get($cacheType);
             $redis = $this->getRedisClient($setting);
             $cache->setRedis($redis);
         } elseif (Cache::CACHE_TYPE_MEMCACHED === $cacheType) {
             $cache = new MemcachedCache();
-            $config = $this->cacheConfig($appConfig);
+            $config = $this->cacheConfig();
             $setting = $config->get($cacheType);
             $memcached = $this->getMemcachedClient($setting);
             $cache->setMemcached($memcached);
@@ -300,15 +298,15 @@ class DB
      *
      * @param object $entity
      *
-     * @return bool
+     * @return object
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    public function save($entity): bool
+    public function save($entity)
     {
         $this->em->persist($entity);
-        $this->em->flush();
-        return true;
+        $this->flush();
+        return $entity;
     }
 
     /**
@@ -350,7 +348,7 @@ class DB
     public function remove($entity): bool
     {
         $this->em->remove($entity);
-        $this->em->flush();
+        $this->flush();
         return true;
     }
 

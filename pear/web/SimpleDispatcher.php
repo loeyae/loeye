@@ -23,6 +23,7 @@ use loeye\base\Utils;
 use loeye\error\ResourceException;
 use loeye\lib\ModuleParse;
 use loeye\std\Controller;
+use loeye\std\Render;
 use Psr\Cache\InvalidArgumentException;
 use ReflectionClass;
 use ReflectionException;
@@ -56,10 +57,12 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
      * dispatcher
      *
      * @param string|null $moduleId module id
-     * @return void
+     *
+     * @return Render|null
      */
-    public function dispatch($moduleId = null): void
+    public function dispatch($moduleId = null): ?Render
     {
+        $render = null;
         try {
             $this->parseUrl();
             $this->initIOObject($moduleId ?? $this->module);
@@ -73,16 +76,18 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
 
             $view = $this->getView($object);
             $this->executeView($view);
-            $this->executeOutput();
+            $render = $this->executeOutput();
         } catch (Exception $exc) {
-            ExceptionHandler($exc, $this->context);
+            $render = ExceptionHandler($exc, $this->context);
         } catch (\Exception $exc) {
-            ExceptionHandler($exc, $this->context);
+            $render = ExceptionHandler($exc, $this->context);
+        } finally {
+            if ($this->processMode === LOEYE_PROCESS_MODE__TEST) {
+                $this->setTraceDataIntoContext(array());
+                Utils::logContextTrace($this->context);
+            }
         }
-        if ($this->processMode === LOEYE_PROCESS_MODE__TEST) {
-            $this->setTraceDataIntoContext(array());
-            Utils::logContextTrace($this->context);
-        }
+        return $render;
     }
 
     /**
@@ -128,7 +133,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
      * @throws Exception
      * @throws ReflectionException
      */
-    protected function executeModule()
+    protected function executeModule(): Controller
     {
         $controllerNamespace = $this->context->getAppConfig()->getSetting('controller_namespace', '');
         if (!$controllerNamespace) {
@@ -144,6 +149,10 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
         }
         $ref    = new ReflectionClass($controller);
         $object = $ref->newInstance($this->context);
+        if (!($object instanceof Controller)) {
+            throw new ResourceException(ResourceException::INVALID_CONTROLLER_CODE,
+                ResourceException::INVALID_CONTROLLER_MSG);
+        }
         if (!method_exists($object, $action)) {
             throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
         }
@@ -189,7 +198,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
         $path       = null;
         if ($this->rewrite) {
             $router = new UrlManager($this->rewrite);
-            $this->context->setUrlManager($router);
+            $this->context->setRouter($router);
             $path   = $router->match($requestUrl);
             if ($path === false) {
                 throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);

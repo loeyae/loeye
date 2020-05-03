@@ -63,13 +63,12 @@ class ModuleDefinition
         $this->appConfig = $appConfig;
         $explode = explode('.', $moduleId);
         $bundle = null;
-        if (count($explode) > 2) {
-            array_shift($explode);
+        if (count($explode) > 1) {
             array_pop($explode);
             $bundle = implode('/', $explode);
         }
         $definition = new ConfigDefinition();
-        $this->config = $this->bundleConfig($appConfig->getPropertyName(), $bundle, $definition);
+        $this->config = $this->bundleConfig($definition, $bundle);
         $this->_initModule($moduleId);
         $this->_parseModuleDefinition();
     }
@@ -160,7 +159,6 @@ class ModuleDefinition
      * parseModuleDefinition
      *
      * @return void
-     * @throws BusinessException
      * @throws Exception
      */
     private function _parseModuleDefinition(): void
@@ -168,25 +166,11 @@ class ModuleDefinition
         $this->_moduleId = $this->_currentModule['module_id'];
         $inputs = array();
         if (!empty($this->_currentModule['inputs'])) {
-            if (!is_array($this->_currentModule['inputs'])) {
-                throw new BusinessException(
-                    BusinessException::INVALID_MODULE_SET_MSG,
-                    BusinessException::INVALID_MODULE_SET_CODE,
-                    ['mode' => 'inputs']
-                );
-            }
             $inputs = $this->_currentModule['inputs'];
         }
         $this->_inputs = $inputs;
         $setting = array();
         if (!empty($this->_currentModule['setting'])) {
-            if (!is_array($this->_currentModule['setting'])) {
-                throw new BusinessException(
-                    BusinessException::INVALID_MODULE_SET_MSG,
-                    BusinessException::INVALID_MODULE_SET_CODE,
-                    ['mode' => 'setting']
-                );
-            }
             $setting = $this->_currentModule['setting'];
         }
         $this->_setting = $setting;
@@ -284,23 +268,6 @@ class ModuleDefinition
             }
         }
         throw new ResourceException(ResourceException::MODULE_NOT_EXISTS_MSG, ResourceException::MODULE_NOT_EXISTS_CODE, ['module' => $moduleId]);
-    }
-
-    /**
-     * init
-     *
-     * @param array $moduleSetting module setting
-     *
-     * @return void
-     */
-    protected function init($moduleSetting): void
-    {
-        $this->_moduleId = $moduleSetting['id'];
-        $this->_inputs = $moduleSetting['inputs'];
-        $this->_setting = $moduleSetting['setting'];
-        $this->_mockPlugins = $moduleSetting['mockps'];
-        $this->_plugins = $moduleSetting['plugins'];
-        $this->_views = $moduleSetting['views'];
     }
 
 }

@@ -43,10 +43,10 @@ class Router extends \loeye\std\Router
      * @param string $property property name
      * @throws BusinessException
      */
-    public function __construct($property)
+    public function __construct($property = null)
     {
         $definition = new ConfigDefinition();
-        $this->config = $this->bundleConfig($property, null, $definition);
+        $this->config = $this->bundleConfig($definition, $property);
         $this->_initRouter();
     }
 
