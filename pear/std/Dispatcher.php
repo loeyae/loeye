@@ -31,26 +31,6 @@ use ReflectionException;
 use Smarty;
 use SmartyException;
 
-if (!defined('LOEYE_PROCESS_MODE__NORMAL')) {
-    define('LOEYE_PROCESS_MODE__NORMAL', 0);
-}
-
-if (!defined('LOEYE_PROCESS_MODE__TEST')) {
-    define('LOEYE_PROCESS_MODE__TEST', 1);
-}
-
-if (!defined('LOEYE_PROCESS_MODE__TRACE')) {
-    define('LOEYE_PROCESS_MODE__TRACE', 2);
-}
-
-if (!defined('LOEYE_PROCESS_MODE__ERROR_EXIT')) {
-    define('LOEYE_PROCESS_MODE__ERROR_EXIT', 9);
-}
-
-if (!defined('LOEYE_CONTEXT_TRACE_KEY')) {
-    define('LOEYE_CONTEXT_TRACE_KEY', 'LOEYE_TEST_TRACE');
-}
-
 /**
  * Dispatcher
  *
@@ -181,11 +161,6 @@ abstract class Dispatcher
      */
     protected function initAppConfig(): void
     {
-
-        $property = $this->context->getRequest()['property'];
-        if (!defined('PROJECT_PROPERTY')) {
-            define('PROJECT_PROPERTY', $property);
-        }
         $appConfig = Factory::appConfig();
         $appConfig->setLocale($this->context->getRequest()->getLanguage());
         $this->context->setAppConfig($appConfig);
@@ -216,8 +191,10 @@ abstract class Dispatcher
      */
     protected function initLogger(): void
     {
-        $logLevel = $this->context->getAppConfig()->getSetting('application.logger.level', Logger::LOEYE_LOGGER_TYPE_DEBUG);
-        define('RUNTIME_LOGGER_LEVEL', $logLevel);
+        if (!defined('RUNTIME_LOGGER_LEVEL')) {
+            $logLevel = $this->context->getAppConfig()->getSetting('application.logger.level', Logger::LOEYE_LOGGER_TYPE_DEBUG);
+            define('RUNTIME_LOGGER_LEVEL', $logLevel);
+        }
     }
 
 

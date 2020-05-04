@@ -46,7 +46,6 @@ class SessionPlugin implements Plugin
         if (session_id() === '') {
             session_start();
         }
-        $propertyName = $context->getAppConfig()->getPropertyName();
         $setKey = Utils::getData($inputs, 'set', $this->dataKey);
         $setData = Utils::getData($context, $setKey);
         if (!empty($setData)) {
@@ -54,15 +53,13 @@ class SessionPlugin implements Plugin
                 if (is_numeric($key)) {
                     continue;
                 }
-                $key = $propertyName . '_' . $key;
                 $_SESSION[$key] = $value;
             }
         }
         $unset = Utils::getData($inputs, 'unset', null);
         if (!empty($unset)) {
             foreach ((array)$unset as $item) {
-                $sessionKey = $propertyName . '_' . $item;
-                unset($_SESSION[$sessionKey]);
+                unset($_SESSION[$item]);
             }
         }
         $key = Utils::getData($inputs, 'get', null);
@@ -70,15 +67,11 @@ class SessionPlugin implements Plugin
         if (empty($key)) {
             $session = $context->getRequest()->getSession();
             foreach ($session as $key => $value) {
-                if (mb_strpos($key, $propertyName) === 0) {
-                    $key = str_replace($propertyName . '_', '', $key);
-                    $data[$key] = $value;
-                }
+                $data[$key] = $value;
             }
         } else {
             foreach ((array)$key as $item) {
-                $sessionKey = $propertyName . '_' . $item;
-                $data[$item] = $context->getRequest()->getSession($sessionKey);
+                $data[$item] = $context->getRequest()->getSession($item);
             }
         }
         Utils::setContextData($data, $context, $inputs, $this->outKey);

@@ -29,5 +29,5 @@
         </section>
     </body>
     <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
-    <script type="text/javascript" src="/static/js/bootstrap.js"></script>
+    <script type="text/javascript" src="/dist/js/bootstrap.js"></script>
 </html>

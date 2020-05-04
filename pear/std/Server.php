@@ -69,9 +69,9 @@ abstract class Server
     }
 
     /**
-     * @return string|null
+     * @return mixed|null
      */
-    protected function getStaticPath(): ?string
+    protected function getStaticPath()
     {
         return $this->appConfig->getSetting('server.static_path');
     }
@@ -111,6 +111,36 @@ abstract class Server
         $dispatcher = $this->appConfig->getSetting('server.dispatcher', self::DEFAULT_DISPATCHER);
         return ($dispatcher === self::SERVICE_DISPATCHER) ? new \loeye\service\Request() : new
         \loeye\web\Request();
+    }
+
+    /**
+     * createResponse
+     *
+     * @param Request $request
+     * @return Response
+     */
+    protected function createResponse(Request $request): Response
+    {
+        $dispatcher = $this->appConfig->getSetting('server.dispatcher', self::DEFAULT_DISPATCHER);
+        return ($dispatcher === self::SERVICE_DISPATCHER) ? new \loeye\service\Response($request) : new
+        \loeye\web\Response();
+    }
+
+    /**
+     * @param $path
+     * @return bool|string
+     */
+    protected function isStaticFile($path)
+    {
+        $staticPath = $this->getStaticPath();
+        if ($staticPath) {
+            foreach ((array)$staticPath as $item) {
+                if (is_file(PROJECT_DIR . DIRECTORY_SEPARATOR . $item .DIRECTORY_SEPARATOR .$path)) {
+                    return PROJECT_DIR . DIRECTORY_SEPARATOR . $item .DIRECTORY_SEPARATOR .$path;
+                }
+            }
+        }
+        return false;
     }
 
     abstract public function run();

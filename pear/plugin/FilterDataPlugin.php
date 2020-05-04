@@ -140,21 +140,22 @@ class FilterDataPlugin implements Plugin
             switch ($method) {
                 case 'GET':
                     foreach ($checkKey as $key) {
-                        if ($context->getRequest()->getParameterGet($key) === null) {
+                        if ($context->getRequest()->getQuery($key) === null) {
                             return false;
                         }
                     }
                     break;
                 case 'POST':
                     foreach ($checkKey as $key) {
-                        if ($context->getRequest()->getParameterPost($key) === null) {
+                        if ($context->getRequest()->getBody($key) === null) {
                             return false;
                         }
                     }
                     break;
                 default :
                     foreach ($checkKey as $key) {
-                        if ($context->getRequest()->getParameterGet($key) === null && $context->getRequest()->getParameterPost($key) === null) {
+                        if ($context->getRequest()->getQuery($key) === null &&
+                            $context->getRequest()->getBody($key) === null) {
                             return false;
                         }
                     }
@@ -165,7 +166,7 @@ class FilterDataPlugin implements Plugin
     }
 
     /**
-     * _excuteResult
+     * _executeResult
      *
      * @param Context $context context
      * @param array $inputs inputs

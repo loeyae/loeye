@@ -6,6 +6,6 @@
 
     page:
         path : ^/{module}/$
-        module_id : {module}
+        module_id : '{module}'
         regex:
             module: \w+

@@ -37,4 +37,12 @@ class Request extends \loeye\std\Request
         RENDER_TYPE_JSON,
     );
 
+    /**
+     * @return null
+     */
+    public function getDevice()
+    {
+        return null;
+    }
+
 }

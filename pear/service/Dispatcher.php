@@ -164,12 +164,11 @@ class Dispatcher extends \loeye\std\Dispatcher
      */
     protected function initIOObject($moduleId): void
     {
-        $request = new Request($moduleId);
+        $request = $this->context->getRequest();
+        $request->setModuleId($moduleId);
         $request->setRouter($this->context->getRouter());
-        $this->context->setRequest($request);
-        $response = new Response($request);
+        $response = $this->context->getResponse();
         $response->setFormat($request->getFormatType());
-        $this->context->setResponse($response);
     }
 
     /**

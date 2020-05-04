@@ -150,9 +150,12 @@ class CreateApp extends Command
         $home = GeneratorUtils::buildPath($base, 'app', 'views', 'home.tpl');
         $fileSystem->dumpFile($home, GeneratorUtils::getCodeFromTemplate('app/Home'));
         $ui->block(sprintf('create file: %1s', $home));
-        $css = GeneratorUtils::buildPath($base, 'app', 'htdocs', 'static', 'css', 'bootstrap.css');
+        $css = GeneratorUtils::buildPath($base, 'htdocs', 'static', 'css', 'bootstrap.css');
         $fileSystem->dumpFile($css, GeneratorUtils::getCodeFromTemplate('app/BootstrapCSS'));
         $ui->block(sprintf('create file: %1s', $css));
+        $app = GeneratorUtils::buildPath($base, 'App.php');
+        $fileSystem->dumpFile($app, GeneratorUtils::getCodeFromTemplate('app/App'));
+        $ui->block(sprintf('create file: %1s', $app));
     }
 
 

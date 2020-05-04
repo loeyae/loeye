@@ -15,6 +15,7 @@ namespace loeye\server;
 
 use loeye\base\Context;
 use loeye\std\Server;
+use phpseclib\File\ASN1;
 use Psr\Http\Message\ServerRequestInterface;
 use React\EventLoop\LoopInterface;
 use React\Http\Response;
@@ -44,9 +45,8 @@ class ReactServer extends Server
     {
         return new \React\Http\Server(function (ServerRequestInterface $request) {
             $path = $request->getUri()->getPath();
-            $staticPath = $this->getStaticPath();
-            if (null !== $staticPath && is_file($staticPath . $path)) {
-                $render = $this->staticRouter($staticPath.$path);
+            if (($file = $this->isStaticFile($path)) !== false) {
+                $render = $this->staticRouter($file);
             } else {
                 $context = $this->createContext($request);
                 $render = $this->process($context);
@@ -107,15 +107,17 @@ class ReactServer extends Server
     {
         $myRequest = $this->createRequest();
         $myRequest->setUri($request->getUri()->__toString())
-        ->setQuery($request->getQueryParams())
-        ->setBody($request->getParsedBody())
-        ->setContent($request->getBody())
-        ->setCookie($request->getCookieParams())
-        ->setHeader($request->getHeaders())
-        ->setFiles($request->getUploadedFiles())
-        ->setServer($request->getServerParams());
+            ->setMethod($request->getMethod())
+            ->setQuery($request->getQueryParams())
+            ->setBody($request->getParsedBody())
+            ->setContent($request->getBody())
+            ->setCookie($request->getCookieParams())
+            ->setHeader($request->getHeaders())
+            ->setFiles($request->getUploadedFiles())
+            ->setServer($request->getServerParams());
         $context = new Context($this->appConfig);
         $context->setRequest($myRequest);
+        $context->setResponse($this->createResponse($myRequest));
         return $context;
     }
 }

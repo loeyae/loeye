@@ -41,7 +41,7 @@ class Response extends \loeye\std\Response
      *
      * @return void
      */
-    public function __construct(Request $req)
+    public function __construct(\loeye\std\Request $req)
     {
         $this->_serverProtocol = $req->getServerProtocol();
         $this->_statusCode     = LOEYE_REST_STATUS_OK;

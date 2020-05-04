@@ -27,10 +27,6 @@ use const loeye\base\RENDER_TYPE_SEGMENT;
  */
 class Request
 {
-
-    private $lang = 'zh_CN';
-    private $country = 'cn';
-
     /**
      * @var Router
      */
@@ -80,6 +76,10 @@ class Request
      * @var Uri
      */
     private $uri;
+    /**
+     * @var string
+     */
+    private $method;
 
     /**
      * __construct
@@ -92,8 +92,8 @@ class Request
         $argc = func_num_args();
         if ($argc > 0) {
             $moduleId = func_get_arg(0);
+            $this->setModuleId($moduleId);
         }
-        $this->setModuleId($moduleId);
         $this->_getIsAjaxRequest();
         $this->_getIsFlashRequest();
         $this->_getIsSecureConnection();
@@ -106,7 +106,7 @@ class Request
      * @param Router $router
      * @return Request
      */
-    public function setRouter(Router $router): Request
+    public function setRouter(Router $router = null): Request
     {
         $this->router = $router;
         return $this;
@@ -183,7 +183,7 @@ class Request
      *
      * @return Request
      */
-    public function setModuleId(string $moduleId): Request
+    public function setModuleId(string $moduleId = null): Request
     {
         $this->moduleId = $moduleId;
         return $this;
@@ -192,9 +192,9 @@ class Request
     /**
      * getModuleId
      *
-     * @return string
+     * @return string|null
      */
-    public function getModuleId(): string
+    public function getModuleId(): ?string
     {
         $this->moduleId ?: $this->_findModuleId();
         return $this->moduleId;
@@ -230,7 +230,7 @@ class Request
      * @param array $query
      * @return Request
      */
-    public function setQuery(array $query): Request
+    public function setQuery(array $query = null): Request
     {
         $this->query = $query;
         return $this;
@@ -265,7 +265,7 @@ class Request
      * @param array $body
      * @return Request
      */
-    public function setBody(array $body): Request
+    public function setBody(array $body = null): Request
     {
         $this->body = $body;
         return $this;
@@ -298,7 +298,7 @@ class Request
      * @param $content
      * @return Request
      */
-    public function setContent($content): Request
+    public function setContent($content = null): Request
     {
         $this->content = $content;
         return $this;
@@ -334,7 +334,7 @@ class Request
      * @param array $header
      * @return Request
      */
-    public function setHeader(array $header): Request
+    public function setHeader(array $header = null): Request
     {
         $this->header = $header;
         return $this;
@@ -356,7 +356,7 @@ class Request
      * @param array $cookie
      * @return Request
      */
-    public function setCookie(array $cookie): Request
+    public function setCookie(array $cookie = null): Request
     {
         $this->cookie = $cookie;
         return $this;
@@ -389,7 +389,7 @@ class Request
      * @param array $server
      * @return Request
      */
-    public function setServer(array $server): Request
+    public function setServer(array $server = null): Request
     {
         $this->server = $server;
         return $this;
@@ -418,6 +418,17 @@ class Request
         return $this->server[$key] ?? null;
     }
 
+    public function setMethod(string $method)
+    {
+        $this->method = $method;
+        return $this;
+    }
+
+    public function getMethod()
+    {
+        return $this->method;
+    }
+
     /**
      * @param string $url
      * @return Request
@@ -431,6 +442,34 @@ class Request
     public function getUri(): Uri
     {
         return $this->uri;
+    }
+
+    /**
+     * @return array|mixed|null
+     */
+    public function getLanguage()
+    {
+        return $this->getQuery('lang');
+    }
+
+    /**
+     * @return array|mixed|null
+     */
+    public function getCountry()
+    {
+        return $this->getQuery('cc') ?? $this->getCookie('cc');
+    }
+
+    /**
+     * @param string|null $key
+     * @return mixed
+     */
+    public function getSession(string $key = null)
+    {
+        if (null === $key) {
+            return filter_input_array(INPUT_SESSION);
+        }
+        return filter_input(INPUT_SESSION, $key);
     }
 
 }

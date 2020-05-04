@@ -1,4 +1,9 @@
 - settings: [master]
+  server:
+      port: 80
+      static_path:
+        - ../htdocs
+        - ../vendor/twbs/bootstrap
   profile: ${LOEYAE_ACTIVE_PROFILE:local}
   constants:
         BASE_SERVER_URL: http://localhost.com/
