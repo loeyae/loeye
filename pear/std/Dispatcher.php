@@ -161,9 +161,11 @@ abstract class Dispatcher
      */
     protected function initAppConfig(): void
     {
-        $appConfig = Factory::appConfig();
-        $appConfig->setLocale($this->context->getRequest()->getLanguage());
-        $this->context->setAppConfig($appConfig);
+        if (null === $this->context->getAppConfig()) {
+            $appConfig = Factory::appConfig();
+            $this->context->setAppConfig($appConfig);
+        }
+        $this->context->getAppConfig()->setLocale($this->context->getRequest()->getLanguage());
     }
 
 
