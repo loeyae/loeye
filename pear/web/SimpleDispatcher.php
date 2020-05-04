@@ -111,6 +111,10 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
         $this->context->setResponse($response);
     }
 
+    /**
+     * @param Controller $object
+     * @return array
+     */
     protected function getView(Controller $object): array
     {
         $view = [];
@@ -185,6 +189,9 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
         isset($setting[self::KEY_CONTROLLER]) && $this->controller = $setting[self::KEY_CONTROLLER];
         isset($setting[self::KEY_ACTION]) && $this->action     = $setting[self::KEY_ACTION];
         isset($setting[self::KEY_REWRITE]) && $this->rewrite    = $setting[self::KEY_REWRITE];
+        if ($this->rewrite) {
+            $this->context->setRouter(new UrlManager($this->rewrite));
+        }
     }
 
     /**
@@ -196,10 +203,8 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
     {
         $requestUrl = filter_input(INPUT_SERVER, 'REQUEST_URI');
         $path       = null;
-        if ($this->rewrite) {
-            $router = new UrlManager($this->rewrite);
-            $this->context->setRouter($router);
-            $path   = $router->match($requestUrl);
+        if ($this->context->getRouter() instanceof UrlManager) {
+            $path   = $this->context->getRouter()->match($requestUrl);
             if ($path === false) {
                 throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
             }

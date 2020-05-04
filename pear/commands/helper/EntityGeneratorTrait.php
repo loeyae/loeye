@@ -39,10 +39,9 @@ trait EntityGeneratorTrait {
     public function process(InputInterface $input, OutputInterface $output)
     {
         $ui       = new SymfonyStyle($input, $output);
-        $property = $input->getArgument('property');
         $force    = $input->getOption('force');
 
-        $appConfig = $this->loadAppConfig($property);
+        $appConfig = $this->loadAppConfig();
         $type      = $input->getOption('db-id');
         $db        = DB::getInstance($appConfig, $type);
         $em        = $db->em();

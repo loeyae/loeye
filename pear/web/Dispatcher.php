@@ -34,8 +34,6 @@ use Symfony\Component\Cache\Exception\CacheException;
 use Throwable;
 use function loeye\base\ExceptionHandler;
 
-define('LOEYE_PLUGIN_HAS_ERROR', 'lyHasError');
-
 /**
  * Description of Dispatcher
  *
@@ -96,22 +94,6 @@ class Dispatcher extends \loeye\std\Dispatcher
         }
         return $render;
     }
-
-
-    /**
-     * setUrlManager
-     *
-     * @param array $setting rewrite rule setting
-     * <p>
-     * $setting = ['/<property_name:\w+>/<module:\w+>/<id:\w>/' => '{property_name}.{module}.{id}']
-     * </p>
-     */
-    public function setUrlManager(array $setting): void
-    {
-        $router = new UrlManager($setting);
-        $this->context->setRouter($router);
-    }
-
 
     /**
      * execute module

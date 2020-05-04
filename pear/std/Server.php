@@ -17,6 +17,7 @@ namespace loeye\std;
 use loeye\base\AppConfig;
 use loeye\base\Context;
 use loeye\base\Factory;
+use loeye\base\UrlManager;
 use loeye\base\Utils;
 use loeye\render\SegmentRender;
 use loeye\web\SimpleDispatcher;
@@ -44,9 +45,10 @@ abstract class Server
     /**
      * getDispatcher
      *
+     * @param Context $context
      * @return Dispatcher
      */
-    protected function getDispatcher($context): Dispatcher
+    protected function getDispatcher(Context $context): Dispatcher
     {
         $map = [
             self::DEFAULT_DISPATCHER => \loeye\web\Dispatcher::class,
@@ -124,6 +126,18 @@ abstract class Server
         $dispatcher = $this->appConfig->getSetting('server.dispatcher', self::DEFAULT_DISPATCHER);
         return ($dispatcher === self::SERVICE_DISPATCHER) ? new \loeye\service\Response($request) : new
         \loeye\web\Response();
+    }
+
+    /**
+     * @return UrlManager|null
+     */
+    protected function createRouter(): ?UrlManager
+    {
+        $rewrite = $this->appConfig->getSetting('server.rewrite');
+        if ($rewrite) {
+            return new UrlManager($rewrite);
+        }
+        return null;
     }
 
     /**

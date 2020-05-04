@@ -115,6 +115,7 @@ if (!defined('LOEYE_CONTEXT_TRACE_KEY')) {
     define('LOEYE_CONTEXT_TRACE_KEY', 'LOEYE_TEST_TRACE');
 }
 
+define('LOEYE_PLUGIN_HAS_ERROR', 'lyHasError');
 
 const PROJECT_SUCCESS = '';
 const RENDER_TYPE_SEGMENT = 'segment';

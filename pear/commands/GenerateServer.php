@@ -29,8 +29,7 @@ class GenerateServer extends Command
 
     use EntityGeneratorTrait;
 
-    protected $args = [
-    ];
+    protected $args = [];
     protected $params = [
         ['db-id', 'd', 'required' => false, 'help' => 'database setting id', 'default' => 'default'],
         ['filter', 'f', 'required' => false, 'help' => 'filter', 'default' => null],

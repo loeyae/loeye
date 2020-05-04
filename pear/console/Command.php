@@ -47,7 +47,7 @@ abstract class Command extends BaseCommand\Command
         $name = $this->name ?? strtolower(str_replace('\\commands\\', ':', get_class($this)));
         $this->setName($name)
                 ->setDescription($this->desc)
-                ->setHelp('php vender/bin/loeye ' . $name .' property')
+                ->setHelp('php vender/bin/loeye ' . $name)
                 ->parseArgs()
                 ->parseParams();
     }
@@ -120,13 +120,11 @@ abstract class Command extends BaseCommand\Command
     /**
      * loadAppConfig
      *
-     * @param string $property
-     *
      * @return AppConfig
      */
-    protected function loadAppConfig($property): AppConfig
+    protected function loadAppConfig(): AppConfig
     {
-        return new AppConfig($property);
+        return new AppConfig();
     }
 
     /**

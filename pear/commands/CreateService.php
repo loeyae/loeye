@@ -110,7 +110,7 @@ EOF;
 
         $clientName = ucfirst($entityName) . 'Client';
         $namespace = GeneratorUtils::getNamespace($this->clientDir);
-        $fullClientClassName = $namespace . $clientName;
+        $fullClientClassName = $namespace . '\\' . $clientName;
         $ui->text(sprintf('Processing Client "<info>%s</info>"', $fullClientClassName));
         $classBody = $this->generateClientBody($serverClass, $entityName);
         $code = $this->generateClientFile($clientName, $namespace, $classBody);
@@ -504,30 +504,10 @@ EOF;
     protected function getDestPath(InputInterface $input, SymfonyStyle $ui): string
     {
         $baseDir = dirname(PROJECT_DIR);
-        $this->createServiceDispatcher($baseDir, $ui);
         [$handlerDir, $clientDir] = $this->mkdir($baseDir, $ui);
         $this->handlerDir = $handlerDir;
         $this->clientDir = $clientDir;
         return $handlerDir;
-    }
-
-    /**
-     * createServiceDispatcher
-     *
-     * @param string $baseDir
-     * @param SymfonyStyle $ui
-     * @throws SmartyException
-     */
-    protected function createServiceDispatcher($baseDir, SymfonyStyle $ui): void
-    {
-        $dir = $baseDir . D_S . 'htdocs';
-        if (!file_exists($dir) && !mkdir($dir, 755) && !is_dir($dir)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
-        }
-        $fileSystem = new Filesystem();
-        $dispatcher = $dir . D_S . 'Service.php';
-        $fileSystem->dumpFile($dispatcher, GeneratorUtils::getCodeFromTemplate('service/Dispatcher', []));
-        $ui->block(sprintf('create file: %1s', $dispatcher));
     }
 
     /**

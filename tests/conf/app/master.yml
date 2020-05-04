@@ -13,6 +13,8 @@
   server:
     name: demo
     port: 80
+    rewrite:
+        '/<module:\w+>/<controller:\w+>/<action:\w+>.html': '{module}/{controller}/{action}'
     periodic:
       - callback: [\loeye\base\Utils, fetch]
         interval: 10

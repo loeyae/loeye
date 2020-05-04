@@ -116,6 +116,8 @@ class ReactServer extends Server
             ->setFiles($request->getUploadedFiles())
             ->setServer($request->getServerParams());
         $context = new Context($this->appConfig);
+        $router = $this->createRouter();
+        $myRequest->setRouter($router);
         $context->setRequest($myRequest);
         $context->setResponse($this->createResponse($myRequest));
         return $context;
