@@ -34,7 +34,6 @@ class GenerateConfig extends Command {
     protected $name   = 'loeye:generate-config';
     protected $desc   = 'generate configuration file';
     protected $args   = [
-        ['property', 'required' => true, 'help' => 'property name', 'default' => null],
         ['type', 'required' => true, 'help' => 'configuration type: app-master,app-delta,cache,database,module,router,valid-rule,valid-delta,ruleset,delta', 'default' => null],
     ];
     protected $params = [
@@ -65,10 +64,9 @@ class GenerateConfig extends Command {
      */
     public function process(InputInterface $input, OutputInterface $output): void
     {
-        $property      = $input->getArgument('property');
         $type          = $input->getArgument('type');
         $name          = $input->getOption('file');
-        $file          = $this->getConfigPath($property, $type, $name);
+        $file          = $this->getConfigPath($type, $name);
         $dumper        = new YamlReferenceDumper();
         $configuration = $this->getConfiguration($type);
         if (null !== $configuration) {
@@ -103,30 +101,28 @@ class GenerateConfig extends Command {
 
     /**
      * getConfigPath
-     * 
-     * @param string $property
+     *
      * @param string $type
      * @param string $file
      * @return string
      */
-    protected function getConfigPath($property, $type, $file = 'master'): ?string
+    protected function getConfigPath($type, $file = 'master'): ?string
     {
         switch ($type) {
             case 'app-master':
             case 'app-delta':
-                return PROJECT_CONFIG_DIR . D_S . $property . D_S . 'app' . D_S . $file . '.yml';
+                return PROJECT_CONFIG_DIR . D_S . 'app' . D_S . $file . '.yml';
             case 'cache':
-            case 'database':
-                return PROJECT_CONFIG_DIR . D_S . $property . D_S . $type . D_S . $file . '.yml';
-            case 'module':
-                return PROJECT_CONFIG_DIR . D_S . 'modules' . D_S . $property . D_S . $file . '.yml';
             case 'router':
-                return PROJECT_CONFIG_DIR . D_S . $type . D_S . $property . D_S . $file . '.yml';
+            case 'database':
+                return PROJECT_CONFIG_DIR . D_S . $type . D_S . $file . '.yml';
+            case 'module':
+                return PROJECT_CONFIG_DIR . D_S . 'modules' . D_S . $file . '.yml';
             case 'valid-rule':
             case 'valid-delta':
-                return PROJECT_CONFIG_DIR . D_S . 'validate' . D_S . $property . D_S . $file . '.yml';
+                return PROJECT_CONFIG_DIR . D_S . 'validate' . D_S . $file . '.yml';
             default:
-                return PROJECT_CONFIG_DIR . D_S . $property . D_S . 'general' . D_S . $file . '.yml';
+                return PROJECT_CONFIG_DIR . D_S . 'general' . D_S . $file . '.yml';
                 break;
         }
     }

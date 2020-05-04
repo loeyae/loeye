@@ -88,13 +88,13 @@ abstract class Dispatcher
     /**
      * __construct
      *
+     * @param Context|null $context
      * @param int $processMode process mode
      *
-     * @return void
      */
-    public function __construct($processMode = LOEYE_PROCESS_MODE__NORMAL)
+    public function __construct(Context $context = null, $processMode = LOEYE_PROCESS_MODE__NORMAL)
     {
-        $this->context = new Context();
+        $this->context = $context ?? new Context();
         $this->processMode = $processMode;
         if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL) {
             $this->setTraceDataIntoContext(array());

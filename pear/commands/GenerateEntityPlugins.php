@@ -34,7 +34,6 @@ class GenerateEntityPlugins extends Command
     use EntityGeneratorTrait;
 
     protected $args = [
-        ['property', 'required' => true, 'help' => 'The application property name.']
     ];
     protected $params = [
         ['db-id', 'd', 'required' => false, 'help' => 'database setting id', 'default' => 'default'],
@@ -83,7 +82,7 @@ EOF;
      */
     protected function getDestPath(InputInterface $input, SymfonyStyle $ui): string
     {
-        return PROJECT_DIR . D_S . 'plugins' . D_S . $input->getArgument('property');
+        return PROJECT_DIR . D_S . 'plugins';
     }
 
     /**

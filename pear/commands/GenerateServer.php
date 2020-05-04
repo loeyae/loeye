@@ -30,7 +30,6 @@ class GenerateServer extends Command
     use EntityGeneratorTrait;
 
     protected $args = [
-        ['property', 'required' => true, 'help' => 'The application property name.']
     ];
     protected $params = [
         ['db-id', 'd', 'required' => false, 'help' => 'database setting id', 'default' => 'default'],
@@ -69,7 +68,7 @@ class GenerateServer extends Command
      */
     protected function getDestPath(InputInterface $input, SymfonyStyle $ui): string
     {
-        return PROJECT_MODELS_DIR . D_S . 'server' . D_S . $input->getArgument('property');
+        return PROJECT_MODELS_DIR . D_S . 'server';
     }
 
     /**

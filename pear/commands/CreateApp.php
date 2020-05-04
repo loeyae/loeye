@@ -29,37 +29,32 @@ class CreateApp extends Command
 
     protected $name = 'loeye:create-app';
     protected $desc = 'create application';
-    protected $args = [
-        ['property', 'required' => true, 'help' => 'property name']
-    ];
+    protected $args = [];
     protected $params = [
         ['path', 'p', 'required' => false, 'help' => 'path', 'default' => null]
     ];
-    protected $property;
     protected $dirMap = [
         'app' => [
-            'commands' => 'property',
+            'commands' => null,
             'conf' => [
-                'modules' => 'property',
-                'router' => 'general',
-                'property' => [
-                    'app' => null,
-                    'cache' => null,
-                    'database' => null,
-                ],
-                'validate' => 'property',
+                'modules' => null,
+                'router' => null,
+                'app' => null,
+                'cache' => null,
+                'database' => null,
+                'validate' => null,
             ],
-            'controllers' => 'property',
+            'controllers' => null,
             'errors' => null,
             'models' => [
-                'entity' => 'property',
-                'repository' => 'property',
+                'entity' => null,
+                'repository' => null,
                 'proxy' => null,
-                'server' => 'property',
+                'server' => null,
             ],
-            'plugins' => 'property',
-            'resource' => 'property',
-            'views' => 'property',
+            'plugins' => null,
+            'resource' => null,
+            'views' => null,
         ],
         'htdocs' => [
             'static' => [
@@ -82,7 +77,6 @@ class CreateApp extends Command
      */
     public function process(InputInterface $input, OutputInterface $output): void
     {
-        $this->property = $input->getArgument('property');
         $ui = new SymfonyStyle($input, $output);
         $dir = $input->getOption('path') ?? getcwd();
         $ui->block($dir);
@@ -107,9 +101,6 @@ class CreateApp extends Command
                 $this->mkdir($ui, $this->mkdir($ui, $base, $key), $val);
             }
         } else {
-            if ('property' === $var) {
-                $var = $this->property;
-            }
             if (null !== $var) {
                 $dir .= D_S . $var;
             }
@@ -136,38 +127,32 @@ class CreateApp extends Command
     {
         $fileSystem = new Filesystem();
         $appConfig = $this->buildAppConfigFile($base, 'app');
-        $fileSystem->dumpFile($appConfig, $this->replaceProperty('app/AppConfig'));
+        $fileSystem->dumpFile($appConfig, GeneratorUtils::getCodeFromTemplate('app/AppConfig'));
         $ui->block(sprintf('create file: %1s', $appConfig));
         $dbConfig = $this->buildAppConfigFile($base, 'database');
-        $fileSystem->dumpFile($dbConfig, $this->replaceProperty('app/DatabaseConfig'));
+        $fileSystem->dumpFile($dbConfig, GeneratorUtils::getCodeFromTemplate('app/DatabaseConfig'));
         $ui->block(sprintf('create file: %1s', $dbConfig));
         $cacheConfig = $this->buildAppConfigFile($base, 'cache');
-        $fileSystem->dumpFile($cacheConfig, $this->replaceProperty('app/CacheConfig'));
+        $fileSystem->dumpFile($cacheConfig, GeneratorUtils::getCodeFromTemplate('app/CacheConfig'));
         $ui->block(sprintf('create file: %1s', $cacheConfig));
         $moduleConfig = $this->buildConfigFile($base, 'modules');
-        $fileSystem->dumpFile($moduleConfig, $this->replaceProperty('app/ModuleConfig'));
+        $fileSystem->dumpFile($moduleConfig, GeneratorUtils::getCodeFromTemplate('app/ModuleConfig'));
         $ui->block(sprintf('create file: %1s', $moduleConfig));
         $routerConfig = $this->buildConfigFile($base, 'router');
-        $fileSystem->dumpFile($routerConfig, $this->replaceProperty('app/RouteConfig'));
+        $fileSystem->dumpFile($routerConfig, GeneratorUtils::getCodeFromTemplate('app/RouteConfig'));
         $ui->block(sprintf('create file: %1s', $routerConfig));
         $generalErrorFile = GeneratorUtils::buildPath($base, 'app', 'errors', 'GeneralError.php');
-        $fileSystem->dumpFile($generalErrorFile, $this->replaceProperty('app/GeneralError'));
+        $fileSystem->dumpFile($generalErrorFile, GeneratorUtils::getCodeFromTemplate('app/GeneralError'));
         $ui->block(sprintf('create file: %1s', $generalErrorFile));
         $layout = GeneratorUtils::buildPath($base, 'app', 'views', 'layout.tpl');
-        $fileSystem->dumpFile($layout, $this->replaceProperty('app/Layout'));
+        $fileSystem->dumpFile($layout, GeneratorUtils::getCodeFromTemplate('app/Layout'));
         $ui->block(sprintf('create file: %1s', $layout));
-        $home = GeneratorUtils::buildPath($base, 'app', 'views', $this->property, 'home.tpl');
-        $fileSystem->dumpFile($home, $this->replaceProperty('app/Home'));
+        $home = GeneratorUtils::buildPath($base, 'app', 'views', 'home.tpl');
+        $fileSystem->dumpFile($home, GeneratorUtils::getCodeFromTemplate('app/Home'));
         $ui->block(sprintf('create file: %1s', $home));
         $css = GeneratorUtils::buildPath($base, 'app', 'htdocs', 'static', 'css', 'bootstrap.css');
-        $fileSystem->dumpFile($css, $this->replaceProperty('app/BootstrapCSS'));
+        $fileSystem->dumpFile($css, GeneratorUtils::getCodeFromTemplate('app/BootstrapCSS'));
         $ui->block(sprintf('create file: %1s', $css));
-        $htaccess = GeneratorUtils::buildPath($base, 'app', 'htdocs', '.htaccess');
-        $fileSystem->dumpFile($htaccess, $this->replaceProperty('app/Htaccess'));
-        $ui->block(sprintf('create file: %1s', $htaccess));
-        $dispatcher = GeneratorUtils::buildPath($base, 'app', 'htdocs', 'Dispatcher.php');
-        $fileSystem->dumpFile($dispatcher, $this->replaceProperty('app/Dispatcher'));
-        $ui->block(sprintf('create file: %1s', $dispatcher));
     }
 
 
@@ -181,7 +166,7 @@ class CreateApp extends Command
      */
     protected function buildAppConfigFile(string $base, string $type): string
     {
-        return GeneratorUtils::buildPath($base, 'app', 'conf', $this->property, $type, 'master.yml');
+        return GeneratorUtils::buildPath($base, 'app', 'conf', $type, 'master.yml');
     }
 
 
@@ -195,7 +180,7 @@ class CreateApp extends Command
      */
     protected function buildConfigFile(string $base, string $type): string
     {
-        return GeneratorUtils::buildPath($base, 'app', 'conf', $type, $this->property, 'master.yml');
+        return GeneratorUtils::buildPath($base, 'app', 'conf', $type, 'master.yml');
     }
 
     /**

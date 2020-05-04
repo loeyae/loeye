@@ -22,9 +22,9 @@ use loeye\client\Response;
 class <{$className}> extends Client
 {
     /**
-     * property name
+     * bundle name
      */
-    private $bundle = '<{$property}>';
+    private $bundle = null;
 
     /**
      * @inheritDoc

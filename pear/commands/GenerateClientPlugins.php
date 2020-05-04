@@ -41,9 +41,7 @@ class GenerateClientPlugins extends Command
 
     protected $name = 'loeye:generate-client-plugins';
     protected $desc = 'generate plugin with client';
-    protected $args = [
-        ['property', 'required' => true, 'help' => 'The application property name.']
-    ];
+    protected $args = [];
     protected $params = [
         ['filter', 'f', 'required' => false, 'help' => 'filter', 'default' => null],
         ['force', null, 'required' => false, 'help' => 'force update file', 'default' => false],
@@ -66,14 +64,13 @@ EOF;
     public function process(InputInterface $input, OutputInterface $output)
     {
         $ui = new SymfonyStyle($input, $output);
-        $property = $input->getArgument('property');
         $force = $input->getOption('force');
-        $dir = realpath(PROJECT_DIR . D_S . 'services' . D_S . 'client' . D_S . $property);
+        $dir = realpath(PROJECT_DIR . D_S . 'services' . D_S . 'client');
         if (!$dir) {
-            $ui->error('Clients of Property: ' . $property . ' not exists');
+            $ui->error('Clients: not exists');
         }
         $clientNamespace = GeneratorUtils::getNamespace($dir);
-        $destDir = $this->getDestDir($property);
+        $destDir = $this->getDestDir();
         foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)) as $file) {
             if ($file->isFile() && $file->getExtension() === 'php') {
                 $clientName = $file->getBaseName('.php');
@@ -183,12 +180,11 @@ EOF;
     /**
      * getDestDir
      *
-     * @param string|null $property
      * @return bool|string
      */
-    private function getDestDir(?string $property)
+    private function getDestDir()
     {
-        $path = PROJECT_DIR . D_S . 'services' . D_S . 'plugins' . D_S . $property;
+        $path = PROJECT_DIR . D_S . 'services' . D_S . 'plugins';
         if (!file_exists($path)) {
             $fileSystem = new Filesystem();
             $fileSystem->mkdir($path);

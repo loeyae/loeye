@@ -22,6 +22,7 @@ use Doctrine\ORM\Tools\Pagination\Paginator;
 use IntlDateFormatter;
 use loeye\client\Client;
 use loeye\error\{BusinessException, DataException, LogicException, ResourceException};
+use loeye\std\Render;
 use loeye\web\Dispatcher;
 use loeye\web\Template;
 use Psr\Cache\InvalidArgumentException;
@@ -702,20 +703,14 @@ class Utils
      * @param string $moduleId module id
      * @param array $parameter parameter
      *
-     * @return void
+     * @return Render
      */
-    public static function includeModule($moduleId, $parameter = array()): void
+    public static function includeModule($moduleId, $parameter = array()): Render
     {
-        if (!empty($parameter)) {
-            foreach ((array)$parameter as $key => $value) {
-                if (is_numeric($key)) {
-                    continue;
-                }
-                $_REQUEST[$key] = $value;
-            }
-        }
+        $request = Factory::request($moduleId);
+
         $dispatcher = new Dispatcher();
-        $dispatcher->dispatch($moduleId);
+        return $dispatcher->dispatch($moduleId);
     }
 
     /**
@@ -1256,6 +1251,30 @@ class Utils
         }
         return ['total' => $paginator->count(), 'start' => $paginator->getQuery()->getFirstResult(), 'offset' =>
             $paginator->getQuery()->getMaxResults(), 'list' => $result];
+    }
+
+    /**
+     * mimeType
+     *
+     * @param $file
+     * @return mixed
+     */
+    public static function mimeType($file)
+    {
+        $ext = pathinfo($file, PATHINFO_EXTENSION);
+        switch ($ext) {
+            case 'css':
+                return 'text/css';
+            case 'js':
+                return 'text/javascript';
+            case 'json':
+                return 'application/json';
+            default:
+                $finfo = finfo_open(FILEINFO_MIME);
+                $mimeType = finfo_file($finfo, $file);
+                finfo_close($finfo);
+                return $mimeType;
+        }
     }
 
 }

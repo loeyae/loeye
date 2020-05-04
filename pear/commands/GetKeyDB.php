@@ -14,6 +14,8 @@ namespace loeye\commands;
 use loeye\console\Command;
 use loeye\lib\Secure;
 use Symfony\Component\Console\{Input\InputInterface, Output\OutputInterface};
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\Cache\Exception\CacheException;
 
 /**
  * GetKeyDB
@@ -26,7 +28,6 @@ class GetKeyDB extends Command
     protected $name   = 'loeye:getkeydb';
     protected $desc   = 'get value from key db';
     protected $args   = [
-        ['property', 'required' => true, 'help' => 'property name', 'default' => null],
         ['key', 'required' => true, 'help' => 'keydb name', 'default' => null],
         ['group', 'required' => false, 'help' => 'keydb group', 'default' => null],
     ];
@@ -39,10 +40,12 @@ class GetKeyDB extends Command
      * @param OutputInterface $output
      *
      * @return void
+     * @throws InvalidArgumentException
+     * @throws CacheException
      */
     public function process(InputInterface $input, OutputInterface $output): void
     {
-        $value = Secure::getKeyDb($input->getArgument('property'), $input->getArgument('key'), $input->getArgument('group'));
+        $value = Secure::getKeyDb($input->getArgument('key'), $input->getArgument('group'));
         $output->writeln($value);
     }
 

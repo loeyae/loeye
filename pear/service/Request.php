@@ -29,25 +29,11 @@ use const loeye\base\RENDER_TYPE_XML;
 class Request extends \loeye\std\Request
 {
 
-    private $_content;
-
     protected $_allowedFormatType = array(
-
         RENDER_TYPE_SEGMENT,
         RENDER_TYPE_XML,
         RENDER_TYPE_JSON,
     );
-
-    /**
-     * getContent
-     *
-     * @return string
-     */
-    public function getContent(): string
-    {
-        $this->_content ?: $this->_content = file_get_contents('php://input');
-        return $this->_content;
-    }
 
     /**
      * getContentLength
@@ -66,10 +52,7 @@ class Request extends \loeye\std\Request
      */
     public function getRemoteAddr(): ?string
     {
-        if (filter_has_var(INPUT_SERVER, 'REMOTE_ADDR')) {
-            return filter_input(INPUT_SERVER, 'REMOTE_ADDR');
-        }
-        return null;
+        return $this->getServer('REMOTE_ADDR');
     }
 
     /**
@@ -79,7 +62,7 @@ class Request extends \loeye\std\Request
      */
     public function getServerProtocol(): string
     {
-        return $this->server['SERVER_PROTOCOL'] ?? 'HTTP/1.0';
+        return $this->getServer('SERVER_PROTOCOL') ?? 'HTTP/1.0';
     }
 
 }

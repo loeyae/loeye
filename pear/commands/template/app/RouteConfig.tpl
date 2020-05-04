@@ -2,10 +2,10 @@
   routes:
     home:
         path: ^/$
-        module_id: <{$property}>.home
+        module_id: home
 
-    <{$property}>:
-        path : ^/<{$property}>/{module}/$
-        module_id : <{$property}>.{module}
+    page:
+        path : ^/{module}/$
+        module_id : {module}
         regex:
             module: \w+

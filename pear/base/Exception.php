@@ -71,7 +71,6 @@ function ExceptionHandler(Throwable $exc, Context $context): Render
                 $setting = $context->getModule()->getSetting();
                 if (isset($setting['error_page'])) {
                     $code = $exc->getCode();
-                    var_dump($setting, $code);
                     $errorPage = $setting['error_page'][$code] ?? $setting['error_page']['default'] ?? null;
                 }
             }

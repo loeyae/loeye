@@ -116,7 +116,7 @@ class GeneratorUtils
      * @return string
      * @throws SmartyException
      */
-    public static function getCodeFromTemplate($templateName, $data): string
+    public static function getCodeFromTemplate($templateName, $data = []): string
     {
         /**
          * @var Smarty

@@ -13,6 +13,11 @@
   server:
     name: demo
     port: 80
+    periodic:
+      - callback: [\loeye\base\Utils, fetch]
+        interval: 10
+      - callback: printf
+        interval: 10
   profile: ${LOEYE_PROFILE_ACTIVE}
   constants:
       BASE_SERVER_URL: http://localhost

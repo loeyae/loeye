@@ -19,6 +19,7 @@ namespace loeye\config\app;
 
 use loeye\base\Cache;
 use loeye\config\TreeBuilder;
+use loeye\std\Server;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use const loeye\base\ENCRYPT_MODE_CRYPT;
 use const loeye\base\ENCRYPT_MODE_EXPLICIT;
@@ -50,6 +51,30 @@ class DeltaDefinition implements ConfigurationInterface
                          ->children()
                              ->scalarNode('name')->defaultNull()->end()
                              ->integerNode('port')->isRequired()->defaultValue(80)->end()
+                             ->scalarNode('type')->end()
+                             ->enumNode('dispatcher')->values([
+                                Server::DEFAULT_DISPATCHER,
+                                Server::SIMPLE_DISPATCHER,
+                                Server::SERVICE_DISPATCHER])->end()
+                             ->arrayNode('ssl')->canBeUnset()
+                                ->children()
+                                    ->scalarNode('cert_file')->isRequired()->end()
+                                    ->scalarNode('key_file')->end()
+                                    ->regexNode('*')->end()
+                                ->end()
+                             ->end()
+                             ->arrayNode('periodic')->canBeUnset()
+                                ->arrayPrototype()
+                                    ->children()
+                                        ->variableNode('callback')->isRequired()->end()
+                                        ->integerNode('interval')->isRequired()->end()
+                                    ->end()
+                                ->end()
+                             ->end()
+                             ->regexNode('*')->end()
+                             ->regexNode('#\w+#')
+                                ->variablePrototype()->end()
+                             ->end()
                          ->end()
                      ->end()
                      ->scalarNode('debug')->end()

@@ -26,7 +26,6 @@ class SetKeyDB extends Command
     protected $name   = 'loeye:setkeydb';
     protected $desc   = 'set key db value';
     protected $args   = [
-        ['property', 'required' => true, 'help' => 'property name', 'default' => null],
         ['keydb', 'required' => true, 'help' => 'keydb name', 'default' => null],
         ['key', 'required' => true, 'help' => 'key name', 'default' => null],
         ['value', 'required' => true, 'help' => 'key value', 'default' => null],
@@ -45,13 +44,12 @@ class SetKeyDB extends Command
      */
     public function process(InputInterface $input, OutputInterface $output): void
     {
-        $property = $input->getArgument('property');
         $keydb = $input->getArgument('keydb');
         $key = $input->getArgument('key');
         $value = $input->getArgument('value');
         $group = $input->getArgument('group');
         $expiry = $input->getArgument('expiry');
-        Secure::setKeyDb($property, $keydb, $key, $value, $group, $expiry);
+        Secure::setKeyDb($keydb, $key, $value, $group, $expiry);
         $output->writeln('done');
     }
 

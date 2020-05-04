@@ -28,6 +28,8 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 class PrototypedArrayNode extends \Symfony\Component\Config\Definition\PrototypedArrayNode {
 
 
+    private $valuePrototypes;
+
     /**
      * Normalizes the value.
      *

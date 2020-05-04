@@ -140,7 +140,6 @@ class Secure
     /**
      * getKeyDb
      *
-     * @param string $property property name
      * @param string $key key
      * @param string $group group
      * @param bool $read false
@@ -149,12 +148,12 @@ class Secure
      * @throws InvalidArgumentException
      * @throws CacheException
      */
-    public static function getKeyDb($property, $key, $group = null, $read = false): string
+    public static function getKeyDb($key, $group = null, $read = false): string
     {
-        $cache = SimpleCache::getInstance($property, 'keydb');
+        $cache = SimpleCache::getInstance('keydb');
         $keyDbSetting = $cache->get('keydb');
         if (empty($keyDbSetting)) {
-            $baseDir = PROJECT_KEYDB_DIR . '/' . $property;
+            $baseDir = PROJECT_KEYDB_DIR;
             $dirIterator = new RecursiveDirectoryIterator($baseDir, FilesystemIterator::UNIX_PATHS);
             $fileSystem = new RecursiveIteratorIterator($dirIterator);
             $keyDbSetting = array();
@@ -212,7 +211,6 @@ class Secure
     /**
      * setKeyDb
      *
-     * @param string $property property
      * @param string $keydb key db
      * @param string $key key
      * @param string $value value
@@ -221,9 +219,9 @@ class Secure
      *
      * @return void
      */
-    public static function setKeyDb($property, $keydb, $key, $value, $group = null, $expiry = 0): void
+    public static function setKeyDb($keydb, $key, $value, $group = null, $expiry = 0): void
     {
-        $baseDir = PROJECT_KEYDB_DIR . '/' . $property;
+        $baseDir = PROJECT_KEYDB_DIR;
         if (!file_exists($baseDir) && !mkdir($baseDir, 0777, true) && !is_dir($baseDir)) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $baseDir));
         }

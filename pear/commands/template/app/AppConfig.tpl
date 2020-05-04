@@ -9,7 +9,6 @@
         is_dev_mode: true
         encrypt_mode: explicit # One of "explicit"; "crypt"; "keydb"
   configuration:
-    property_name: <{$property}> # Required
     timezone: Asia/Shanghai # Required
   locale:
     default: zh_CN

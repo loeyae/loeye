@@ -45,9 +45,6 @@ class CreateService extends Command
 
     protected $name = 'loeye:create-service';
     protected $desc = 'create service';
-    protected $args = [
-        ['property', 'required' => true, 'help' => 'The application property name.']
-    ];
     protected $params = [
         ['db-id', 'd', 'required' => false, 'help' => 'database setting id', 'default' => 'default'],
         ['filter', 'f', 'required' => false, 'help' => 'filter', 'default' => null],
@@ -115,8 +112,8 @@ EOF;
         $namespace = GeneratorUtils::getNamespace($this->clientDir);
         $fullClientClassName = $namespace . $clientName;
         $ui->text(sprintf('Processing Client "<info>%s</info>"', $fullClientClassName));
-        $classBody = $this->generateClientBody($serverClass, $this->property, $entityName);
-        $code = $this->generateClientFile($clientName, $namespace, $this->property, $classBody);
+        $classBody = $this->generateClientBody($serverClass, $entityName);
+        $code = $this->generateClientFile($clientName, $namespace, $classBody);
 
         GeneratorUtils::writeFile($this->clientDir, $clientName, $code, $force);
     }
@@ -126,18 +123,16 @@ EOF;
      *
      * @param string $className
      * @param string $namespace
-     * @param string $property
      * @param string $classBody
      *
      * @return string
      * @throws SmartyException
      */
-    protected function generateClientFile($className, $namespace, $property, $classBody): string
+    protected function generateClientFile($className, $namespace, $classBody): string
     {
         $variables = [
             'className' => $className,
             'namespace' => $namespace,
-            'property' => $property,
             'classBody' => $classBody,
         ];
 
@@ -148,13 +143,12 @@ EOF;
      * generateClientBody
      *
      * @param $serverClass
-     * @param $property
      * @param $entityName
      * @return string
      * @throws ReflectionException
      * @throws SmartyException
      */
-    protected function generateClientBody($serverClass, $property, $entityName): string
+    protected function generateClientBody($serverClass, $entityName): string
     {
         $refClass = new ReflectionClass($serverClass);
         $methods = $refClass->getMethods();
@@ -163,7 +157,7 @@ EOF;
             if ($method->isConstructor() || $method->isFinal() || $method->isPrivate()) {
                 continue;
             }
-            [$paramsStatement, $params, $type, $path, $requestBody] = $this->generateParameter($method, $property,
+            [$paramsStatement, $params, $type, $path, $requestBody] = $this->generateParameter($method,
                 $entityName);
             $variables = [
                 'methodName' => $method->getName(),
@@ -182,16 +176,15 @@ EOF;
      * generateParameter
      *
      * @param ReflectionMethod $method
-     * @param $property
      * @param $entityName
      * @return array
      */
-    protected function generateParameter(ReflectionMethod $method, $property, $entityName): array
+    protected function generateParameter(ReflectionMethod $method, $entityName): array
     {
         $paramsStatementArray = [];
         $paramsArray = [];
         $parameters = $method->getParameters();
-        $path = '\'/' . $property . '/' . strtolower($entityName) . '/' . $method->getName();
+        $path = '\'/' . strtolower($entityName) . '/' . $method->getName();
         $type = $method->getName() === 'get' ? 'GET' : 'POST';
         foreach ($parameters as $parameter) {
             $pType = $parameter->getType();
@@ -512,9 +505,7 @@ EOF;
     {
         $baseDir = dirname(PROJECT_DIR);
         $this->createServiceDispatcher($baseDir, $ui);
-        $property = $input->getArgument('property');
-        $this->property = $property;
-        [$handlerDir, $clientDir] = $this->mkdir($baseDir, $ui, $property);
+        [$handlerDir, $clientDir] = $this->mkdir($baseDir, $ui);
         $this->handlerDir = $handlerDir;
         $this->clientDir = $clientDir;
         return $handlerDir;
@@ -542,17 +533,16 @@ EOF;
     /**
      * @param string $baseDir
      * @param SymfonyStyle $ui
-     * @param string $property
      * @return array
      */
-    protected function mkdir($baseDir, SymfonyStyle $ui, string $property): array
+    protected function mkdir($baseDir, SymfonyStyle $ui): array
     {
-        $handlerDir = $baseDir . D_S . 'app' . D_S . self::BASE_DIR_NAME . D_S . 'handler' . D_S . $property;
+        $handlerDir = $baseDir . D_S . 'app' . D_S . self::BASE_DIR_NAME . D_S . 'handler';
         if (!file_exists($handlerDir) && (!mkdir($handlerDir, 0755, true) || !is_dir($handlerDir))) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $handlerDir));
         }
         $ui->block(sprintf('create dir: %1s', $handlerDir));
-        $clientDir = $baseDir . D_S . 'app' . D_S . self::BASE_DIR_NAME . D_S . 'client' . D_S . $property;
+        $clientDir = $baseDir . D_S . 'app' . D_S . self::BASE_DIR_NAME . D_S . 'client';
         if (!file_exists($clientDir) && (!mkdir($clientDir, 0755, true) || !is_dir($clientDir))) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $clientDir));
         }

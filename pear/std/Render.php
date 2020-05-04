@@ -35,6 +35,11 @@ abstract class Render
         $this->response = $response;
     }
 
+    public function code()
+    {
+        return $this->response;
+    }
+
     /**
      * header
      *

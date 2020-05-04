@@ -39,13 +39,12 @@ class SimpleCache
 
     /**
      * SimpleCache constructor.
-     * @param $property
      * @param string $type
      * @throws CacheException
      */
-    public function __construct($property, $type = 'config')
+    public function __construct($type = 'config')
     {
-        $namespace       = PROJECT_NAMESPACE . '.' . $property . '.' . $type;
+        $namespace       = PROJECT_NAMESPACE . '.' . $type;
         $defaultLifetime = defined('LOEYE_MODE') && LOEYE_MODE == LOEYE_MODE_PROD ? 0 : 30;
         if (ApcuAdapter::isSupported()) {
             $version     = null;
@@ -59,18 +58,17 @@ class SimpleCache
     /**
      * getInstance
      *
-     * @param string $property
      * @param string $type
      *
      * @return self
      * @throws CacheException
      */
-    public static function getInstance($property, $type = 'config'): self
+    public static function getInstance($type = 'config'): self
     {
-        if (!isset(self::$_instance[$property])) {
-            self::$_instance[$property] = new self($property, $type);
+        if (!isset(self::$_instance[$type])) {
+            self::$_instance[$type] = new self($type);
         }
-        return self::$_instance[$property];
+        return self::$_instance[$type];
     }
 
     public function __destruct()

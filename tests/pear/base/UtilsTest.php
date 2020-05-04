@@ -276,4 +276,29 @@ class UtilsTest extends TestCase
     {
 
     }
+
+    public function testMimeType()
+    {
+        $file = PROJECT_DIR .DIRECTORY_SEPARATOR .'htdocs'.DIRECTORY_SEPARATOR.'index.html';
+        $mimeType = Utils::mimeType($file);
+        $this->assertEquals('text/html; charset=utf-8', $mimeType);
+        $file = PROJECT_DIR .DIRECTORY_SEPARATOR .'htdocs'.DIRECTORY_SEPARATOR.'favicon.ico';
+        $mimeType = Utils::mimeType($file);
+        $this->assertEquals('image/x-icon; charset=binary', $mimeType);
+        $file = PROJECT_DIR .DIRECTORY_SEPARATOR .'htdocs'.DIRECTORY_SEPARATOR. 'css' .
+            DIRECTORY_SEPARATOR.'style.css';
+        $mimeType = Utils::mimeType($file);
+        $this->assertEquals('text/css', $mimeType);
+        $file = PROJECT_DIR .DIRECTORY_SEPARATOR .'htdocs'.DIRECTORY_SEPARATOR. 'js' .
+            DIRECTORY_SEPARATOR.'main.js';
+        $mimeType = Utils::mimeType($file);
+        $this->assertEquals('text/javascript', $mimeType);
+        $file = PROJECT_DIR .DIRECTORY_SEPARATOR .'htdocs'.DIRECTORY_SEPARATOR.'package.json';
+        $mimeType = Utils::mimeType($file);
+        $this->assertEquals('application/json', $mimeType);
+        $file = PROJECT_DIR .DIRECTORY_SEPARATOR .'phpunit.xml';
+        $mimeType = Utils::mimeType($file);
+        $this->assertEquals('application/xml; charset=us-ascii', $mimeType);
+    }
+
 }
