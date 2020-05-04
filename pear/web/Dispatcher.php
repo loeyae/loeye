@@ -59,6 +59,8 @@ class Dispatcher extends \loeye\std\Dispatcher
     {
         $render = null;
         try {
+            $this->initAppConfig();
+            $this->initConfigConstants();
             $moduleId = $this->parseUrl($moduleId);
             if (empty($moduleId)) {
                 $moduleId = $this->context->getRequest()->getModuleId();
@@ -69,8 +71,6 @@ class Dispatcher extends \loeye\std\Dispatcher
                     ResourceException::PAGE_NOT_FOUND_CODE);
             }
             $this->initIOObject($moduleId);
-            $this->initAppConfig();
-            $this->initConfigConstants();
             $this->initLogger();
             $this->setTimezone();
             $this->initComponent();

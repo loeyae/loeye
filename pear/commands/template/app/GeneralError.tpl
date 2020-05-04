@@ -36,7 +36,7 @@ see LICENSE for more details: http://www.apache.org/licenses/LICENSE-2.0.
             <div id="copyright"><span>©<?= date('Y'); ?>&nbsp;</span><span>Loeyae.com&nbsp;</span></div>
         </footer>
         <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
-        <script type="text/javascript" src="/bootstrap/dist/js/bootstrap.min.js"></script>
-        <script type="text/javascript" src="/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script type="text/javascript" src="/dist/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>

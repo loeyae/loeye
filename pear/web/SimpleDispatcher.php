@@ -64,10 +64,10 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
     {
         $render = null;
         try {
-            $this->parseUrl();
-            $this->initIOObject($moduleId ?? $this->module);
             $this->initAppConfig();
             $this->initConfigConstants();
+            $this->parseUrl();
+            $this->initIOObject($moduleId ?? $this->module);
             $this->initLogger();
             $this->setTimezone();
             $this->initComponent();

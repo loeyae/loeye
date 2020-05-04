@@ -100,18 +100,6 @@ class Router extends \loeye\std\Router
     {
         $this->reset();
         $moduleId = null;
-        $basePath = '';
-        if (defined('BASE_SERVER_URL')) {
-            $basePath = parse_url(BASE_SERVER_URL, PHP_URL_PATH);
-        } elseif (filter_has_var(INPUT_SERVER, 'rUrlPath')) {
-            $basePath = filter_input(INPUT_SERVER, 'rUrlPath');
-        } elseif (filter_has_var(INPUT_SERVER, 'REDIRECT_rUrlPath')) {
-            $basePath = filter_input(INPUT_SERVER, 'REDIRECT_rUrlPath');
-        }
-        if ($basePath) {
-            $len = mb_strlen($basePath);
-            $url = mb_substr($url, $len);
-        }
         $path = parse_url($url, PHP_URL_PATH) or $path = '/';
         foreach ($this->_router as $setting) {
             if (empty($setting['module_id'])) {
