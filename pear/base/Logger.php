@@ -54,10 +54,10 @@ class Logger
      */
     private static function init($name, $file = null, $handler = null): Monolog\Logger
     {
-        $key = md5($name);
+        $key = md5($name . ($file ?: ''));
         if (!isset(self::$logger[$key])) {
-            $appConfig = Centra::$appConfig;
-                $logfile = $file ?: $appConfig->getSetting('logger.' . $name . '.file',
+            $appConfig = Centra::$appConfig ?? new AppConfig();
+            $logfile = $file ?: $appConfig->getSetting('logger.' . $name . '.file',
                 $appConfig->getSetting('logger.file', RUNTIME_LOG_DIR . DIRECTORY_SEPARATOR
                     . PROJECT_NAMESPACE . DIRECTORY_SEPARATOR. 'error-' . $name . '.log'));
             $dateFormat = $appConfig->getSetting('logger.' . $name . '.data_format',

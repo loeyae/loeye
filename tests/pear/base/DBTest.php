@@ -21,12 +21,25 @@ use Doctrine\ORM\NativeQuery;
 use Doctrine\ORM\QueryBuilder;
 use loeye\base\AppConfig;
 use loeye\base\DB;
+use loeye\base\Exception;
 use loeye\models\repository\TestRepository;
 use loeye\unit\TestCase;
 use loeye\models\entity\Test;
 
 class DBTest extends TestCase
 {
+
+    protected function tearDown()
+    {
+        $db = DB::getInstance($this->appConfig);
+        try {
+            $qb = $db->createNativeQuery('DROP TABLE test');
+            $qb->execute();
+        } catch (\Exception $e) {
+
+        }
+        parent::tearDown();
+    }
 
     /**
      * @covers \loeye\base\DB

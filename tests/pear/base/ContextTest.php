@@ -23,6 +23,7 @@ use loeye\base\Exception;
 use loeye\base\ModuleDefinition;
 use loeye\base\Router;
 use loeye\base\UrlManager;
+use loeye\Centra;
 use loeye\client\ParallelClientManager;
 use loeye\web\Request;
 use loeye\web\Response;
@@ -31,6 +32,12 @@ use PHPUnit\Framework\TestCase;
 
 class ContextTest extends TestCase
 {
+
+    protected function setUp()
+    {
+        parent::setUp();
+        Centra::$appConfig = new AppConfig();
+    }
 
     /**
      * @covers \loeye\base\Context

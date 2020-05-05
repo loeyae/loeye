@@ -30,6 +30,8 @@ class ExceptionTest extends TestCase
     public function testExceptionHandler()
     {
         $context = new Context();
+        $context->setRequest(new \loeye\web\Request());
+        $context->setResponse(new Response());
         $exc = new \Exception('error message');
         $render = ExceptionHandler($exc, $context);
         $this->assertInstanceOf(SegmentRender::class, $render);

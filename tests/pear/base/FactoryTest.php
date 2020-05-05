@@ -18,6 +18,7 @@ use loeye\base\DB;
 use loeye\base\Exception;
 use loeye\base\Factory;
 use loeye\base\Translator;
+use loeye\Centra;
 use loeye\client\ParallelClientManager;
 use loeye\plugin\BuildQueryPlugin;
 use loeye\render\HtmlRender;
@@ -50,28 +51,18 @@ class FactoryTest extends TestCase
         $this->assertSame($translator, $translator1);
     }
 
-    /**
-     * @covers \loeye\base\Factory
-     */
-    public function testRequest()
-    {
-        $request = Factory::request();
-        $request1 = Factory::request();
-        $this->assertInstanceOf(Request::class, $request);
-        $this->assertInstanceOf(Request::class, $request1);
-        $this->assertSame($request, $request1);
-    }
 
     /**
      * @covers \loeye\base\Factory
      */
     public function testGetRender()
     {
-        $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_HTML));
-        $this->assertInstanceOf(HtmlRender::class, Factory::getRender(RENDER_TYPE_HTML));
-        $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_JSON));
-        $this->assertInstanceOf(JsonRender::class, Factory::getRender(RENDER_TYPE_JSON));
-        $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_XML));
+        $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_HTML, new Response()));
+        $this->assertInstanceOf(HtmlRender::class, Factory::getRender(RENDER_TYPE_HTML, new Response()));
+        $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_JSON, new Response()));
+        $this->assertInstanceOf(JsonRender::class, Factory::getRender(RENDER_TYPE_JSON, new Response()));
+        $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_XML, new Response()));
+        Centra::$response = new Response();
         $this->assertInstanceOf(XmlRender::class, Factory::getRender(RENDER_TYPE_XML));
         $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_SEGMENT));
         $this->assertInstanceOf(SegmentRender::class, Factory::getRender(RENDER_TYPE_SEGMENT));
@@ -109,36 +100,12 @@ class FactoryTest extends TestCase
      */
     public function testAutoload()
     {
-        $this->assertFalse(class_exists('\\mock\\classes\\Test', true));
+//        $this->assertFalse(class_exists('\\mock\\classes\\Test', true));
         Factory::autoload(PROJECT_DIR .DIRECTORY_SEPARATOR);
         spl_autoload_register(static function($className){
             return AutoLoadRegister::load($className);
         });
         $this->assertTrue(class_exists('\\mock\\classes\\Test', true));
-    }
-
-    /**
-     * @covers \loeye\base\Factory
-     */
-    public function testAppConfig()
-    {
-        $appConfig = Factory::appConfig();
-        $appConfig1 = Factory::appConfig();
-        $this->assertInstanceOf(AppConfig::class, $appConfig);
-        $this->assertInstanceOf(AppConfig::class, $appConfig1);
-        $this->assertSame($appConfig, $appConfig1);
-    }
-
-    /**
-     * @covers \loeye\base\Factory
-     */
-    public function testResponse()
-    {
-        $response = Factory::response();
-        $response1 = Factory::response();
-        $this->assertInstanceOf(Response::class, $response);
-        $this->assertInstanceOf(Response::class, $response1);
-        $this->assertSame($response, $response1);
     }
 
     /**

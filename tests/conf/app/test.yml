@@ -33,7 +33,7 @@
         is_dev_mode: false
   configuration:
       property_name: test
-      timezone: Asia/BeiJing
+      timezone: Asia/ChongQing
   locale:
       default: zh_CN
       basename: lang
