@@ -69,13 +69,19 @@ class SwooleServer extends Server
                 $render = $this->process($context);
             }
             $response->status($render->code(), $render->reason());
-            foreach ($render->header() as $key => $value) {
-                $response->header($key, $value);
+            $header = $render->header();
+            if ($header) {
+                foreach ($header as $key => $value) {
+                    $response->header($key, $value);
+                }
             }
-            foreach ($render->cookie() as $item) {
-                $response->cookie($item->getName(), $item->getValue(), $item->getExpiresTime(),
-                    $item->getPath(), $item->getDomain(), $item->isSecure(), $item->isHttpOnly(),
-                    $item->getSameSite());
+            $cookie = $render->cookie();
+            if ($cookie) {
+                foreach ($cookie as $item) {
+                    $response->cookie($item->getName(), $item->getValue(), $item->getExpiresTime(),
+                        $item->getPath(), $item->getDomain(), $item->isSecure(), $item->isHttpOnly(),
+                        $item->getSameSite());
+                }
             }
             $response->end($render->output());
         });
