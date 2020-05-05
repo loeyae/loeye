@@ -48,6 +48,10 @@ abstract class Response
      * @var Cookie[]
      */
     private $cookie;
+    /**
+     * @var string
+     */
+    private $redirect;
 
     /**
      * @param string $version
@@ -236,6 +240,24 @@ abstract class Response
             return $this->cookie;
         }
         return $this->cookie[$key];
+    }
+
+    /**
+     * @param string $url
+     * @return Response
+     */
+    public function setRedirect(string $url): Response
+    {
+        $this->redirect = $url;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getRedirect(): ?string
+    {
+        return $this->redirect;
     }
 
 }

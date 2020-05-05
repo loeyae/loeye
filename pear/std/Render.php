@@ -62,11 +62,19 @@ abstract class Render
     }
 
     /**
-     * @return Cookie[]
+     * @return Cookie[]|null
      */
     public function cookie(): ?array
     {
         return $this->response->getCookie();
+    }
+
+    /**
+     * @return string|null
+     */
+    public function redirect(): ?string
+    {
+        return $this->response->getRedirect();
     }
 
     /**

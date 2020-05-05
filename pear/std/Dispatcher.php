@@ -276,19 +276,18 @@ abstract class Dispatcher
     /**
      * redirectUrl
      *
-     * @return void
+     * @return Render|null
+     * @throws ReflectionException
      */
-    protected function redirectUrl(): void
+    protected function redirectUrl()
     {
-        $redirectUrl = Centra::$context->getResponse()->getRedirectUrl();
+        $redirectUrl = Centra::$context->getResponse()->getRedirect();
 
         if (!empty($redirectUrl)) {
-            if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL) {
-                $this->setTraceDataIntoContext(array());
-                Utils::logContextTrace(Centra::$context);
-            }
-            Centra::$context->getResponse()->redirect($redirectUrl);
+            return Factory::getRender(Centra::$context->getResponse()->getFormat(),
+                Centra::$context->getResponse());
         }
+        return null;
     }
 
 

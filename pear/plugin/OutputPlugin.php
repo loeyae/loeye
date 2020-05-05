@@ -23,6 +23,7 @@ use loeye\error\BusinessException;
 use loeye\lib\ModuleParse;
 use loeye\std\Plugin;
 use ReflectionException;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 use const loeye\base\RENDER_TYPE_SEGMENT;
 
 /**
@@ -89,13 +90,17 @@ class OutputPlugin implements Plugin
         if ($format === RENDER_TYPE_SEGMENT) {
             $status = Utils::getData($inputs, 'code');
             $header = Utils::getData($inputs, 'header', null);
-            if (!empty($header) && !empty($status)) {
-                header($header, true, $status);
-            } else if (!empty($header)) {
-                header($header);
+            if (!empty($status)) {
+                $context->getResponse()->setStatusCode($status);
+
+            }
+            if (!empty($header)) {
+                foreach ($header as $key => $value) {
+                    $context->getResponse()->addHeader($key, $value);
+                }
             }
             if (!empty($redirect)) {
-                header('Location: ' . $redirect, true, LOEYE_REST_STATUS_REDIRECT);
+                $context->getResponse()->setRedirect($redirect);
             }
             $message = Utils::getData($inputs, 'msg');
             if ($message !== null && $data !== null && is_string($message) && is_string($data)) {
@@ -140,16 +145,15 @@ class OutputPlugin implements Plugin
             }
         }
         if (isset($inputs['force']) && $inputs['force'] == true) {
-            $render = Factory::getRender($context->getResponse()->getFormat());
-            $render->header($context->getResponse());
-            $render->output($context->getResponse());
-            exit;
-        } else if (isset($inputs['break']) && $inputs['break'] == true) {
-            return false;
-        } else {
-            $context->getResponse()->setRenderId(null);
+            return Factory::getRender($context->getResponse()->getFormat(), $context->getResponse());
+        }
+
+        if (isset($inputs['break']) && $inputs['break'] == true) {
             return false;
         }
+
+        $context->getResponse()->setRenderId(null);
+        return false;
     }
 
     /**
@@ -173,10 +177,7 @@ class OutputPlugin implements Plugin
             Utils::throwException(BusinessException::INVALID_PARAMETER_MSG,
                 BusinessException::INVALID_PARAMETER_CODE, [], BusinessException::class);
         }
-        $translator = $context->get('loeye_translator');
-        if (!$translator) {
-            $translator = Factory::translator();
-        }
+        $translator = $context->get('loeye_translator') ?? Factory::translator();
         return $translator->getString($message, $replace);
     }
 

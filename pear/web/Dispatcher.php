@@ -54,11 +54,10 @@ class Dispatcher extends \loeye\std\Dispatcher
      *
      * @param mixed $moduleId module id
      *
-     * @return Render|null
+     * @return Render
      */
-    public function dispatch($moduleId = null): ?Render
+    public function dispatch($moduleId = null): Render
     {
-        $render = null;
         try {
             $this->initAppConfig();
             $this->initConfigConstants();
@@ -77,35 +76,40 @@ class Dispatcher extends \loeye\std\Dispatcher
             $this->initComponent();
             $this->_mDfnObj = new ModuleDefinition(Centra::$context->getAppConfig(), $moduleId);
 
-            $this->executeModule();
+            $result = $this->executeModule();
+            if ($result instanceof Render) {
+                return $result;
+            }
 
-            $this->redirectUrl();
+            $result = $this->redirectUrl();
+            if ($result instanceof Render) {
+                return $result;
+            }
             $view = $this->getView();
             $this->executeView($view);
-            $render = $this->executeOutput();
+            return $this->executeOutput();
         } catch (InvalidArgumentException $e) {
-            $render = ExceptionHandler($e, Centra::$context);
+            return ExceptionHandler($e, Centra::$context);
         } catch (Throwable $e) {
-            $render = ExceptionHandler($e, Centra::$context);
+            return ExceptionHandler($e, Centra::$context);
         } finally {
             if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL) {
                 $this->setTraceDataIntoContext(array());
                 Utils::logContextTrace(Centra::$context, null, false);
             }
         }
-        return $render;
     }
 
     /**
      * execute module
      *
-     * @return void
+     * @return mixed
      * @throws Exception
      * @throws ReflectionException
      * @throws InvalidArgumentException
      * @throws Throwable
      */
-    protected function executeModule(): void
+    protected function executeModule()
     {
         Centra::$context->setModule($this->_mDfnObj);
         Centra::$context->setParallelClientManager(Factory::parallelClientManager());
@@ -145,6 +149,7 @@ class Dispatcher extends \loeye\std\Dispatcher
         if (!empty($returnStatus) && is_string($returnStatus)) {
             Centra::$context->getResponse()->setRenderId($returnStatus);
         }
+        return $returnStatus;
     }
 
 
@@ -362,6 +367,9 @@ class Dispatcher extends \loeye\std\Dispatcher
                     );
                 }
 
+                if ($returnStatus instanceof Render) {
+                    return [$returnStatus, $pluginList];
+                }
 
                 if (($returnStatus === false) && $continueOnError === false) {
                     return array(
@@ -424,6 +432,10 @@ class Dispatcher extends \loeye\std\Dispatcher
             $breakStatus = $this->_handleError($pluginList[$id]);
             if ($breakStatus === true) {
                 return false;
+            }
+
+            if ($returnStatus instanceof Render) {
+                return $returnStatus;
             }
 
             if (($returnStatus === false) && $continueOnError === false) {
@@ -522,7 +534,7 @@ class Dispatcher extends \loeye\std\Dispatcher
                     case 'url':
                         $url = $this->_getRedirectUrl($errorSetting);
                         if (!empty($url)) {
-                            Centra::$context->getResponse()->setRedirectUrl($url);
+                            Centra::$context->getResponse()->setRedirect($url);
                         } else {
                             throw new BusinessException(
                                 BusinessException::INVALID_RENDER_SET_MSG,

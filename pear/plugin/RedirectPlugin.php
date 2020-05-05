@@ -19,6 +19,7 @@ namespace loeye\plugin;
 
 use loeye\base\Context;
 use loeye\base\Exception;
+use loeye\base\Factory;
 use loeye\base\Utils;
 use loeye\lib\Cookie;
 use loeye\std\Plugin;
@@ -71,11 +72,11 @@ class RedirectPlugin implements Plugin
             }
         }
         $response->addHeader('Status', 302);
-        $response->setRedirectUrl($url);
+        $response->setRedirect($url);
         $response->setRenderId(null);
         $response->setHeaders();
         if (isset($inputs['force']) && $inputs['force']) {
-            $response->redirect();
+            return Factory::getRender($response->getFormat(), $response);
         }
         return false;
     }

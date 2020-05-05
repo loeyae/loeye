@@ -84,6 +84,9 @@ class SwooleServer extends Server
                         $item->getSameSite());
                 }
             }
+            if ($render->redirect()) {
+                $response->redirect($render->redirect());
+            }
             $response->end($render->output());
         });
     }

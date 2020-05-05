@@ -161,7 +161,7 @@ class Factory
             $format = 'segment';
         }
         if (null === $response) {
-            $response = self::response();
+            $response = Centra::$response;
         }
         $class = '' . ucfirst($format) . 'Render';
         $className = '\\loeye\\render\\' . $class;

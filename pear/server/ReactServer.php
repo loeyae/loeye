@@ -59,8 +59,17 @@ class ReactServer extends Server
                     $header['Set-Cookie'][] = $cookie->__toString();
                 }
             }
-            return new Response($render->code(), $header, $render->output(), $render->version(),
-                $render->reason());
+            $code = $render->code();
+            $output = $render->output();
+            $reason = $render->reason();
+            if ($render->redirect()) {
+                $header['Location'] = $render->redirect();
+                $code = 302;
+                $output = '';
+                $reason = 'Moved Temporarily';
+            }
+            return new Response($code, $header, $output, $render->version(),
+                $reason);
         });
     }
 
