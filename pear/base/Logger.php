@@ -40,6 +40,7 @@ class Logger
     public const LOEYE_LOGGER_TYPE_CONTEXT_TRACE = 50;
 
     private static $logger = [];
+    private static $current;
 
     /**
      * getLogger
@@ -50,27 +51,45 @@ class Logger
      *
      * @return Monolog\Logger
      */
-    private static function getLogger($name, $file = null, $handler = null): Monolog\Logger
+    private static function init($name, $file = null, $handler = null): Monolog\Logger
     {
-        $logfile = $file ?? RUNTIME_LOG_DIR . DIRECTORY_SEPARATOR
-            . PROJECT_NAMESPACE . DIRECTORY_SEPARATOR
-            . 'error-' . $name . '.log';
-        $key = md5($logfile);
+        $key = md5($name);
         if (!isset(self::$logger[$key])) {
-            $dateFormat = 'Y-m-d H:i:s';
-            $output = "[%datetime%][%level_name%]%channel%: %message%\n";
-            $formatter = new LineFormatter($output, $dateFormat);
-            $logLevel = defined('RUNTIME_LOGGER_LEVEL') ? RUNTIME_LOGGER_LEVEL : static::LOEYE_LOGGER_TYPE_DEBUG;
+            $appConfig = Factory::appConfig();
+                $logfile = $file ?: $appConfig->getSetting('logger.' . $name . '.file',
+                $appConfig->getSetting('logger.file', RUNTIME_LOG_DIR . DIRECTORY_SEPARATOR
+                    . PROJECT_NAMESPACE . DIRECTORY_SEPARATOR. 'error-' . $name . '.log'));
+            $dateFormat = $appConfig->getSetting('logger.' . $name . '.data_format',
+                $appConfig->getSetting('logger.data_format', 'Y-m-d H:i:s'));
+            $format = $appConfig->getSetting('logger.' . $name . '.format',
+                $appConfig->getSetting('logger.format', "[%datetime%][%level_name%]%channel%: %message%\n"));
+            $formatter = new LineFormatter($format, $dateFormat);
+            $logLevel = $appConfig->getSetting('logger.' . $name . '.level',
+                $appConfig->getSetting('logger.level', static::LOEYE_LOGGER_TYPE_DEBUG));
+            $max = $appConfig->getSetting('logger.'.$name.'.max', $appConfig->getSetting('logger.max', 10));
             if (!$handler) {
-                $handler = new RotatingFileHandler($logfile, 10, $logLevel);
+                $handler = new RotatingFileHandler($logfile, $max, $logLevel);
             }
             $handler->setFormatter($formatter);
             $logger = new Monolog\Logger($name);
-            Monolog\Logger::setTimezone(new DateTimeZone('Asia/Shanghai'));
+            Monolog\Logger::setTimezone(new DateTimeZone($appConfig->getSetting('configuration.timezone',
+                'Asia/Shanghai')));
             $logger->pushHandler($handler);
             self::$logger[$key] = $logger;
         }
         return self::$logger[$key];
+    }
+
+    /**
+     * getLogger
+     *
+     * @param $name
+     * @return Monolog\Logger
+     */
+    public static function getLogger($name): \Monolog\Logger
+    {
+        self::$current = self::init($name);
+        return self::$current;
     }
 
     /**
@@ -190,7 +209,7 @@ class Logger
     public static function log($message, $type = self::LOEYE_LOGGER_TYPE_ERROR, $file = null): void
     {
         $name = PROJECT_NAMESPACE;
-        $logger = self::getLogger($name, $file);
+        $logger = self::init($name, $file);
         if (is_array($message)) {
             foreach ($message as $msg) {
                 $logger->log($type, $msg);
