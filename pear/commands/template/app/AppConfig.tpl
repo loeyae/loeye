@@ -6,7 +6,7 @@
         - ../vendor/twbs/bootstrap
   profile: ${LOEYAE_ACTIVE_PROFILE:local}
   constants:
-        BASE_SERVER_URL: http://localhost.com/
+        BASE_SERVER_URL: http://localhost
   application:
     cache: pfile # One of "apc"; "array"; "file"; "memcached"; "parray"; "pfile"; "redis"
     database:

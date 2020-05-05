@@ -100,7 +100,7 @@ abstract class Resource implements \loeye\std\Handler
             $this->$method($request, $response);
         } else {
             $response->setStatusCode(LOEYE_REST_STATUS_METHOD_NOT_FOUND);
-            $response->setStatusMessage('Request method not found');
+            $response->setReason('Request method not found');
         }
     }
 

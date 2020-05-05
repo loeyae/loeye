@@ -26,8 +26,6 @@ class Response extends \loeye\std\Response
 {
 
     private $_serverProtocol;
-    private $_statusCode;
-    private $_statusMessage;
     private $_contentType;
     /**
      * @var string
@@ -44,36 +42,12 @@ class Response extends \loeye\std\Response
     public function __construct(\loeye\std\Request $req)
     {
         $this->_serverProtocol = $req->getServerProtocol();
-        $this->_statusCode     = LOEYE_REST_STATUS_OK;
-        $this->_statusMessage  = 'OK';
+        $this->setStatusCode(LOEYE_REST_STATUS_OK);
+        $this->setReason(OK);
         $this->_contentType    = 'text/plain; charset=utf-8';
-        $this->_responseData   = '';
         $this->header = [];
     }
 
-    /**
-     * setStatusCode
-     *
-     * @param int $code status code
-     *
-     * @return void
-     */
-    public function setStatusCode($code): void
-    {
-        $this->_statusCode = $code;
-    }
-
-    /**
-     * setStatusMessage
-     *
-     * @param string $message message
-     *
-     * @return void
-     */
-    public function setStatusMessage($message): void
-    {
-        $this->_statusMessage = $message;
-    }
 
     /**
      * setContent
@@ -96,7 +70,7 @@ class Response extends \loeye\std\Response
      */
     public function setHeaders(): void
     {
-        $header = $this->_serverProtocol . ' ' . $this->_statusCode . ' ' . $this->_statusMessage;
+        $header = $this->_serverProtocol . ' ' . $this->getStatusCode() . ' ' . $this->getReason();
         header($header);
         parent::setHeaders();
         if (!array_key_exists('Content-Type', $this->header)) {

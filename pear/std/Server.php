@@ -63,11 +63,30 @@ abstract class Server
     }
 
     /**
+     * @return mixed
+     */
+    protected function getServerPort()
+    {
+        return $this->appConfig->getSetting('server.port', 80);
+    }
+
+    /**
      * @return array|null
      */
     protected function getSSLConfig(): ?array
     {
         return $this->appConfig->getSetting('server.ssl');
+    }
+
+    /**
+     * @return array
+     */
+    protected function getPeriodicTask(): array
+    {
+        $periodicTimers = $this->appConfig->getSetting('server.periodic', []);
+        return array_filter($periodicTimers, static function($item){
+            return !empty(trim($item['callback']));
+        });
     }
 
     /**
@@ -95,6 +114,7 @@ abstract class Server
     /**
      * process
      *
+     * @param Context $context
      * @return Render|null
      */
     protected function process(Context $context): ?Render

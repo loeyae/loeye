@@ -80,7 +80,6 @@ class Request
      * @var string
      */
     private $method;
-
     /**
      * __construct
      *
@@ -316,7 +315,7 @@ class Request
      * @param array $files
      * @return Request
      */
-    public function setFiles(array $files): Request
+    public function setFiles(array $files = null): Request
     {
         $this->files = $files;
         return $this;
@@ -336,7 +335,22 @@ class Request
      */
     public function setHeader(array $header = null): Request
     {
-        $this->header = $header;
+        if ($header) {
+            foreach ($header as $key => $value) {
+                $this->header[strtolower($key)] = $value;
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @param $key
+     * @param $value
+     * @return Request
+     */
+    public function addHeader($key, $value): Request
+    {
+        $this->header[strtolower($key)] = $value;
         return $this;
     }
 
@@ -391,7 +405,11 @@ class Request
      */
     public function setServer(array $server = null): Request
     {
-        $this->server = $server;
+        if ($server) {
+            foreach ($server as $key => $value) {
+                $this->server[strtolower($key)] = $value;
+            }
+        }
         return $this;
     }
 
@@ -402,7 +420,7 @@ class Request
      */
     public function addServer($key, $value): Request
     {
-        $this->server[$key] = $value;
+        $this->server[strtolower($key)] = $value;
         return $this;
     }
 
@@ -470,6 +488,54 @@ class Request
             return filter_input_array(INPUT_SESSION);
         }
         return filter_input(INPUT_SESSION, $key);
+    }
+
+
+    /**
+     * @return int|null
+     */
+    public function getRequestTime(): ?int
+    {
+        return $this->server['request_time'] ?? null;
+    }
+
+    /**
+     * @return float|null
+     */
+    public function getRequestTimeFloat(): ?float
+    {
+        return $this->server['request_time_float'] ?? null;
+    }
+
+
+    /**
+     * getContentLength
+     *
+     * @return int
+     */
+    public function getContentLength(): int
+    {
+        return strlen($this->getContent());
+    }
+
+    /**
+     * getRemoteAddr
+     *
+     * @return null|string
+     */
+    public function getRemoteAddr(): ?string
+    {
+        return $this->getServer('remote_addr') ?? $_SERVER['REMOTE_ADDR'] ?? null;
+    }
+
+    /**
+     * getServerProtocol
+     *
+     * @return string
+     */
+    public function getServerProtocol(): string
+    {
+        return $this->getServer('server_protocol') ?? $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0';
     }
 
 }

@@ -32,16 +32,84 @@ abstract class Response
     protected $format;
 
     /**
+     * @var int
+     */
+    private $statusCode = 200;
+    /**
+     * @var string
+     */
+    private $reason = 'Ok';
+    /**
+     * @var string
+     */
+    private $version = '1.1';
+
+    /**
+     * @param string $version
+     * @return Response
+     */
+    public function setVersion(string  $version): Response
+    {
+        $this->version = $version;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVersion(): string
+    {
+        return $this->version;
+    }
+
+    /**
+     * @param int $code
+     * @return Response
+     */
+    public function setStatusCode(int $code): Response
+    {
+        $this->statusCode = $code;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getStatusCode(): int
+    {
+        return $this->statusCode;
+    }
+
+    /**
+     * @param string $reason
+     * @return Response
+     */
+    public function setReason(string $reason): Response
+    {
+        $this->reason = $reason;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getReason(): string
+    {
+        return $this->reason;
+    }
+
+    /**
      * addHeader
      *
      * @param string $name  header name
      * @param string $value header value
      *
-     * @return void
+     * @return Response
      */
-    public function addHeader($name, $value): void
+    public function addHeader($name, $value): Response
     {
         $this->header[$name] = $value;
+        return $this;
     }
 
     /**
@@ -50,15 +118,16 @@ abstract class Response
      * @param mixed  $data data
      * @param string $key  key
      *
-     * @return void
+     * @return Response
      */
-    public function addOutput($data, $key = null): void
+    public function addOutput($data, $key = null): Response
     {
         if ($key !== null) {
             $this->output[$key] = $data;
         } else {
             $this->output[] = $data;
         }
+        return $this;
     }
 
     /**
@@ -66,11 +135,12 @@ abstract class Response
      *
      * @param string $format format
      *
-     * @return void
+     * @return Response
      */
-    public function setFormat($format): void
+    public function setFormat($format): Response
     {
         $this->format = $format;
+        return $this;
     }
 
     /**

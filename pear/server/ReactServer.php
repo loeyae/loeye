@@ -51,7 +51,8 @@ class ReactServer extends Server
                 $context = $this->createContext($request);
                 $render = $this->process($context);
             }
-            return new Response(200, $render->header(), $render->output());
+            return new Response($render->code(), $render->header(), $render->output(), $render->version(),
+                $render->reason());
         });
     }
 
@@ -63,7 +64,7 @@ class ReactServer extends Server
     protected function createSocket(): \React\Socket\Server
     {
         $sslConfig = $this->getSSLConfig();
-        $port = $this->appConfig->getSetting('server.port', 80);
+        $port = $this->getServerPort();
         if ($sslConfig) {
             $port = ($port === 80) ? 443 : $port;
             return new \React\Socket\Server('tls://0.0.0.0:'.$port, $this->loop, [
@@ -78,11 +79,8 @@ class ReactServer extends Server
      */
     protected function loadPeriodicTimer(): void
     {
-        $periodicTimers = $this->appConfig->getSetting('server.periodic', []);
-        $filtered = array_filter($periodicTimers, static function($item){
-            return !empty(trim($item['callback']));
-        });
-        foreach ($filtered as $item) {
+        $periodicTimers = $this->getPeriodicTask();
+        foreach ($periodicTimers as $item) {
             $this->loop->addPeriodicTimer($item['interval'], $item['callback']);
         }
     }

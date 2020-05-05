@@ -35,34 +35,4 @@ class Request extends \loeye\std\Request
         RENDER_TYPE_JSON,
     );
 
-    /**
-     * getContentLength
-     *
-     * @return int
-     */
-    public function getContentLength(): int
-    {
-        return strlen($this->getContent());
-    }
-
-    /**
-     * getRemoteAddr
-     *
-     * @return null|string
-     */
-    public function getRemoteAddr(): ?string
-    {
-        return $this->getServer('REMOTE_ADDR');
-    }
-
-    /**
-     * getServerProtocol
-     *
-     * @return string
-     */
-    public function getServerProtocol(): string
-    {
-        return $this->getServer('SERVER_PROTOCOL') ?? 'HTTP/1.0';
-    }
-
 }

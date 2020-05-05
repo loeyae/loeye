@@ -96,7 +96,7 @@ class Dispatcher extends \loeye\std\Dispatcher
                 $response->setFormat('json');
             }
             $response->setStatusCode(LOEYE_REST_STATUS_OK);
-            $response->setStatusMessage('Ok');
+            $response->setReason('Ok');
             $response->addOutput(
                 ['code' => $exc->getCode(), 'message' => $exc->getMessage()], 'status');
             $response->addOutput($exc->getValidateMessage(), 'data');
@@ -114,7 +114,7 @@ class Dispatcher extends \loeye\std\Dispatcher
                 $response->setFormat('json');
             }
             $response->setStatusCode(LOEYE_REST_STATUS_SERVICE_UNAVAILABLE);
-            $response->setStatusMessage('Internal Error');
+            $response->setReason('Internal Error');
             $response->addOutput(
                 ['code' => $exc->getCode(), 'message' => $exc->getMessage()], 'status');
             try {

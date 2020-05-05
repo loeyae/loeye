@@ -35,9 +35,28 @@ abstract class Render
         $this->response = $response;
     }
 
-    public function code()
+    /**
+     * @return int
+     */
+    public function code(): int
     {
-        return $this->response;
+        return $this->response->getStatusCode();
+    }
+
+    /**
+     * @return string
+     */
+    public function reason(): string
+    {
+        return $this->response->getReason();
+    }
+
+    /**
+     * @return string
+     */
+    public function version(): string
+    {
+        return $this->response->getVersion();
     }
 
     /**
