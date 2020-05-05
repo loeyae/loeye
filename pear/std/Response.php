@@ -17,8 +17,6 @@
 
 namespace loeye\std;
 
-use ArrayAccess;
-use GuzzleHttp\Cookie\CookieJar;
 use Symfony\Component\HttpFoundation\Cookie;
 
 /**
