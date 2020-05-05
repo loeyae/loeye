@@ -39,7 +39,6 @@ class UtilsTest extends TestCase
 
     public function testCheckNotEmpty()
     {
-        Utils::checkNotEmpty();
     }
 
     public function testGetPageCache()

@@ -10,6 +10,7 @@
 
 namespace loeye\unit\base;
 
+use loeye\base\AppConfig;
 use loeye\base\Factory;
 use loeye\base\ModuleDefinition;
 use PHPUnit\Framework\TestCase;
@@ -24,7 +25,7 @@ class ModuleDefinitionTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
-        $this->moduleDefinition = new ModuleDefinition(Factory::appConfig(), 'loeyae.login');
+        $this->moduleDefinition = new ModuleDefinition(new AppConfig(), 'loeyae.login');
     }
 
     /**
@@ -108,7 +109,7 @@ class ModuleDefinitionTest extends TestCase
      */
     public function testModuleNotExists()
     {
-        $moduleDefinition = new ModuleDefinition(Factory::appConfig(), 'loeyae.logon');
+        $moduleDefinition = new ModuleDefinition(new AppConfig, 'loeyae.logon');
     }
 
 }

@@ -36,7 +36,8 @@ class FileLocatorTest extends TestCase {
      * @covers \loeye\config\FileLocator::locate
      */
     public function testLocate() {
-        $this->assertEquals(realpath(PROJECT_UNIT_DIR.DIRECTORY_SEPARATOR.'conf/unit/app/master.yml'), $this->object->locate('master.yml', 'unit/app', true));
+        $this->assertEquals(realpath(PROJECT_UNIT_DIR.DIRECTORY_SEPARATOR.'conf/app/master.yml'),
+            $this->object->locate('master.yml', 'app', true));
     }
 
 }

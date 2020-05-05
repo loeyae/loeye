@@ -28,7 +28,7 @@ class ConfigurationLoaderTest extends TestCase {
     protected function setUp()
     {
         $directory = PROJECT_CONFIG_DIR;
-        $namespace = 'unit.app';
+        $namespace = 'app';
         $definition = [new ConfigDefinition(), new DeltaDefinition()];
         $this->object = new ConfigurationLoader($directory, $namespace, $definition);
     }

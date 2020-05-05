@@ -51,7 +51,7 @@ class ConfigDefinitionTest extends TestCase {
         $this->assertStringContainsString('0', $dumper->dumpAtPath($this->object, 'settings'));
         $processor  = new Processor();
         $parser     = new Parser();
-        $configs    = $parser->parseFile(PROJECT_CONFIG_DIR . DIRECTORY_SEPARATOR . 'unit/database/master.yml');
+        $configs    = $parser->parseFile(PROJECT_CONFIG_DIR . DIRECTORY_SEPARATOR . 'database/master.yml');
         $settings    = $processor->processConfiguration($this->object, $configs);
         $this->assertIsArray($settings);
         $this->assertArrayHasKey('settings', $settings);

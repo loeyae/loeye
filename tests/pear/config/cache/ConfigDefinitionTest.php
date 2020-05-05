@@ -58,7 +58,7 @@ class ConfigDefinitionTest extends TestCase
     {
         $processor = new Processor();
         $parser = new Parser();
-        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'unit/cache/apc.yml');
+        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'cache/apc.yml');
         $settings = $processor->processConfiguration($this->object, $configs);
         $this->assertIsArray($settings);
         $this->assertArrayHasKey('settings', $settings);
@@ -72,7 +72,7 @@ class ConfigDefinitionTest extends TestCase
     {
         $processor = new Processor();
         $parser = new Parser();
-        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'unit/cache/mem.yml');
+        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'cache/mem.yml');
         $settings = $processor->processConfiguration($this->object, $configs);
         $this->assertIsArray($settings);
         $this->assertArrayHasKey('settings', $settings);
@@ -86,7 +86,7 @@ class ConfigDefinitionTest extends TestCase
     {
         $processor = new Processor();
         $parser = new Parser();
-        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'unit/cache/redis.yml');
+        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'cache/redis.yml');
         $settings = $processor->processConfiguration($this->object, $configs);
         $this->assertIsArray($settings);
         $this->assertArrayHasKey('settings', $settings);
@@ -100,7 +100,7 @@ class ConfigDefinitionTest extends TestCase
     {
         $processor = new Processor();
         $parser = new Parser();
-        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'unit/cache/pfile.yml');
+        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'cache/pfile.yml');
         $settings = $processor->processConfiguration($this->object, $configs);
         $this->assertIsArray($settings);
         $this->assertArrayHasKey('settings', $settings);
@@ -114,7 +114,7 @@ class ConfigDefinitionTest extends TestCase
     {
         $processor = new Processor();
         $parser = new Parser();
-        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'unit/cache/file.yml');
+        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'cache/file.yml');
         $settings = $processor->processConfiguration($this->object, $configs);
         $this->assertIsArray($settings);
         $this->assertArrayHasKey('settings', $settings);

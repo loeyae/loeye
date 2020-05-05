@@ -38,7 +38,7 @@ class PhpFileLoaderTest extends TestCase {
      * @covers \loeye\config\PhpFileLoader::load
      */
     public function testLoad() {
-        $resource = $this->object->load('unit/app/master.php');
+        $resource = $this->object->load('app/master.php');
         $this->assertCount(1, $resource);
         $this->assertArrayHasKey('settings', $resource[0]);
     }

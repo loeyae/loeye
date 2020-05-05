@@ -49,7 +49,7 @@ class ConfigDefinitionTest extends TestCase
         $this->assertStringContainsString('routes', $definition);
         $processor = new Processor();
         $parser = new Parser();
-        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'router/unit/master.yml');
+        $configs = $parser->parseFile(PROJECT_CONFIG_DIR.DIRECTORY_SEPARATOR.'router/master.yml');
         $settings = $processor->processConfiguration($this->object, $configs);
         $this->assertIsArray($settings);
         $this->assertArrayHasKey('settings', $settings);

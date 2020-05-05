@@ -81,13 +81,13 @@ class UrlManagerTest extends TestCase
         $url = $this->router->generate(['module' => 'admin', 'action' => 'login']);
         $this->assertNull($url);
         $url = $this->router->generate(['module' => 'admin', 'controller' => 'login']);
-        $this->assertEquals('/admin/login/', $url);
+        $this->assertEquals('http://localhost/admin/login/', $url);
         $url = $this->router->generate(['module' => 'admin', 'controller' => 'item', 'action' => 'list']);
-        $this->assertEquals('/admin/item/list', $url);
+        $this->assertEquals('http://localhost/admin/item/list', $url);
         $url = $this->router->generate(['module' => 'admin', 'controller' => 'item', 'action' => 'list', 'page' => 1]);
-        $this->assertEquals('/admin/item/list?page=1', $url);
+        $this->assertEquals('http://localhost/admin/item/list?page=1', $url);
         $url = $this->router->generate(['module' => 'admin', 'controller' => 'item', 'action' => 'list', 'id' => 1]);
-        $this->assertEquals('/admin/item/list/1', $url);
+        $this->assertEquals('http://localhost/admin/item/list/1', $url);
 
     }
 
