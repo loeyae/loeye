@@ -18,6 +18,7 @@
 namespace loeye\base;
 
 use FilesystemIterator;
+use loeye\Centra;
 use loeye\client\ParallelClientManager;
 use loeye\error\BusinessException;
 use loeye\error\ResourceException;
@@ -227,7 +228,7 @@ class Factory
      */
     private static function _getErrorPageInfo(Context $context, $e): string
     {
-        $appConfig = $context->getAppConfig() ?? self::appConfig();
+        $appConfig = $context->getAppConfig() ?? Centra::$appConfig;
         $debug = $appConfig ? $appConfig->getSetting('debug', false) : false;
         if ($debug) {
             $traceInfo = nl2br($e->getTraceAsString());
@@ -371,30 +372,13 @@ EOF;
     {
         static $cache = [];
         if (!isset($cache[$type])) {
-            $appConfig = self::appConfig();
-            $c = Cache::init($appConfig, $type);
+            $c = Cache::init(Centra::$appConfig, $type);
             if (!$c) {
-                $c = Cache::init($appConfig, Cache::CACHE_TYPE_FILE);
+                $c = Cache::init(Centra::$appConfig, Cache::CACHE_TYPE_FILE);
             }
             $cache[$type] = $c;
         }
         return $cache[$type];
-    }
-
-    /**
-     * appConfig
-     *
-     * @staticvar \loeye\base\AppConfig $appConfig instance of AppConfig
-     *
-     * @return AppConfig
-     */
-    public static function appConfig(): AppConfig
-    {
-        static $appConfig = null;
-        if (null === $appConfig) {
-            $appConfig = new AppConfig();
-        }
-        return $appConfig;
     }
 
     /**
@@ -409,7 +393,7 @@ EOF;
     {
         static $db = [];
         if (!isset($db[$type])) {
-            $db[$type] = DB::getInstance(self::appConfig(), $type);
+            $db[$type] = DB::getInstance(Centra::$appConfig, $type);
         }
         return $db[$type];
     }
@@ -425,41 +409,9 @@ EOF;
     {
         static $translator = null;
         if (null === $translator) {
-            $translator = new Translator(self::appConfig());
+            $translator = new Translator(Centra::$appConfig);
         }
         return $translator;
-    }
-
-    /**
-     * request
-     *
-     * @staticvar \loeye\web\Request $request
-     *
-     * @param null $moduleId
-     * @return Request
-     */
-    public static function request($moduleId = null): Request
-    {
-        static $request = null;
-        if (null === $request) {
-            $request = new Request($moduleId);
-        }
-        return $request;
-    }
-
-    /**
-     *
-     * @staticvar \loeye\web\Response $response
-     *
-     * @return Response
-     */
-    public static function response(): Response
-    {
-        static $response = null;
-        if (null === $response) {
-            $response = new Response();
-        }
-        return $response;
     }
 
     /**

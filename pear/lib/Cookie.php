@@ -17,6 +17,7 @@
 
 namespace loeye\lib;
 
+use loeye\Centra;
 use loeye\std\Request;
 use loeye\std\Response;
 
@@ -27,28 +28,10 @@ use loeye\std\Response;
  */
 class Cookie
 {
-    /**
-     * @var Response
-     */
-    private static $response;
-    /**
-     * @var Request
-     */
-    private static $request;
 
     public const UNIQUE_ID_NAME = 'LOUID';
     public const USRE_MESSAGE_INFO = 'LOUSI';
     public const CRYPT_COOKIE_FIELDS = 'loc';
-
-    /**
-     * @param Request $request
-     * @param Response $response
-     */
-    public static function init(Request $request, Response $response): void
-    {
-        self::$request = $request;
-        self::$response = $response;
-    }
 
     /**
      * setCookie
@@ -75,7 +58,7 @@ class Cookie
     {
         $cookie = \Symfony\Component\HttpFoundation\Cookie::create($name, $value, $expire, $path,
         $domain, $secure, $httpOnly);
-        self::$response->addCookie($cookie);
+        Centra::$response->addCookie($cookie);
         return true;
     }
 
@@ -88,7 +71,7 @@ class Cookie
      */
     public static function getCookie($name=null): ?string
     {
-        return self::$request->getCookie($name);
+        return Centra::$request->getCookie($name);
     }
 
     /**

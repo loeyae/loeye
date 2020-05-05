@@ -13,6 +13,8 @@
 
 namespace loeye\server;
 
+use loeye\base\AppConfig;
+use loeye\Centra;
 use loeye\std\Server;
 
 /**
@@ -31,7 +33,8 @@ class Factory
      */
     public static function create(): Server
     {
-        $appConfig = \loeye\base\Factory::appConfig();
+        $appConfig = new AppConfig();
+        Centra::$appConfig = $appConfig;
         $type = $appConfig->getSetting('server.type', self::SERVER_TYPE_REACT);
         if ($type === self::SERVER_TYPE_SWOOLE && SwooleServer::isSupported()) {
             return new SwooleServer();

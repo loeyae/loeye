@@ -17,6 +17,7 @@ namespace loeye\base;
 
 use ArrayAccess;
 use Generator;
+use loeye\Centra;
 use loeye\client\ParallelClientManager;
 use loeye\std\Request;
 use loeye\std\Response;
@@ -115,7 +116,7 @@ class Context
      */
     public function __construct(AppConfig $appConfig = null)
     {
-        $this->_appConfig = $appConfig ?? Factory::appConfig();
+        $this->_appConfig = $appConfig ?? Centra::$appConfig ?? new AppConfig();
         $this->_data = array();
         $this->_cdata = array();
         $this->_traceData = array();

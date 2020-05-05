@@ -23,6 +23,7 @@ use loeye\base\ModuleDefinition;
 use loeye\base\Router;
 use loeye\base\UrlManager;
 use loeye\base\Utils;
+use loeye\Centra;
 use loeye\error\BusinessException;
 use loeye\error\ResourceException;
 use loeye\lib\ModuleParse;
@@ -63,7 +64,7 @@ class Dispatcher extends \loeye\std\Dispatcher
             $this->initConfigConstants();
             $moduleId = $this->parseUrl($moduleId);
             if (empty($moduleId)) {
-                $moduleId = $this->context->getRequest()->getModuleId();
+                $moduleId = Centra::$context->getRequest()->getModuleId();
             }
 
             if (empty($moduleId)) {
@@ -74,7 +75,7 @@ class Dispatcher extends \loeye\std\Dispatcher
             $this->initLogger();
             $this->setTimezone();
             $this->initComponent();
-            $this->_mDfnObj = new ModuleDefinition($this->context->getAppConfig(), $moduleId);
+            $this->_mDfnObj = new ModuleDefinition(Centra::$context->getAppConfig(), $moduleId);
 
             $this->executeModule();
 
@@ -83,13 +84,13 @@ class Dispatcher extends \loeye\std\Dispatcher
             $this->executeView($view);
             $render = $this->executeOutput();
         } catch (InvalidArgumentException $e) {
-            $render = ExceptionHandler($e, $this->context);
+            $render = ExceptionHandler($e, Centra::$context);
         } catch (Throwable $e) {
-            $render = ExceptionHandler($e, $this->context);
+            $render = ExceptionHandler($e, Centra::$context);
         } finally {
             if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL) {
                 $this->setTraceDataIntoContext(array());
-                Utils::logContextTrace($this->context, null, false);
+                Utils::logContextTrace(Centra::$context, null, false);
             }
         }
         return $render;
@@ -106,31 +107,31 @@ class Dispatcher extends \loeye\std\Dispatcher
      */
     protected function executeModule(): void
     {
-        $this->context->setModule($this->_mDfnObj);
-        $this->context->setParallelClientManager(Factory::parallelClientManager());
+        Centra::$context->setModule($this->_mDfnObj);
+        Centra::$context->setParallelClientManager(Factory::parallelClientManager());
 
         $inputs = $this->_mDfnObj->getInputs();
         $this->_setArrayInContext($inputs);
-        $setting = ModuleParse::parseInput($this->_mDfnObj->getSetting(), $this->context);
+        $setting = ModuleParse::parseInput($this->_mDfnObj->getSetting(), Centra::$context);
         $continueOnError = false;
         if (isset($setting['continue_on_error']) && $setting['continue_on_error'] === 'true') {
             $continueOnError = true;
         }
         $cacheAble = true;
         if (isset($setting['cache_able'])) {
-            $cacheAble = ModuleParse::conditionResult($setting['cache_able'], $this->context);
+            $cacheAble = ModuleParse::conditionResult($setting['cache_able'], Centra::$context);
         }
         if ($cacheAble && isset($setting['cache'])) {
-            $this->context->setExpire($setting['cache']);
+            Centra::$context->setExpire($setting['cache']);
         }
         if ($cacheAble) {
-            $this->context->loadCacheData();
+            Centra::$context->loadCacheData();
         }
 
         if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL) {
             $this->setTraceDataIntoContext(array());
         }
-        $mockMode = $this->context->getRequest()->getQuery('ly_p_m');
+        $mockMode = Centra::$context->getRequest()->getQuery('ly_p_m');
         if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL && $mockMode === 'mock') {
             $mockPlugins = $this->_mDfnObj->getMockPlugins();
             [$returnStatus] = $this->_executePlugin($mockPlugins, false, true);
@@ -139,10 +140,10 @@ class Dispatcher extends \loeye\std\Dispatcher
             [$returnStatus] = $this->_executePlugin($plugins, false, $continueOnError);
         }
         if ($cacheAble) {
-            $this->context->cacheData();
+            Centra::$context->cacheData();
         }
         if (!empty($returnStatus) && is_string($returnStatus)) {
-            $this->context->getResponse()->setRenderId($returnStatus);
+            Centra::$context->getResponse()->setRenderId($returnStatus);
         }
     }
 
@@ -156,10 +157,10 @@ class Dispatcher extends \loeye\std\Dispatcher
      */
     protected function initIOObject($moduleId): void
     {
-        $request = $this->context->getRequest();
-        $request->setRouter($this->context->getRouter());
+        $request = Centra::$context->getRequest();
+        $request->setRouter(Centra::$context->getRouter());
         $request->setModuleId($moduleId);
-        $response = $this->context->getResponse();
+        $response = Centra::$context->getResponse();
         if (defined('MOBILE_RENDER_ENABLE') && MOBILE_RENDER_ENABLE && $request->getDevice()) {
             $response->setRenderId(Response::DEFAULT_MOBILE_RENDER_ID);
         }
@@ -176,11 +177,11 @@ class Dispatcher extends \loeye\std\Dispatcher
     {
         $moduleId = null;
         $router = new Router();
-        $this->context->setRouter($router);
-        if ($this->context->getRequest()->getQuery('m_id')) {
-            $moduleId = $this->context->getRequest()->getQuery('m_id');
+        Centra::$context->setRouter($router);
+        if (Centra::$context->getRequest()->getQuery('m_id')) {
+            $moduleId = Centra::$context->getRequest()->getQuery('m_id');
         } else {
-            $requestUrl = $this->context->getRequest()->getUri()->getPath();
+            $requestUrl = Centra::$context->getRequest()->getUri()->getPath();
             $moduleId = $router->match($requestUrl);
         }
         return $moduleId;
@@ -195,7 +196,7 @@ class Dispatcher extends \loeye\std\Dispatcher
      */
     protected function getView(): ?array
     {
-        $renderId = $this->context->getResponse()->getRenderId();
+        $renderId = Centra::$context->getResponse()->getRenderId();
         $views = $this->_mDfnObj->getViews();
         if (!empty($renderId) && !empty($views)) {
             if ($renderId === Response::DEFAULT_MOBILE_RENDER_ID && !isset($views[$renderId])) {
@@ -229,9 +230,9 @@ class Dispatcher extends \loeye\std\Dispatcher
             }
             $cacheParams = [];
             if (is_array($view['cache'])) {
-                $cacheParams = ModuleParse::parseInput($view['cache'], $this->context);
+                $cacheParams = ModuleParse::parseInput($view['cache'], Centra::$context);
             }
-            Utils::setPageCache($this->context->getAppConfig(), $this->context->getRequest()->getModuleId(), $content, $expire, $cacheParams);
+            Utils::setPageCache(Centra::$context->getAppConfig(), Centra::$context->getRequest()->getModuleId(), $content, $expire, $cacheParams);
         }
     }
 
@@ -252,9 +253,9 @@ class Dispatcher extends \loeye\std\Dispatcher
         if (isset($view['cache'])) {
             $cacheParams = [];
             if (is_array($view['cache'])) {
-                $cacheParams = ModuleParse::parseInput($view['cache'], $this->context);
+                $cacheParams = ModuleParse::parseInput($view['cache'], Centra::$context);
             }
-            $content = Utils::getPageCache($this->context->getAppConfig(), $this->context->getRequest()->getModuleId(), $cacheParams);
+            $content = Utils::getPageCache(Centra::$context->getAppConfig(), Centra::$context->getRequest()->getModuleId(), $cacheParams);
         }
         return $content;
     }
@@ -271,7 +272,7 @@ class Dispatcher extends \loeye\std\Dispatcher
     {
         $cacheId = $this->_mDfnObj->getModuleId();
         if (isset($view['id'])) {
-            $cacheId .= '.' . $this->context->get($view['id']);
+            $cacheId .= '.' . Centra::$context->get($view['id']);
         }
         return $cacheId;
     }
@@ -298,12 +299,12 @@ class Dispatcher extends \loeye\std\Dispatcher
                 reset($plugin);
                 if (!empty($plugin[ModuleParse::CONDITION_KEY]) && (ModuleParse::conditionResult(
                             $plugin[ModuleParse::CONDITION_KEY],
-                            $this->context) === false)) {
+                            Centra::$context) === false)) {
                     continue;
                 }
                 $key = key($plugin);
                 if (ModuleParse::isCondition($key)) {
-                    if (ModuleParse::groupConditionResult($key, $this->context) === false) {
+                    if (ModuleParse::groupConditionResult($key, Centra::$context) === false) {
                         continue;
                     }
                     $result = $this->_executePlugin(current($plugin), $isParallel);
@@ -334,7 +335,7 @@ class Dispatcher extends \loeye\std\Dispatcher
                 } else {
                     $pluginList[] = $plugin;
                     if ($isParallel === false) {
-                        $setting = ModuleParse::parseInput($plugin, $this->context);
+                        $setting = ModuleParse::parseInput($plugin, Centra::$context);
                         if (isset($setting['inputs'])) {
                             $this->_setArrayInContext($setting['inputs']);
                         }
@@ -343,11 +344,11 @@ class Dispatcher extends \loeye\std\Dispatcher
                         }
                         $pluginObj = Factory::getPlugin($plugin);
                         if ($pluginObj instanceof ParallelPlugin) {
-                            $pluginObj->prepare($this->context, $setting);
-                            $this->context->getParallelClientManager()->execute();
-                            $this->context->getParallelClientManager()->reset();
+                            $pluginObj->prepare(Centra::$context, $setting);
+                            Centra::$context->getParallelClientManager()->execute();
+                            Centra::$context->getParallelClientManager()->reset();
                         }
-                        $returnStatus = $pluginObj->process($this->context, $setting);
+                        $returnStatus = $pluginObj->process(Centra::$context, $setting);
                         if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL) {
                             $this->setTraceDataIntoContext($plugin);
                         }
@@ -394,7 +395,7 @@ class Dispatcher extends \loeye\std\Dispatcher
         $pluginObjList = array();
         $settingList = array();
         foreach ($pluginList as $id => $plugin) {
-            $setting = ModuleParse::parseInput($plugin, $this->context);
+            $setting = ModuleParse::parseInput($plugin, Centra::$context);
             if (isset($setting['inputs'])) {
                 $this->_setArrayInContext($setting['inputs']);
             }
@@ -408,17 +409,17 @@ class Dispatcher extends \loeye\std\Dispatcher
                     BusinessException::INVALID_PLUGIN_INSTANCE_CODE
                 );
             }
-            $pluginObj->prepare($this->context, $setting);
+            $pluginObj->prepare(Centra::$context, $setting);
             $pluginObjList[$id] = $pluginObj;
             $settingList[$id] = $setting;
         }
 
-        $this->context->getParallelClientManager()->execute();
-        $this->context->getParallelClientManager()->reset();
+        Centra::$context->getParallelClientManager()->execute();
+        Centra::$context->getParallelClientManager()->reset();
 
         foreach ($pluginObjList as $id => $pluginObj) {
             $setting = $settingList[$id];
-            $returnStatus = $pluginObj->process($this->context, $setting);
+            $returnStatus = $pluginObj->process(Centra::$context, $setting);
 
             $breakStatus = $this->_handleError($pluginList[$id]);
             if ($breakStatus === true) {
@@ -445,10 +446,10 @@ class Dispatcher extends \loeye\std\Dispatcher
     protected function checkContextCacheData($setting): bool
     {
         if (isset($setting['check_cache'])) {
-            if (Utils::checkContextCacheData($this->context, [], $setting['check_cache'])) {
+            if (Utils::checkContextCacheData(Centra::$context, [], $setting['check_cache'])) {
                 return true;
             }
-        } else if (Utils::checkContextCacheData($this->context, $setting)) {
+        } else if (Utils::checkContextCacheData(Centra::$context, $setting)) {
             return true;
         }
         return false;
@@ -483,7 +484,7 @@ class Dispatcher extends \loeye\std\Dispatcher
     {
         if (is_array($inputs)) {
             foreach ($inputs as $key => $value) {
-                $this->context->set($key, $value);
+                Centra::$context->set($key, $value);
             }
         }
     }
@@ -503,9 +504,9 @@ class Dispatcher extends \loeye\std\Dispatcher
         if (isset($plugin[LOEYE_PLUGIN_HAS_ERROR])) {
             foreach ($plugin[LOEYE_PLUGIN_HAS_ERROR] as $key => $errorSetting) {
                 if ($key === 'default') {
-                    $errors = $this->context->getErrors();
+                    $errors = Centra::$context->getErrors();
                 } else {
-                    $errors = $this->context->getErrors($key);
+                    $errors = Centra::$context->getErrors($key);
                 }
                 if (empty($errors)) {
                     continue;
@@ -515,13 +516,13 @@ class Dispatcher extends \loeye\std\Dispatcher
                 switch ($type) {
                     case 'view':
                         if (!empty($errorSetting['render_id'])) {
-                            $this->context->getResponse()->setRenderId($errorSetting['render_id']);
+                            Centra::$context->getResponse()->setRenderId($errorSetting['render_id']);
                         }
                         break;
                     case 'url':
                         $url = $this->_getRedirectUrl($errorSetting);
                         if (!empty($url)) {
-                            $this->context->getResponse()->setRedirectUrl($url);
+                            Centra::$context->getResponse()->setRedirectUrl($url);
                         } else {
                             throw new BusinessException(
                                 BusinessException::INVALID_RENDER_SET_MSG,
@@ -531,7 +532,7 @@ class Dispatcher extends \loeye\std\Dispatcher
                     case 'json':
                     case 'xml':
                         $this->_output($errorSetting);
-                        $this->context->getResponse()->setRenderId(null);
+                        Centra::$context->getResponse()->setRenderId(null);
                         break;
                     default :
                         $error = current($errors);
@@ -550,9 +551,9 @@ class Dispatcher extends \loeye\std\Dispatcher
                         }
                         $error = new \Exception($message, $code);
                         $file = !empty($errorSetting['page']) ? $errorSetting['page'] : null;
-                        $errorContent = Factory::includeErrorPage($this->context, $error, $file);
-                        $this->context->getResponse()->addOutput($errorContent);
-                        $this->context->getResponse()->setRenderId(null);
+                        $errorContent = Factory::includeErrorPage(Centra::$context, $error, $file);
+                        Centra::$context->getResponse()->addOutput($errorContent);
+                        Centra::$context->getResponse()->setRenderId(null);
                         break;
                 }
                 $this->processMode = LOEYE_PROCESS_MODE__ERROR_EXIT;
@@ -572,22 +573,22 @@ class Dispatcher extends \loeye\std\Dispatcher
      */
     private function _output($errorSetting): void
     {
-        $this->context->getResponse()->setFormat($errorSetting['type']);
+        Centra::$context->getResponse()->setFormat($errorSetting['type']);
         $status = Utils::getData($errorSetting, 'code', 200);
-        $this->context->getResponse()->addOutput($status, 'status');
+        Centra::$context->getResponse()->addOutput($status, 'status');
         $message = Utils::getData($errorSetting, 'msg', 'OK');
-        $this->context->getResponse()->addOutput($message, 'message');
+        Centra::$context->getResponse()->addOutput($message, 'message');
         $data = array();
         $outDataKey = Utils::getData($errorSetting, 'data', null);
         if (!empty($outDataKey)) {
-            $data = Utils::getData($this->context, $outDataKey);
+            $data = Utils::getData(Centra::$context, $outDataKey);
         } else if (isset($errorSetting['error'])) {
-            $data = $this->context->getErrors($errorSetting['error']);
+            $data = Centra::$context->getErrors($errorSetting['error']);
         }
-        $this->context->getResponse()->addOutput($data, 'data');
+        Centra::$context->getResponse()->addOutput($data, 'data');
         $url = $this->_getRedirectUrl($errorSetting);
         if (!empty($url)) {
-            $this->context->getResponse()->addOutput($url, 'redirect');
+            Centra::$context->getResponse()->addOutput($url, 'redirect');
         }
     }
 
@@ -603,9 +604,9 @@ class Dispatcher extends \loeye\std\Dispatcher
     {
         $url = null;
         $routerKey = Utils::getData($errorSetting, 'router_key');
-        if (!empty($routerKey) && $this->context->getRouter() instanceof Router) {
+        if (!empty($routerKey) && Centra::$context->getRouter() instanceof Router) {
             $parameter = Utils::getData($errorSetting, 'params', array());
-            $router = $this->context->getRouter();
+            $router = Centra::$context->getRouter();
             $url = $router->generate($routerKey, $parameter);
         } else {
             $url = Utils::getData($errorSetting, 'url');
@@ -625,8 +626,8 @@ class Dispatcher extends \loeye\std\Dispatcher
     protected function parseUrl($moduleId = null): ?string
     {
         if (empty($moduleId)) {
-            if ($this->context->getRouter() instanceof UrlManager) {
-                $moduleId = $this->context->getRouter()->match(filter_input(INPUT_SERVER, 'REQUEST_URI'));
+            if (Centra::$context->getRouter() instanceof UrlManager) {
+                $moduleId = Centra::$context->getRouter()->match(filter_input(INPUT_SERVER, 'REQUEST_URI'));
             } else {
                 $moduleId = $this->_executeRouter();
             }
@@ -647,7 +648,7 @@ class Dispatcher extends \loeye\std\Dispatcher
     protected function _addResource($type, $resource): void
     {
         $res = new Resource($type, $resource);
-        $this->context->getResponse()->addResource($res);
+        Centra::$context->getResponse()->addResource($res);
     }
 
 }

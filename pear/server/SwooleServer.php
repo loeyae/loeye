@@ -14,6 +14,7 @@ namespace loeye\server;
 
 
 use loeye\base\Context;
+use loeye\Centra;
 use loeye\std\Server;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
@@ -65,8 +66,8 @@ class SwooleServer extends Server
             if (($file = $this->isStaticFile($path)) !== false) {
                 $render = $this->staticRouter($file);
             } else {
-                $context = $this->createContext($request);
-                $render = $this->process($context);
+                $this->createContext($request);
+                $render = $this->process();
             }
             $response->status($render->code(), $render->reason());
             $header = $render->header();
@@ -87,6 +88,9 @@ class SwooleServer extends Server
         });
     }
 
+    /**
+     * @param \Swoole\Http\Server $server
+     */
     protected function loadPeriodicTimer(\Swoole\Http\Server $server)
     {
         $periodicTimers = $this->getPeriodicTask();
@@ -104,6 +108,7 @@ class SwooleServer extends Server
     protected function createContext(Request $request): Context
     {
         $context = new Context($this->appConfig);
+        Centra::$context = $context;
         $myRequest = $this->createRequest();
         $response = $this->createResponse($myRequest);
         $router = $this->createRouter();
@@ -120,6 +125,8 @@ class SwooleServer extends Server
         $context->setRouter($router);
         $context->setRequest($myRequest);
         $context->setResponse($response);
+        Centra::$request = $myRequest;
+        Centra::$response = $response;
         return $context;
     }
 

@@ -14,6 +14,7 @@ namespace loeye\server;
 
 
 use loeye\base\Context;
+use loeye\Centra;
 use loeye\std\Server;
 use phpseclib\File\ASN1;
 use Psr\Http\Message\ServerRequestInterface;
@@ -48,8 +49,8 @@ class ReactServer extends Server
             if (($file = $this->isStaticFile($path)) !== false) {
                 $render = $this->staticRouter($file);
             } else {
-                $context = $this->createContext($request);
-                $render = $this->process($context);
+                $this->createContext($request);
+                $render = $this->process();
             }
             $header = $render->header();
             $cookies = $render->cookie();
@@ -124,7 +125,11 @@ class ReactServer extends Server
         $router = $this->createRouter();
         $myRequest->setRouter($router);
         $context->setRequest($myRequest);
-        $context->setResponse($this->createResponse($myRequest));
+        $response = $this->createResponse($myRequest);
+        $context->setResponse($response);
+        Centra::$context = $context;
+        Centra::$request = $myRequest;
+        Centra::$response = $response;
         return $context;
     }
 }

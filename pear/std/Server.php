@@ -19,9 +19,11 @@ use loeye\base\Context;
 use loeye\base\Factory;
 use loeye\base\UrlManager;
 use loeye\base\Utils;
+use loeye\Centra;
 use loeye\lib\Cookie;
 use loeye\render\SegmentRender;
 use loeye\web\SimpleDispatcher;
+use function GuzzleHttp\Psr7\mimetype_from_extension;
 
 abstract class Server
 {
@@ -40,7 +42,10 @@ abstract class Server
      */
     public function __construct()
     {
-        $this->appConfig = Factory::appConfig();
+        if (!Centra::$appConfig) {
+            Centra::$appConfig  = new AppConfig();
+        }
+        $this->appConfig = Centra::$appConfig;
         define('LOEYE_MODE', $this->appConfig->getSetting('debug', false) ? LOEYE_MODE_DEV :
             LOEYE_MODE_PROD);
     }
@@ -48,10 +53,9 @@ abstract class Server
     /**
      * getDispatcher
      *
-     * @param Context $context
      * @return Dispatcher
      */
-    protected function getDispatcher(Context $context): Dispatcher
+    protected function getDispatcher(): Dispatcher
     {
         $map = [
             self::DEFAULT_DISPATCHER => \loeye\web\Dispatcher::class,
@@ -62,7 +66,7 @@ abstract class Server
         $dispatcherClass = $map[$dispatcher] ?? \loeye\web\Dispatcher::class;
         $processMode = $this->appConfig->getSetting('application.process_mode',
             LOEYE_PROCESS_MODE__NORMAL);
-        return new $dispatcherClass($context, $processMode);
+        return new $dispatcherClass($processMode);
     }
 
     /**
@@ -109,21 +113,26 @@ abstract class Server
     protected function staticRouter($path): Render
     {
         $response = new \loeye\web\Response();
-        $response->addHeader('Content-Type', Utils::mimeType($path));
-        $response->addOutput(file_get_contents($path));
+        if(!is_file($path)) {
+            $response->setStatusCode(404);
+            $response->setReason('Bad Request');
+            $response->addHeader('Content-Type',
+                mimetype_from_extension(pathinfo($path, PATHINFO_EXTENSION)));
+        } else {
+            $response->addHeader('Content-Type', Utils::mimeType($path));
+            $response->addOutput(file_get_contents($path));
+        }
         return new SegmentRender($response);
     }
 
     /**
      * process
      *
-     * @param Context $context
      * @return Render|null
      */
-    protected function process(Context $context): ?Render
+    protected function process(): ?Render
     {
-        Cookie::init($context->getRequest(), $context->getResponse());
-        $dispatcher = $this->getDispatcher($context);
+        $dispatcher = $this->getDispatcher();
         return $dispatcher->dispatch();
     }
 
@@ -177,6 +186,10 @@ abstract class Server
                     return PROJECT_DIR . DIRECTORY_SEPARATOR . $item .DIRECTORY_SEPARATOR .$path;
                 }
             }
+        }
+        $ext = pathinfo($path, PATHINFO_EXTENSION);
+        if (in_array($ext, ['css', 'js', 'ico', 'png', 'jpg', 'gif', 'jpeg'])) {
+            return $path;
         }
         return false;
     }

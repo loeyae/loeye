@@ -18,6 +18,7 @@
 namespace loeye\base;
 
 use DateTimeZone;
+use loeye\Centra;
 use Monolog;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\RotatingFileHandler;
@@ -55,7 +56,7 @@ class Logger
     {
         $key = md5($name);
         if (!isset(self::$logger[$key])) {
-            $appConfig = Factory::appConfig();
+            $appConfig = Centra::$appConfig;
                 $logfile = $file ?: $appConfig->getSetting('logger.' . $name . '.file',
                 $appConfig->getSetting('logger.file', RUNTIME_LOG_DIR . DIRECTORY_SEPARATOR
                     . PROJECT_NAMESPACE . DIRECTORY_SEPARATOR. 'error-' . $name . '.log'));

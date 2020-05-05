@@ -20,10 +20,13 @@ namespace loeye\base;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use IntlDateFormatter;
+use loeye\Centra;
 use loeye\client\Client;
 use loeye\error\{BusinessException, DataException, LogicException, ResourceException};
 use loeye\std\Render;
 use loeye\web\Dispatcher;
+use loeye\web\Request;
+use loeye\web\Response;
 use loeye\web\Template;
 use Psr\Cache\InvalidArgumentException;
 use ReflectionClass;
@@ -707,10 +710,19 @@ class Utils
      */
     public static function includeModule($moduleId, $parameter = array()): Render
     {
-        $request = Factory::request($moduleId);
-
+        $request = Centra::$request;
+        $response = Centra::$response;
+        $context = Centra::$context;
+        Centra::$request = new Request();
+        Centra::$request->setModuleId($moduleId);
+        Centra::$response = new Response();
+        Centra::$context = new Context();
         $dispatcher = new Dispatcher();
-        return $dispatcher->dispatch($moduleId);
+        $render = $dispatcher->dispatch($moduleId);
+        Centra::$context = $context;
+        Centra::$request = $request;
+        Centra::$response = $response;
+        return $render;
     }
 
     /**

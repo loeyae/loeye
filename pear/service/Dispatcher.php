@@ -22,6 +22,7 @@ use loeye\base\Factory;
 use loeye\base\Logger;
 use loeye\base\UrlManager;
 use loeye\base\Utils;
+use loeye\Centra;
 use loeye\error\ResourceException;
 use loeye\error\ValidateError;
 use loeye\render\SegmentRender;
@@ -73,24 +74,24 @@ class Dispatcher extends \loeye\std\Dispatcher
             $this->initLogger();
             $this->initComponent();
             $this->setTimezone();
-            $handlerNamespace = $this->context->getAppConfig()->getSetting('handler_namespace', '');
+            $handlerNamespace = Centra::$context->getAppConfig()->getSetting('handler_namespace', '');
             if (!$handlerNamespace) {
-                $handlerNamespace = PROJECT_NAMESPACE . '\\services\\handler\\' . mb_convert_case($this->context->getAppConfig()->getPropertyName(), MB_CASE_LOWER);
+                $handlerNamespace = PROJECT_NAMESPACE . '\\services\\handler\\' . mb_convert_case(Centra::$context->getAppConfig()->getPropertyName(), MB_CASE_LOWER);
             }
             $handler = $handlerNamespace . '\\' . $this->service . '\\' . ucfirst($this->handler) . ucfirst(self::KEY_HANDLER);
             if (!class_exists($handler)) {
                 throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
             }
             $ref = new ReflectionClass($handler);
-            $handlerObject = $ref->newInstance($this->context);
+            $handlerObject = $ref->newInstance(Centra::$context);
             if (!($handlerObject instanceof Handler)) {
                 throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
             }
             $handlerObject->handle();
             $render = $this->executeOutput();
         } catch (ValidateError $exc) {
-            $request = ($this->getContext()->getRequest() ?? new Request());
-            $response = ($this->getContext()->getResponse() ?? new Response($request));
+            $request = Centra::$request ?? new Request();
+            $response = (Centra::$response ?? new Response($request));
             $format = ($request->getFormatType());
             if (empty($format)) {
                 $response->setFormat('json');
@@ -107,8 +108,8 @@ class Dispatcher extends \loeye\std\Dispatcher
             }
         } catch (Throwable $exc) {
             Utils::errorLog($exc);
-            $request = ($this->getContext()->getRequest() ?? new Request());
-            $response = ($this->getContext()->getResponse() ?? new Response($request));
+            $request = (Centra::$request ?? new Request());
+            $response = (Centra::$response ?? new Response($request));
             $format = ($request->getFormatType());
             if (empty($format)) {
                 $response->setFormat('json');
@@ -125,7 +126,7 @@ class Dispatcher extends \loeye\std\Dispatcher
         } finally {
             if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL) {
                 $this->setTraceDataIntoContext(array());
-                Utils::logContextTrace($this->context, null, false);
+                Utils::logContextTrace(Centra::$context, null, false);
             }
         }
         return $render;
@@ -164,10 +165,10 @@ class Dispatcher extends \loeye\std\Dispatcher
      */
     protected function initIOObject($moduleId): void
     {
-        $request = $this->context->getRequest();
+        $request = Centra::$context->getRequest();
         $request->setModuleId($moduleId);
-        $request->setRouter($this->context->getRouter());
-        $response = $this->context->getResponse();
+        $request->setRouter(Centra::$context->getRouter());
+        $response = Centra::$context->getResponse();
         $response->setFormat($request->getFormatType());
     }
 
@@ -183,7 +184,7 @@ class Dispatcher extends \loeye\std\Dispatcher
         $path = null;
         if ($this->rewrite) {
             $router = new UrlManager($this->rewrite);
-            $this->context->setRouter($router);
+            Centra::$context->setRouter($router);
             $path = $router->match($requestUrl);
             if ($path === false) {
                 throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
