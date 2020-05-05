@@ -69,7 +69,9 @@ class SwooleServer extends Server
                 $render = $this->process($context);
             }
             $response->status($render->code(), $render->reason());
-            $response->header($render->header());
+            foreach ($render->header() as $key => $value) {
+                $response->header($key, $value);
+            }
             $response->end($render->output());
         });
     }
