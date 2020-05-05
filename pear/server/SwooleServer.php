@@ -72,6 +72,11 @@ class SwooleServer extends Server
             foreach ($render->header() as $key => $value) {
                 $response->header($key, $value);
             }
+            foreach ($render->cookie() as $item) {
+                $response->cookie($item->getName(), $item->getValue(), $item->getExpiresTime(),
+                    $item->getPath(), $item->getDomain(), $item->isSecure(), $item->isHttpOnly(),
+                    $item->getSameSite());
+            }
             $response->end($render->output());
         });
     }

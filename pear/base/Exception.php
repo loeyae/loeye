@@ -38,10 +38,10 @@ function ExceptionHandler(Throwable $exc, Context $context): Render
         Logger::exception($exc);
     }
     $format = null;
-    $appConfig = Factory::appConfig();
-    $request = $context->getRequest() ?? Factory::request();
+    $appConfig = $context->getAppConfig();
+    $request = $context->getRequest() ;
     $format = $appConfig->getSetting('application.response.format', $request->getFormatType());
-    $response = $context->getResponse() ?? Factory::response();
+    $response = $context->getResponse();
     $renderObj = new SegmentRender($response);
     switch ($format) {
         case 'xml':

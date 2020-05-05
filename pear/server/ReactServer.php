@@ -51,7 +51,14 @@ class ReactServer extends Server
                 $context = $this->createContext($request);
                 $render = $this->process($context);
             }
-            return new Response($render->code(), $render->header(), $render->output(), $render->version(),
+            $header = $render->header();
+            $cookies = $render->cookie();
+            if ($cookies) {
+                foreach ($render->cookie() as $cookie) {
+                    $header['Set-Cookie'][] = $cookie->__toString();
+                }
+            }
+            return new Response($render->code(), $header, $render->output(), $render->version(),
                 $render->reason());
         });
     }

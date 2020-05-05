@@ -18,6 +18,8 @@
 namespace loeye\std;
 
 use ArrayAccess;
+use GuzzleHttp\Cookie\CookieJar;
+use Symfony\Component\HttpFoundation\Cookie;
 
 /**
  * interface Response
@@ -43,6 +45,11 @@ abstract class Response
      * @var string
      */
     private $version = '1.1';
+
+    /**
+     * @var Cookie[]
+     */
+    private $cookie;
 
     /**
      * @param string $version
@@ -181,4 +188,56 @@ abstract class Response
     }
 
     abstract public function getOutput();
+
+    /**
+     * @param array $cookie
+     * @return Response
+     */
+    public function setCookie(array $cookie): Response
+    {
+        foreach ($cookie as $key => $item) {
+            if ($item instanceof Cookie) {
+                $this->addCookie($item);
+            } else {
+                $this->addCookie($key, $item);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @param $name
+     * @param null $value
+     * @param int $expire
+     * @param string $path
+     * @param null $domain
+     * @param bool $secure
+     * @param bool $httpOnly
+     * @return Response
+     */
+    public function addCookie($name, $value = null, $expire = 0, $path = '/', $domain = null,
+                              $secure = false, $httpOnly = true): Response
+    {
+        if ($name instanceof  Cookie) {
+            $this->cookie[$name->getName()] = $name;
+        } else {
+            $this->cookie[$name] = Cookie::create($name, $value, $expire, $path, $domain, $secure,
+                $httpOnly);
+        }
+        return $this;
+    }
+
+    /**
+     * @param string|null $key
+     *
+     * @return Cookie|Cookie[]|null
+     */
+    public function getCookie(string $key = null)
+    {
+        if (null === $key) {
+            return $this->cookie;
+        }
+        return $this->cookie[$key];
+    }
+
 }

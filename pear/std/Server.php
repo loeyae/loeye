@@ -19,6 +19,7 @@ use loeye\base\Context;
 use loeye\base\Factory;
 use loeye\base\UrlManager;
 use loeye\base\Utils;
+use loeye\lib\Cookie;
 use loeye\render\SegmentRender;
 use loeye\web\SimpleDispatcher;
 
@@ -40,6 +41,8 @@ abstract class Server
     public function __construct()
     {
         $this->appConfig = Factory::appConfig();
+        define('LOEYE_MODE', $this->appConfig->getSetting('debug', false) ? LOEYE_MODE_DEV :
+            LOEYE_MODE_PROD);
     }
 
     /**
@@ -119,6 +122,7 @@ abstract class Server
      */
     protected function process(Context $context): ?Render
     {
+        Cookie::init($context->getRequest(), $context->getResponse());
         $dispatcher = $this->getDispatcher($context);
         return $dispatcher->dispatch();
     }

@@ -17,6 +17,8 @@
 
 namespace loeye\std;
 
+use Symfony\Component\HttpFoundation\Cookie;
+
 /**
  * interface Render
  *
@@ -57,6 +59,14 @@ abstract class Render
     public function version(): string
     {
         return $this->response->getVersion();
+    }
+
+    /**
+     * @return Cookie[]
+     */
+    public function cookie(): ?array
+    {
+        return $this->response->getCookie();
     }
 
     /**

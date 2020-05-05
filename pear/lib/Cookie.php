@@ -17,6 +17,9 @@
 
 namespace loeye\lib;
 
+use loeye\std\Request;
+use loeye\std\Response;
+
 /**
  * Description of Cookie
  *
@@ -24,10 +27,28 @@ namespace loeye\lib;
  */
 class Cookie
 {
+    /**
+     * @var Response
+     */
+    private static $response;
+    /**
+     * @var Request
+     */
+    private static $request;
 
     public const UNIQUE_ID_NAME = 'LOUID';
     public const USRE_MESSAGE_INFO = 'LOUSI';
     public const CRYPT_COOKIE_FIELDS = 'loc';
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     */
+    public static function init(Request $request, Response $response): void
+    {
+        self::$request = $request;
+        self::$response = $response;
+    }
 
     /**
      * setCookie
@@ -38,22 +59,24 @@ class Cookie
      * @param string $path     path
      * @param string $domain   domain
      * @param bool   $secure   secure
-     * @param bool   $httponly http only
+     * @param bool   $httpOnly http only
      *
      * @return boolean
      */
-    public static function setCookie
-            (
-            $name,
-            $value = null,
-            $expire = 0,
-            $path = '/',
-            $domain = null,
-            $secure = false,
-            $httponly = false
+    public static function setCookie(
+        $name,
+        $value = null,
+        $expire = 0,
+        $path = '/',
+        $domain = null,
+        $secure = false,
+        $httpOnly = true
     ): bool
     {
-        return setcookie($name, $value, $expire, $path, $domain, $secure, $httponly);
+        $cookie = \Symfony\Component\HttpFoundation\Cookie::create($name, $value, $expire, $path,
+        $domain, $secure, $httpOnly);
+        self::$response->addCookie($cookie);
+        return true;
     }
 
     /**
@@ -65,13 +88,7 @@ class Cookie
      */
     public static function getCookie($name=null): ?string
     {
-        if ($name === null) {
-            return  filter_input_array(INPUT_COOKIE);
-        }
-        if (filter_has_var(INPUT_COOKIE, $name)) {
-            return filter_input(INPUT_COOKIE, $name);
-        }
-        return null;
+        return self::$request->getCookie($name);
     }
 
     /**
@@ -83,7 +100,7 @@ class Cookie
      */
     public static function destructCookie($name): bool
     {
-        return setcookie($name, null, -1, '/');
+        return self::setCookie($name, null, -1, '/');
     }
 
     /**
