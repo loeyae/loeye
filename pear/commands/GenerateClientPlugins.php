@@ -63,6 +63,7 @@ EOF;
      */
     public function process(InputInterface $input, OutputInterface $output)
     {
+        define('LOEYE_MODE', LOEYE_MODE_DEV);
         $ui = new SymfonyStyle($input, $output);
         $force = $input->getOption('force');
         $dir = realpath(PROJECT_DIR . D_S . 'services' . D_S . 'client');

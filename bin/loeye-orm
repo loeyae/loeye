@@ -23,7 +23,6 @@ $projectDirs = [
 
 foreach ($projectDirs as $projectDir) {
     if (file_exists($projectDir)) {
-        define('LOEYE_MODE', 'dev');
         define("PROJECT_DIR", realpath($projectDir));
         break;
     }
@@ -41,6 +40,7 @@ foreach ($autoloadFiles as $autoloadFile) {
     }
 }
 
+define('LOEYE_MODE', LOEYE_MODE_DEV);
 
 $directories = [
     __DIR__, 

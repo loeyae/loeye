@@ -21,7 +21,6 @@ $projectDirs = [
 
 foreach ($projectDirs as $projectDir) {
     if (file_exists($projectDir)) {
-        define('LOEYE_MODE', 'dev');
         define("PROJECT_DIR", realpath($projectDir));
         break;
     }

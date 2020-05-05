@@ -64,6 +64,7 @@ class GenerateConfig extends Command {
      */
     public function process(InputInterface $input, OutputInterface $output): void
     {
+        define('LOEYE_MODE', LOEYE_MODE_DEV);
         $type          = $input->getArgument('type');
         $name          = $input->getOption('file');
         $file          = $this->getConfigPath($type, $name);

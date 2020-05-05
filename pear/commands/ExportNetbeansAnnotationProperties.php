@@ -150,6 +150,7 @@ EOF;
      */
     public function process(InputInterface $input, OutputInterface $output): void
     {
+        define('LOEYE_MODE', LOEYE_MODE_DEV);
         $docParser   = new DocParser();
         $docParser->setImports(static::$globalImports);
         $docParser->setIgnoredAnnotationNamespaces(static::$globalIgnoredNames);

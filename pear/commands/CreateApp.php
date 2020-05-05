@@ -77,6 +77,7 @@ class CreateApp extends Command
      */
     public function process(InputInterface $input, OutputInterface $output): void
     {
+        define('LOEYE_MODE', LOEYE_MODE_DEV);
         $ui = new SymfonyStyle($input, $output);
         $dir = $input->getOption('path') ?? getcwd();
         $ui->block($dir);
