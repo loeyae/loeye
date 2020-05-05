@@ -35,8 +35,8 @@ class Factory
     {
         $appConfig = new AppConfig();
         Centra::$appConfig = $appConfig;
-        $type = $appConfig->getSetting('server.type', self::SERVER_TYPE_REACT);
-        if ($type === self::SERVER_TYPE_SWOOLE && SwooleServer::isSupported()) {
+        $type = $appConfig->getSetting('server.type', self::SERVER_TYPE_SWOOLE);
+        if ($type !== self::SERVER_TYPE_REACT && SwooleServer::isSupported()) {
             return new SwooleServer();
         }
         return new ReactServer();
