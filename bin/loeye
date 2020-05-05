@@ -21,7 +21,7 @@ $projectDirs = [
 
 foreach ($projectDirs as $projectDir) {
     if (file_exists($projectDir)) {
-        define("PROJECT_DIR", realpath($projectDir));
+        define('PROJECT_DIR', realpath($projectDir));
         break;
     }
 }

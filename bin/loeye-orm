@@ -44,7 +44,7 @@ define('LOEYE_MODE', LOEYE_MODE_DEV);
 
 $directories = [
     __DIR__, 
-    __DIR__ . DIRECTORY_SEPARATOR . 'loeyae/loeye2/bin'
+    __DIR__ . DIRECTORY_SEPARATOR . 'loeyae/loeye/bin'
     ];
 
 $configFile = null;
