@@ -1,10 +1,13 @@
 # loeye
 php framework
 
-## Install
+
+## Installation
 ```
 composer require loeyae/loeye 
 ```
+
+## Quick Start
 初始化应用
 ```
 vendor/bin/loeye loeye:create-app
@@ -31,3 +34,6 @@ Demo在php安装有Swoole扩展的情况下，会默认使用Swoole\Http\Server�
     }
 }
 ```
+
+## License
+Apache PredictionIO is under <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache 2 license</a>.
