@@ -16,7 +16,6 @@ namespace loeye\server;
 use loeye\base\Context;
 use loeye\Centra;
 use loeye\std\Server;
-use phpseclib\File\ASN1;
 use Psr\Http\Message\ServerRequestInterface;
 use React\EventLoop\LoopInterface;
 use React\Http\Response;
