@@ -164,8 +164,6 @@ class Dispatcher extends \loeye\std\Dispatcher
         $request = Centra::$context->getRequest();
         $request->setModuleId($moduleId);
         $request->setRouter(Centra::$context->getRouter());
-        $response = Centra::$context->getResponse();
-        $response->setFormat($request->getFormatType());
     }
 
     /**

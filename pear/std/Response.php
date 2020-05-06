@@ -159,7 +159,7 @@ abstract class Response
      */
     public function getFormat()
     {
-        return (!empty($this->format)) ? $this->format : null;
+        return $this->format;
     }
 
     /**

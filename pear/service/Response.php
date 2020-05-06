@@ -17,6 +17,8 @@
 
 namespace loeye\service;
 
+use const loeye\base\RENDER_TYPE_JSON;
+
 /**
  * Response
  *
@@ -45,7 +47,7 @@ class Response extends \loeye\std\Response
         $this->setReason('OK');
         $this->_contentType    = 'text/plain; charset=utf-8';
         $this->header = [];
-        $this->setFormat('json');
+        $this->setFormat(RENDER_TYPE_JSON);
     }
 
 

@@ -128,9 +128,9 @@ class CreateApp extends Command
      */
     protected function initFile(InputInterface $input, SymfonyStyle $ui, string $base): void
     {
-        $type = $input->getOption('type') ?? Server::DEFAULT_DISPATCHER;
+        $dispatcher = $input->getOption('dispatcher') ?? Server::DEFAULT_DISPATCHER;
         $fileSystem = new Filesystem();
-        switch ($type) {
+        switch ($dispatcher) {
             case Server::SIMPLE_DISPATCHER:
                 $this->initSimpleDispatcherFile($ui, $base, $fileSystem);
                 break;
