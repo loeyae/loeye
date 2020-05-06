@@ -13,6 +13,10 @@ vendor/bin/loeye loeye:create-app
 ```
 vendor/bin/loeye loeye:run-app
 ```
+或者直接运行根目录下的App.php
+```
+php App.php
+```
 Demo默认监听80端口，如需修改，编辑app/config/app/master.yml
 ```
 server.port=80
