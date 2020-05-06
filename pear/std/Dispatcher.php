@@ -404,7 +404,6 @@ abstract class Dispatcher
      * executeOutput
      *
      * @return Render
-     * @throws ReflectionException
      */
     protected function executeOutput(): Render
     {

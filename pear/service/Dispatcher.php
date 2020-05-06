@@ -76,9 +76,11 @@ class Dispatcher extends \loeye\std\Dispatcher
             $this->setTimezone();
             $handlerNamespace = Centra::$context->getAppConfig()->getSetting('handler_namespace', '');
             if (!$handlerNamespace) {
-                $handlerNamespace = PROJECT_NAMESPACE . '\\services\\handler\\' . mb_convert_case(Centra::$context->getAppConfig()->getPropertyName(), MB_CASE_LOWER);
+                $handlerNamespace = PROJECT_NAMESPACE . '\\services\\handler';
             }
-            $handler = $handlerNamespace . '\\' . $this->service . '\\' . ucfirst($this->handler) . ucfirst(self::KEY_HANDLER);
+            $handler = $handlerNamespace . ($this->module ? '\\'. $this->module : '')
+                . ($this->service ? '\\' . $this->service : '')
+                . '\\' . ucfirst($this->handler) . ucfirst(self::KEY_HANDLER);
             if (!class_exists($handler)) {
                 throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
             }
@@ -88,7 +90,7 @@ class Dispatcher extends \loeye\std\Dispatcher
                 throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
             }
             $handlerObject->handle();
-            $render = $this->executeOutput();
+            return $this->executeOutput();
         } catch (ValidateError $exc) {
             $request = Centra::$request ?? new Request();
             $response = (Centra::$response ?? new Response($request));
@@ -101,11 +103,7 @@ class Dispatcher extends \loeye\std\Dispatcher
             $response->addOutput(
                 ['code' => $exc->getCode(), 'message' => $exc->getMessage()], 'status');
             $response->addOutput($exc->getValidateMessage(), 'data');
-            try {
-                $render = Factory::getRender($response->getFormat(), $response);
-            } catch (ReflectionException $e) {
-                Logger::exception($e);
-            }
+            return Factory::getRender($response->getFormat(), $response);
         } catch (Throwable $exc) {
             Utils::errorLog($exc);
             $request = (Centra::$request ?? new Request());
@@ -118,18 +116,13 @@ class Dispatcher extends \loeye\std\Dispatcher
             $response->setReason('Internal Error');
             $response->addOutput(
                 ['code' => $exc->getCode(), 'message' => $exc->getMessage()], 'status');
-            try {
-                $render = Factory::getRender($response->getFormat(), $response);
-            } catch (ReflectionException $e) {
-                Logger::exception($e);
-            }
+            return Factory::getRender($response->getFormat(), $response);
         } finally {
             if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL) {
                 $this->setTraceDataIntoContext(array());
                 Utils::logContextTrace(Centra::$context, null, false);
             }
         }
-        return $render;
     }
 
     /**
@@ -153,6 +146,9 @@ class Dispatcher extends \loeye\std\Dispatcher
         isset($setting[self::KEY_SERVICE]) && $this->service = $setting[self::KEY_SERVICE];
         isset($setting[self::KEY_HANDLER]) && $this->handler = $setting[self::KEY_HANDLER];
         isset($setting[self::KEY_REWRITE]) && $this->rewrite = $setting[self::KEY_REWRITE];
+        if ($this->rewrite) {
+            Centra::$context->setRouter(new UrlManager($this->rewrite));
+        }
     }
 
     /**
@@ -182,10 +178,8 @@ class Dispatcher extends \loeye\std\Dispatcher
     {
         $requestUrl = filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_UNSAFE_RAW);
         $path = null;
-        if ($this->rewrite) {
-            $router = new UrlManager($this->rewrite);
-            Centra::$context->setRouter($router);
-            $path = $router->match($requestUrl);
+        if (Centra::$context->getRouter()  instanceof  UrlManager) {
+            $path = Centra::$context->getRouter() ->match($requestUrl);
             if ($path === false) {
                 throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
             }
@@ -204,13 +198,13 @@ class Dispatcher extends \loeye\std\Dispatcher
         } else {
             $this->handler = Utils::camelize($parts[0]);
         }
-        if (empty($this->module) || empty($this->service) || empty($this->handler)) {
+        if (empty($this->module) && empty($this->service) && empty($this->handler)) {
             throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
         }
         $moduleKey = UrlManager::REWRITE_KEY_PREFIX . self::KEY_MODULE;
         $serviceKey = UrlManager::REWRITE_KEY_PREFIX . self::KEY_SERVICE;
-        $_GET[$moduleKey] = $this->module;
-        $_GET[$serviceKey] = $this->service;
+        Centra::$context->getRequest()->addQuery($moduleKey, $this->module);
+        Centra::$context->getRequest()->addQuery($serviceKey, $this->service);
     }
 
 }

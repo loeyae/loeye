@@ -14,6 +14,7 @@ namespace loeye\commands;
 
 use loeye\commands\helper\GeneratorUtils;
 use loeye\console\Command;
+use loeye\std\Server;
 use RuntimeException;
 use Symfony\Component\Console\{Input\InputInterface, Output\OutputInterface, Style\SymfonyStyle};
 use SmartyException;
@@ -31,6 +32,7 @@ class CreateApp extends Command
     protected $desc = 'create application';
     protected $args = [];
     protected $params = [
+        ['type', 't', 'required' => false, 'help' => 'dispatcher type', 'default' => null],
         ['path', 'p', 'required' => false, 'help' => 'path', 'default' => null]
     ];
     protected $dirMap = [
@@ -82,7 +84,7 @@ class CreateApp extends Command
         $dir = $input->getOption('path') ?? getcwd();
         $ui->block($dir);
         $this->mkdir($ui, $dir, $this->dirMap);
-        $this->initFile($ui, $dir);
+        $this->initFile($input, $ui, $dir);
     }
 
 
@@ -124,24 +126,27 @@ class CreateApp extends Command
      * @return void
      * @throws SmartyException
      */
-    protected function initFile(SymfonyStyle $ui, string $base): void
+    protected function initFile(InputInterface $input, SymfonyStyle $ui, string $base): void
     {
+        $type = $input->getOption('type') ?? Server::DEFAULT_DISPATCHER;
         $fileSystem = new Filesystem();
-        $appConfig = $this->buildAppConfigFile($base, 'app');
-        $fileSystem->dumpFile($appConfig, GeneratorUtils::getCodeFromTemplate('app/AppConfig'));
-        $ui->block(sprintf('create file: %1s', $appConfig));
+        switch ($type) {
+            case Server::SIMPLE_DISPATCHER:
+                $this->initSimpleDispatcherFile($ui, $base, $fileSystem);
+                break;
+            case Server::SERVICE_DISPATCHER:
+                $this->initServiceDispatcherFile($ui, $base, $fileSystem);
+                break;
+            default:
+                $this->initDefaultDispatcherFile($ui, $base, $fileSystem);
+                break;
+        }
         $dbConfig = $this->buildAppConfigFile($base, 'database');
         $fileSystem->dumpFile($dbConfig, GeneratorUtils::getCodeFromTemplate('app/DatabaseConfig'));
         $ui->block(sprintf('create file: %1s', $dbConfig));
         $cacheConfig = $this->buildAppConfigFile($base, 'cache');
         $fileSystem->dumpFile($cacheConfig, GeneratorUtils::getCodeFromTemplate('app/CacheConfig'));
         $ui->block(sprintf('create file: %1s', $cacheConfig));
-        $moduleConfig = $this->buildConfigFile($base, 'modules');
-        $fileSystem->dumpFile($moduleConfig, GeneratorUtils::getCodeFromTemplate('app/ModuleConfig'));
-        $ui->block(sprintf('create file: %1s', $moduleConfig));
-        $routerConfig = $this->buildConfigFile($base, 'router');
-        $fileSystem->dumpFile($routerConfig, GeneratorUtils::getCodeFromTemplate('app/RouteConfig'));
-        $ui->block(sprintf('create file: %1s', $routerConfig));
         $generalErrorFile = GeneratorUtils::buildPath($base, 'app', 'errors', 'GeneralError.php');
         $fileSystem->dumpFile($generalErrorFile, GeneratorUtils::getCodeFromTemplate('app/GeneralError'));
         $ui->block(sprintf('create file: %1s', $generalErrorFile));
@@ -157,6 +162,58 @@ class CreateApp extends Command
         $app = GeneratorUtils::buildPath($base, 'App.php');
         $fileSystem->dumpFile($app, GeneratorUtils::getCodeFromTemplate('app/App'));
         $ui->block(sprintf('create file: %1s', $app));
+    }
+
+    /**
+     * @param SymfonyStyle $ui
+     * @param string $base
+     * @param Filesystem $fileSystem
+     * @throws SmartyException
+     */
+    protected function initDefaultDispatcherFile(SymfonyStyle $ui, string $base, Filesystem $fileSystem): void
+    {
+        $appConfig = $this->buildAppConfigFile($base, 'app');
+        $fileSystem->dumpFile($appConfig, GeneratorUtils::getCodeFromTemplate('app/AppConfig'));
+        $ui->block(sprintf('create file: %1s', $appConfig));
+        $moduleConfig = $this->buildConfigFile($base, 'modules');
+        $fileSystem->dumpFile($moduleConfig, GeneratorUtils::getCodeFromTemplate('app/ModuleConfig'));
+        $ui->block(sprintf('create file: %1s', $moduleConfig));
+        $routerConfig = $this->buildConfigFile($base, 'router');
+        $fileSystem->dumpFile($routerConfig, GeneratorUtils::getCodeFromTemplate('app/RouteConfig'));
+        $ui->block(sprintf('create file: %1s', $routerConfig));
+    }
+
+    /**
+     * @param SymfonyStyle $ui
+     * @param string $base
+     * @param Filesystem $fileSystem
+     * @throws SmartyException
+     */
+    protected function initSimpleDispatcherFile(SymfonyStyle $ui, string $base, Filesystem $fileSystem): void
+    {
+        $appConfig = $this->buildAppConfigFile($base, 'app');
+        $fileSystem->dumpFile($appConfig, GeneratorUtils::getCodeFromTemplate('app/AppConfigSimple'));
+        $ui->block(sprintf('create file: %1s', $appConfig));
+        $controller = GeneratorUtils::buildPath($base, 'controllers','IndexController.php');
+        $fileSystem->dumpFile($controller, GeneratorUtils::getCodeFromTemplate('app/Controller'));
+        $ui->block(sprintf('create file: %1s', $controller));
+    }
+
+    /**
+     * @param SymfonyStyle $ui
+     * @param string $base
+     * @param Filesystem $fileSystem
+     * @throws SmartyException
+     */
+    protected function initServiceDispatcherFile(SymfonyStyle $ui, string $base, Filesystem $fileSystem): void
+    {
+        $appConfig = $this->buildAppConfigFile($base, 'app');
+        $fileSystem->dumpFile($appConfig, GeneratorUtils::getCodeFromTemplate('app/AppConfigService'));
+        $ui->block(sprintf('create file: %1s', $appConfig));
+        $handler = GeneratorUtils::buildPath($base, 'services', 'handler', 'IndexHandler.php');
+        $fileSystem->dumpFile($handler, GeneratorUtils::getCodeFromTemplate('app/Handler'));
+        $ui->block(sprintf('create file: %1s', $handler));
+
     }
 
 

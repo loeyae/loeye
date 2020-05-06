@@ -92,10 +92,6 @@ abstract class Resource implements \loeye\std\Handler
         $response = $this->context->getResponse();
         $request  = $this->context->getRequest();
         $method   = strtolower($request->getMethod());
-        $format   = $request->getFormatType();
-        if (empty($format)) {
-            $response->setFormat('json');
-        }
         if (method_exists($this, $method)) {
             $this->$method($request, $response);
         } else {

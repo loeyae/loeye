@@ -132,6 +132,7 @@ class ReactServer extends Server
         $context = new Context($this->appConfig);
         $router = $this->createRouter();
         $myRequest->setRouter($router);
+        $context->setRouter($router);
         $context->setRequest($myRequest);
         $response = $this->createResponse($myRequest);
         $context->setResponse($response);

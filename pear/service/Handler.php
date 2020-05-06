@@ -53,7 +53,6 @@ abstract class Handler extends Resource
     protected $withDefaultRequestHeader = true;
     protected $withDefaultRequestKey = 'request_data';
     protected $queryParameter = array();
-    protected $unRawQueryParameter = array();
     protected $pathParameter = array();
     protected $cmd;
     protected $output;
@@ -65,9 +64,8 @@ abstract class Handler extends Resource
      * @param Response $resp
      *
      * @return void
-     * @throws RequestParameterException
-     * @throws ReflectionException
-     * @throws Exception
+     * @throws Throwable
+     * @throws InvalidArgumentException
      */
     private function _processRequest(Request $req, Response $resp): void
     {
@@ -83,10 +81,8 @@ abstract class Handler extends Resource
                 $data = $this->process($requestData);
                 break;
             case self::METHOD_PUT:
-                if ($req->getContentLength() > 1) {
-                    $requestData = $this->_getRequestData($req);
-                    $data = $this->process($requestData);
-                }
+                $requestData = $this->_getRequestData($req);
+                $data = $this->process($requestData);
                 break;
             default:
                 $data = $this->process([]);
@@ -139,9 +135,8 @@ abstract class Handler extends Resource
      * @param Response $resp
      *
      * @return void
-     * @throws Exception
-     * @throws ReflectionException
-     * @throws RequestParameterException
+     * @throws InvalidArgumentException
+     * @throws Throwable
      */
     protected function get(Request $req, Response $resp): void
     {
@@ -155,9 +150,8 @@ abstract class Handler extends Resource
      * @param Response $resp
      *
      * @return void
-     * @throws Exception
-     * @throws ReflectionException
-     * @throws RequestParameterException
+     * @throws InvalidArgumentException
+     * @throws Throwable
      */
     protected function post(Request $req, Response $resp): void
     {
@@ -171,9 +165,8 @@ abstract class Handler extends Resource
      * @param Response $resp
      *
      * @return void
-     * @throws Exception
-     * @throws ReflectionException
-     * @throws RequestParameterException
+     * @throws InvalidArgumentException
+     * @throws Throwable
      */
     protected function put(Request $req, Response $resp): void
     {
@@ -187,9 +180,8 @@ abstract class Handler extends Resource
      * @param Response $resp
      *
      * @return void
-     * @throws Exception
-     * @throws ReflectionException
-     * @throws RequestParameterException
+     * @throws InvalidArgumentException
+     * @throws Throwable
      */
     protected function delete(Request $req, Response $resp): void
     {
@@ -207,17 +199,7 @@ abstract class Handler extends Resource
     {
         $this->pathParameter = $req->getPathVariable();
         $this->cmd = $this->pathParameter['handler'] ?? '';
-        $param = filter_input_array(INPUT_GET, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_NO_ENCODE_QUOTES);
-        if (!empty($param)) {
-            $this->queryParameter = $param;
-            array_walk_recursive($this->queryParameter, static function (&$item) {
-                $item = filter_var($item, FILTER_SANITIZE_STRING);
-            });
-            $this->unRawQueryParameter = $param;
-            array_walk_recursive($this->unRawQueryParameter, static function (&$item) {
-                $item = filter_var($item, FILTER_UNSAFE_RAW);
-            });
-        }
+        $this->queryParameter = $req->getQuery();
         $resp->addHeader('Cache-Control', 'public, must-revalidate, max-age=0');
     }
 

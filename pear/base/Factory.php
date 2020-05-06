@@ -146,9 +146,8 @@ class Factory
      * @param \loeye\std\Response $response
      *
      * @return Render
-     * @throws ReflectionException
      */
-    public static function getRender($format = 'segment', \loeye\std\Response $response = null):
+    public static function getRender($format = null, \loeye\std\Response $response = null):
     Render
     {
         $renderFormat = array(
@@ -158,7 +157,7 @@ class Factory
             RENDER_TYPE_XML,
         );
         if (!in_array($format, $renderFormat, true)) {
-            $format = 'segment';
+            $format = RENDER_TYPE_SEGMENT;
         }
         if (null === $response) {
             $response = Centra::$response;

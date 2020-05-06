@@ -59,11 +59,7 @@ function ExceptionHandler(Throwable $exc, Context $context): Render
             }
             $response->addOutput($res['status'], 'status');
             $response->addOutput($res['data'], 'data');
-            try {
-                $renderObj = Factory::getRender($format, $response);
-            } catch (ReflectionException $e) {
-                Logger::exception($e);
-            }
+            $renderObj = Factory::getRender($format, $response);
             break;
         default :
             $errorPage = null;

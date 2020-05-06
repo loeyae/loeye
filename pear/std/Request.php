@@ -203,16 +203,11 @@ class Request
     /**
      * getFormatType
      *
-     * @return string
+     * @return string|null
      */
-    public function getFormatType(): string
+    public function getFormatType(): ?string
     {
-        $format = $this->getQuery('fmt') ?? RENDER_TYPE_SEGMENT;
-        if (in_array($format, $this->_allowedFormatType, true)) {
-            return $format;
-        }
-
-        return RENDER_TYPE_SEGMENT;
+        return $this->getQuery('fmt');
     }
 
     /**

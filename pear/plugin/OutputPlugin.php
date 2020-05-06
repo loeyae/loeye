@@ -22,8 +22,10 @@ use loeye\database\Entity;
 use loeye\error\BusinessException;
 use loeye\lib\ModuleParse;
 use loeye\std\Plugin;
+use Psr\Cache\InvalidArgumentException;
 use ReflectionException;
 use Symfony\Component\HttpFoundation\HeaderUtils;
+use Throwable;
 use const loeye\base\RENDER_TYPE_SEGMENT;
 
 /**
@@ -51,8 +53,8 @@ class OutputPlugin implements Plugin
      * @param array $inputs inputs
      *
      * @return mixed
-     * @throws ReflectionException
-     * @throws Exception
+     * @throws InvalidArgumentException
+     * @throws Throwable
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function process(Context $context, array $inputs)

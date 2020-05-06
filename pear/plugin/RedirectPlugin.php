@@ -41,7 +41,6 @@ class RedirectPlugin implements Plugin
      * @param array $inputs inputs
      *
      * @return mixed
-     * @throws Exception
      */
     public function process(Context $context, array $inputs)
     {

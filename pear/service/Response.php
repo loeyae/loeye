@@ -35,17 +35,17 @@ class Response extends \loeye\std\Response
     /**
      * __construct
      *
-     * @param Request $req request
+     * @param \loeye\std\Request $req request
      *
-     * @return void
      */
     public function __construct(\loeye\std\Request $req)
     {
         $this->_serverProtocol = $req->getServerProtocol();
         $this->setStatusCode(LOEYE_REST_STATUS_OK);
-        $this->setReason(OK);
+        $this->setReason('OK');
         $this->_contentType    = 'text/plain; charset=utf-8';
         $this->header = [];
+        $this->setFormat('json');
     }
 
 
