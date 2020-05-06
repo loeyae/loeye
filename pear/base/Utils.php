@@ -77,7 +77,7 @@ class Utils
     {
         $calendar = IntlDateFormatter::GREGORIAN;
         $dateFormat = datefmt_create($locale, $dateType, $timeType, $timezone, $calendar, $pattern);
-        return date_format($dateFormat, $time);
+        return datefmt_format($dateFormat, $time);
     }
 
     /**
@@ -505,7 +505,7 @@ class Utils
      *
      * @param mixed $result result
      * @param mixed &$data data
-     * @param \Exception &$error error
+     * @param mixed &$error error
      *
      * @return void
      */
@@ -641,11 +641,12 @@ class Utils
      * @throws Exception
      * @throws CacheException
      */
-    public static function setPageCache(AppConfig $appConfig, $moduleId, $page, $expire = 0, $params = []): void
+    public static function setPageCache(AppConfig $appConfig, $moduleId, $page, $expire = null,
+                                        $params = []): void
     {
         $fileKey = $moduleId;
         if (!empty($params)) {
-            sort($params);
+            ksort($params);
             $fileKey .= '?' . http_build_query($params);
         }
         $cache = Cache::getInstance($appConfig, 'templates');
@@ -668,9 +669,10 @@ class Utils
     {
         $fileKey = $moduleId;
         if (!empty($params)) {
-            sort($params);
+            ksort($params);
             $fileKey .= '?' . http_build_query($params);
         }
+        var_dump($fileKey);
         $cache = Cache::getInstance($appConfig, 'templates');
         return $cache->get($fileKey);
     }
@@ -716,7 +718,9 @@ class Utils
         Centra::$request = new Request();
         Centra::$request->setModuleId($moduleId);
         Centra::$response = new Response();
-        Centra::$context = new Context();
+        Centra::$context = new Context(Centra::$appConfig);
+        Centra::$context->setRequest(Centra::$request);
+        Centra::$context->setResponse(Centra::$response);
         $dispatcher = new Dispatcher();
         $render = $dispatcher->dispatch($moduleId);
         Centra::$context = $context;
@@ -845,7 +849,7 @@ class Utils
      */
     public static function log($message, $messageType = Logger::LOEYE_LOGGER_TYPE_NOTICE, $trace = []): void
     {
-        $name = defined('PROJECT_PROPERTY') ? PROJECT_PROPERTY : PROJECT_NAMESPACE;
+        $name = PROJECT_NAMESPACE;
         if ($messageType === Logger::LOEYE_LOGGER_TYPE_CONTEXT_TRACE) {
             $logfile = RUNTIME_LOG_DIR . DIRECTORY_SEPARATOR
                 . PROJECT_NAMESPACE . DIRECTORY_SEPARATOR . 'trace-' . $name . '.log';
@@ -875,7 +879,10 @@ class Utils
                 Logger::log($message, $messageType, $logfile);
             }
             if (isset($_SERVER['REQUEST_URI'])) {
-                $message = "# REQUEST_URI: ${_SERVER['REQUEST_URI']}";
+                $message = "# REQUEST_URI: {$_SERVER['REQUEST_URI']}";
+                Logger::log($message, $messageType, $logfile);
+            } else if (Centra::$request) {
+                $message = '# REQUEST_URI: ' . Centra::$request->getUri()->getPath();
                 Logger::log($message, $messageType, $logfile);
             }
         }
@@ -897,7 +904,7 @@ class Utils
         $line = $exc->getLine();
         $message = $exc->getMessage();
         $code = $exc->getCode();
-        if ($exc instanceof Exception) {
+        if ($exc instanceof \Exception) {
             $message = "[system] ${message}";
         } else {
             $message = "[other] ${message}";

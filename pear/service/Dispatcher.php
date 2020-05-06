@@ -174,7 +174,7 @@ class Dispatcher extends \loeye\std\Dispatcher
      */
     protected function parseUrl(): void
     {
-        $requestUrl = filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_UNSAFE_RAW);
+        $requestUrl = Centra::$request->getUri()->getPath();
         $path = null;
         if (Centra::$context->getRouter()  instanceof  UrlManager) {
             $path = Centra::$context->getRouter() ->match($requestUrl);

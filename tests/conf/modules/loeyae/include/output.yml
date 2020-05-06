@@ -1,0 +1,6 @@
+- settings: [master]
+  module:
+    module_id: loeyae.include.output
+    plugin:
+      -
+        name: loeye\plugin\OutputPlugin

@@ -121,7 +121,9 @@ class OutputPlugin implements Plugin
         } else {
             $header = Utils::getData($inputs, 'header', null);
             if (!empty($header)) {
-                header($header);
+                foreach ($header as $key => $value) {
+                    $context->getResponse()->addHeader($key, $value);
+                }
             }
             $context->getResponse()->setFormat($format);
             $status  = Utils::getData($inputs, 'code', $this->reponseCode);

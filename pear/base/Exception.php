@@ -40,8 +40,9 @@ function ExceptionHandler(Throwable $exc, Context $context): Render
     $format = null;
     $appConfig = $context->getAppConfig();
     $request = $context->getRequest() ;
-    $format = $appConfig->getSetting('application.response.format', $request->getFormatType());
     $response = $context->getResponse();
+    $format = $appConfig->getSetting('application.response.format', $response->getFormat() ??
+        $request->getFormatType());
     $renderObj = new SegmentRender($response);
     switch ($format) {
         case 'xml':
