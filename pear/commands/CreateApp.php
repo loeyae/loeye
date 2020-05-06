@@ -32,7 +32,7 @@ class CreateApp extends Command
     protected $desc = 'create application';
     protected $args = [];
     protected $params = [
-        ['type', 't', 'required' => false, 'help' => 'dispatcher type', 'default' => null],
+        ['dispatcher', 'd', 'required' => false, 'help' => 'dispatcher type', 'default' => null],
         ['path', 'p', 'required' => false, 'help' => 'path', 'default' => null]
     ];
     protected $dirMap = [
