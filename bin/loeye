@@ -8,9 +8,7 @@
  * @version SVN: $Id: Zhang Yi $
  */
 
-mb_internal_encoding('UTF-8');
-
-define('BASE_DIR', realpath(__DIR__ . '/../'));
+define('BASE_DIR', dirname(__DIR__) . '/');
 
 $projectDirs = [
     __DIR__ . '/../app',
