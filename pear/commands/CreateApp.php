@@ -194,7 +194,7 @@ class CreateApp extends Command
         $appConfig = $this->buildAppConfigFile($base, 'app');
         $fileSystem->dumpFile($appConfig, GeneratorUtils::getCodeFromTemplate('app/AppConfigSimple'));
         $ui->block(sprintf('create file: %1s', $appConfig));
-        $controller = GeneratorUtils::buildPath($base, 'controllers','IndexController.php');
+        $controller = GeneratorUtils::buildPath($base, 'app', 'controllers','IndexController.php');
         $fileSystem->dumpFile($controller, GeneratorUtils::getCodeFromTemplate('app/Controller'));
         $ui->block(sprintf('create file: %1s', $controller));
     }
@@ -210,7 +210,7 @@ class CreateApp extends Command
         $appConfig = $this->buildAppConfigFile($base, 'app');
         $fileSystem->dumpFile($appConfig, GeneratorUtils::getCodeFromTemplate('app/AppConfigService'));
         $ui->block(sprintf('create file: %1s', $appConfig));
-        $handler = GeneratorUtils::buildPath($base, 'services', 'handler', 'IndexHandler.php');
+        $handler = GeneratorUtils::buildPath($base, 'app', 'services', 'handler', 'IndexHandler.php');
         $fileSystem->dumpFile($handler, GeneratorUtils::getCodeFromTemplate('app/Handler'));
         $ui->block(sprintf('create file: %1s', $handler));
 

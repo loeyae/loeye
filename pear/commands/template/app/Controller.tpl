@@ -17,7 +17,7 @@ class IndexController extends Controller
     /**
      * @inheritDoc
      */
-    public function IndexAction(): void
+    public function IndexAction()
     {
         $this->view = ['tpl' => 'home.tpl'];
     }
