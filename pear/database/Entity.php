@@ -22,7 +22,7 @@ namespace loeye\database;
  *
  * @author   Zhang Yi <loeyae@gmail.com>
  */
-interface Entity {
+class Entity {
     
     
 }
