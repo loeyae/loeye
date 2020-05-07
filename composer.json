@@ -65,6 +65,7 @@
       "tests/TestCase.php"
     ],
     "psr-4": {
+      "client\\": "tests/client",
       "loeye\\unit\\": "tests/pear",
       "loeye\\models\\": "tests/models"
     }

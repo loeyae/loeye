@@ -1,0 +1,3 @@
+- settings: [master]
+  service:
+    server_url: http://httpbin.org

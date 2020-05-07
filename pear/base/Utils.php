@@ -113,8 +113,7 @@ class Utils
         }
 
         if ($data instanceof Context) {
-            self::checkKeyExist($data, $key);
-            $origin = $data->get($key);
+            $origin = self::checkKeyExist($data, $key);
             if ($origin !== $value) {
                 self::throwException(DataException::CONTEXT_VALUE_NOT_EQUALS_MSG, DataException::CONTEXT_VALUE_NOT_EQUALS, ['key' => $key, 'expected' => $value], DataException::class);
             }
@@ -491,7 +490,7 @@ class Utils
             if (empty($keyList)) {
                 self::throwException(LogicException::DATA_AT_LEAST_EXIST_ONE_KEY_ERROR,
                     LogicException::DATA_AT_LEAST_EXIST_ONE_KEY, ['keyList' => implode(',', $least), 'data' =>
-                        $data], LogicException::class);
+                        var_export($data, true)], LogicException::class);
             }
             foreach ($keyList as $key => $value) {
                 $result[$key] = $value;
@@ -697,6 +696,7 @@ class Utils
         $template = $context->getTemplate();
         if (!($template instanceof Template)) {
             include $file;
+            return;
         }
 
         echo $template->fetch($file);
@@ -964,7 +964,7 @@ class Utils
             );
         }
         $traceCount++;
-        $context->set($traceKey, $trace);
+        $context->setTraceData($traceKey, $trace);
     }
 
     /**

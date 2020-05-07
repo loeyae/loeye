@@ -10,6 +10,8 @@
 
 namespace loeye\unit\base;
 
+use client\SampleClient;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use loeye\base\AppConfig;
 use loeye\base\Cache;
 use loeye\base\Context;
@@ -20,8 +22,11 @@ use loeye\base\Logger;
 use loeye\base\Router;
 use loeye\base\Utils;
 use loeye\Centra;
+use loeye\client\ParallelClientManager;
 use loeye\models\entity\Test;
 use loeye\render\JsonRender;
+use loeye\web\Request;
+use loeye\web\Template;
 use PHPUnit\Framework\TestCase;
 use React\Stream\Util;
 use Symfony\Component\Filesystem\Filesystem;
@@ -273,18 +278,12 @@ class UtilsTest extends TestCase
      */
     public function testFilterResultArray()
     {
-        $data = false;
+        $data = ['key' => ['data'], 'error' => new Exception()];
+        $result = false;
         $error = false;
-        $result = [];
-        Utils::filterResult($result, $data, $error);
+        Utils::filterResultArray($data, $result, $error);
         $this->assertIsArray($data);
-        $this->assertFalse($error);
-        $data = false;
-        $error = false;
-        $result = new Exception();
-        Utils::filterResult($result, $data, $error);
-        $this->assertFalse($data);
-        $this->assertInstanceOf(Exception::class, $error);
+        $this->assertIsArray($error);
     }
 
     /**
@@ -304,7 +303,7 @@ class UtilsTest extends TestCase
     public function testLogContextTrace()
     {
         $context = new Context();
-        $context->setTraceData(LOEYE_CONTEXT_TRACE_KEY, ['trace_time' => time()]);
+        Utils::setTraceDataIntoContext($context, []);
         Utils::logContextTrace($context);
         $appLogFile = RUNTIME_LOG_DIR.DIRECTORY_SEPARATOR.PROJECT_NAMESPACE
             .DIRECTORY_SEPARATOR.'trace-'.PROJECT_NAMESPACE.'-'.date('Y-m-d').'.log';
@@ -523,15 +522,8 @@ class UtilsTest extends TestCase
      */
     public function testUsc2ToUtf8()
     {
-
-    }
-
-    /**
-     * @covers \loeye\base\Utils
-     */
-    public function testSetTraceDataIntoContext()
-    {
-
+        $string = Utils::usc2ToUtf8('\u6d4b\u8bd5');
+        $this->assertEquals('测试', $string);
     }
 
     /**
@@ -539,7 +531,13 @@ class UtilsTest extends TestCase
      */
     public function testGetReadMethodValue()
     {
-
+        $test = new Test();
+        $test->setId(1);
+        $test->setName('test');
+        $this->assertEquals(1, Utils::getReadMethodValue($test, 'id'));
+        $this->assertEquals('test', Utils::getReadMethodValue($test, 'name'));
+        $this->assertNull(Utils::getReadMethodValue($test, 'createTime'));
+        $this->assertNull(Utils::getReadMethodValue($test, 'sex'));
     }
 
     /**
@@ -547,7 +545,23 @@ class UtilsTest extends TestCase
      */
     public function testEntities2array()
     {
-
+        $test1 = new Test();
+        $test1->setId(1);
+        $test1->setName('name1');
+        $test2 = new Test();
+        $test2->setId(2);
+        $test2->setName('name2');
+        $test3 = new Test();
+        $test3->setId(3);
+        $test3->setName('name3');
+        $source = [$test1, $test2, $test3];
+        $db = DB::getInstance(new AppConfig());
+        $target = Utils::entities2array($db->em(), $source);
+        $this->assertIsArray($target);
+        $this->assertCount(3, $target);
+        $this->assertEquals(1, $target[0]['id']);
+        $this->assertEquals(2, $target[1]['id']);
+        $this->assertEquals(3, $target[2]['id']);
     }
 
     /**
@@ -555,7 +569,40 @@ class UtilsTest extends TestCase
      */
     public function testPaginator2array()
     {
+        $_ENV['LOEYE_PROFILE_ACTIVE'] = 'dev';
+        $appConfig = new AppConfig();
+        $db = DB::getInstance($appConfig);
+        $qb = $db->createNativeQuery('CREATE TABLE test (
+            `id` int(10) NOT NULL,
+            `name` varchar(64) NOT NULL,
+            `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )');
+        $qb->execute();
+        $query = $db->createQueryBuilder()->select('t')->from(Test::class, 't');
+        $paginator = new Paginator($query);
+        $data = Utils::paginator2array($db->em(), $paginator);
+        $this->assertIsArray($data);
+        $this->assertEquals(0, $data['total']);
+        $this->assertEmpty($data['list']);
+        $qb = $db->createNativeQuery('insert into test (id, name) values (1, "test1"), (2, "test2")');
+        $qb->execute();
+        $paginator = new Paginator($query);
+        $data = Utils::paginator2array($db->em(), $paginator);
+        $this->assertIsArray($data);
+        $this->assertEquals(2, $data['total']);
+        $this->assertCount(2, $data['list']);
+        $qb = $db->createNativeQuery('DROP TABLE test');
+        $qb->execute();
+    }
 
+    /**
+     * @covers \loeye\base\Utils
+     * @expectedException \loeye\error\BusinessException
+     */
+    public function testAddErrorsWithException()
+    {
+        $context = new Context();
+        Utils::addErrors(['error message 1', 'error message 2'], $context, []);
     }
 
     /**
@@ -563,7 +610,19 @@ class UtilsTest extends TestCase
      */
     public function testAddErrors()
     {
-
+        $context = new Context();
+        $this->assertEmpty($context->getErrors('error1'));
+        $this->assertEmpty($context->getErrors('error2'));
+        $this->assertEmpty($context->getErrors('error3'));
+        Utils::addErrors(['error message 1', 'error message 2'], $context, ['error' => 'error1']);
+        $this->assertIsArray($context->getErrors('error1'));
+        $this->assertNotEmpty($context->getErrors('error1'));
+        Utils::addErrors(['error message 1', 'error message 2'], $context, ['error_key' => 'error2']);
+        $this->assertIsArray($context->getErrors('error2'));
+        $this->assertNotEmpty($context->getErrors('error2'));
+        Utils::addErrors(['error message 1', 'error message 2'], $context, [], 'error3');
+        $this->assertIsArray($context->getErrors('error3'));
+        $this->assertNotEmpty($context->getErrors('error3'));
     }
 
     /**
@@ -571,7 +630,18 @@ class UtilsTest extends TestCase
      */
     public function testGetData()
     {
-
+        $context = new Context();
+        $this->assertNull(Utils::getData($context, 'key1'));
+        $this->assertEquals('default', Utils::getData($context, 'key1', 'default'));
+        $context->set('key1', 'val1', 2);
+        $this->assertEquals('val1', Utils::getData($context, 'key1'));
+        $this->assertEquals('val1', Utils::getData($context, 'key1', 'default'));
+        $data = [];
+        $this->assertNull(Utils::getData($data, 'key'));
+        $this->assertEquals('default', Utils::getData($data, 'key', 'default'));
+        $data['key'] = 'val1';
+        $this->assertEquals('val1', Utils::getData($data, 'key'));
+        $this->assertEquals('val1', Utils::getData($data, 'key', 'default'));
     }
 
     /**
@@ -579,7 +649,20 @@ class UtilsTest extends TestCase
      */
     public function testAddParallelClient()
     {
-
+        $client = new SampleClient();
+        $context = new Context();
+        $context->setParallelClientManager(new ParallelClientManager());
+        Utils::addParallelClient($client, $context);
+        $ret1 = false;
+        $ret2 = false;
+        $client->getIp($ret1);
+        $client->getIp($ret2);
+        $this->assertFalse($ret1);
+        $this->assertFalse($ret2);
+        $context->getParallelClientManager()->execute();
+        $context->getParallelClientManager()->reset();
+        $this->assertIsArray($ret1);
+        $this->assertIsArray($ret2);
     }
 
     /**
@@ -587,7 +670,30 @@ class UtilsTest extends TestCase
      */
     public function testHasException()
     {
+        $result = null;
+        $this->assertFalse(Utils::hasException($result));
+        $result = new Exception();
+        $this->assertTrue(Utils::hasException($result));
+    }
 
+    /**
+     * @covers \loeye\base\Utils
+     * @expectedException \loeye\error\LogicException
+     */
+    public function testKeyFilterRequireFieldNotExists()
+    {
+        $data = ['id' => 1];
+        Utils::keyFilter($data, ['name']);
+    }
+
+    /**
+     * @covers \loeye\base\Utils
+     * @expectedException \loeye\error\LogicException
+     */
+    public function testKeyFilterLeastFiledNotEnough()
+    {
+        $data = ['id' => 1];
+        Utils::keyFilter($data, [], [], ['name', 'sex']);
     }
 
     /**
@@ -595,7 +701,9 @@ class UtilsTest extends TestCase
      */
     public function testKeyFilter()
     {
-
+        $data = ['id' => 1, 'name' => 'test'];
+        $filtered = Utils::keyFilter($data, ['id'], ['addr'], ['name', 'sex']);
+        $this->assertIsArray($filtered);
     }
 
     /**
@@ -603,7 +711,18 @@ class UtilsTest extends TestCase
      */
     public function testFilterResult()
     {
-
+        $data = false;
+        $error = false;
+        $result = [];
+        Utils::filterResult($result, $data, $error);
+        $this->assertIsArray($data);
+        $this->assertFalse($error);
+        $data = false;
+        $error = false;
+        $result = new Exception();
+        Utils::filterResult($result, $data, $error);
+        $this->assertFalse($data);
+        $this->assertInstanceOf(Exception::class, $error);
     }
 
     /**
@@ -611,7 +730,8 @@ class UtilsTest extends TestCase
      */
     public function testCallUserFuncArray()
     {
-
+        $this->assertEquals('Woo, \"WoW\"', Utils::callUserFuncArray('Woo, "WoW"', ['callback' =>
+        'addslashes']));
     }
 
     /**
@@ -619,7 +739,17 @@ class UtilsTest extends TestCase
      */
     public function testCheckContextCacheData()
     {
-
+        Centra::$appConfig = new AppConfig();
+        $context = new Context(Centra::$appConfig);
+        $context->setRequest(new Request());
+        $context->getRequest()->setModuleId('loeye.login');
+        $context->set('key', 'value');
+        $context->cacheData();
+        $context->loadCacheData();
+        $this->assertTrue(Utils::checkContextCacheData($context, ['out' => 'key']));
+        $this->assertTrue(Utils::checkContextCacheData($context, ['output' => 'key']));
+        $this->assertTrue(Utils::checkContextCacheData($context, ['output_key' => 'key']));
+        $this->assertTrue(Utils::checkContextCacheData($context, [], 'key'));
     }
 
     /**
@@ -627,7 +757,18 @@ class UtilsTest extends TestCase
      */
     public function testSetContextData()
     {
-
+        Centra::$appConfig = new AppConfig();
+        $context = new Context(Centra::$appConfig);
+        $this->assertNull($context->get('key'));
+        Utils::setContextData('test', $context, ['out' => 'key']);
+        $this->assertNotNull($context->get('key'));
+        $this->assertNull($context->get('key'));
+        Utils::setContextData('output', $context, ['output' => 'key']);
+        $this->assertEquals('output',$context->get('key'));
+        Utils::setContextData('output_key', $context, ['output_key' => 'key']);
+        $this->assertEquals('output_key',$context->get('key'));
+        Utils::setContextData('default', $context, [], 'key');
+        $this->assertEquals('default',$context->get('key'));
     }
 
     /**
@@ -635,7 +776,17 @@ class UtilsTest extends TestCase
      */
     public function testIncludeTpl()
     {
-
+        Centra::$appConfig = new AppConfig();
+        $context = new Context(Centra::$appConfig);
+        Utils::includeTpl($context, 'layout.tpl');
+        $layout = $this->getActualOutput();
+        ob_clean();
+        $this->assertNotNull($layout);
+        $context->setTemplate(new Template($context));
+        Utils::includeTpl($context, PROJECT_VIEWS_DIR .'/layout.tpl');
+        $layout1 = $this->getActualOutput();
+        ob_clean();
+        $this->assertNotNull($layout1);
     }
 
     /**
@@ -643,7 +794,38 @@ class UtilsTest extends TestCase
      */
     public function testStartWith()
     {
+        $this->assertTrue(Utils::startWith('indexAction', 'index'));
+        $this->assertFalse(Utils::startWith('indexAction', 'action'));
+    }
 
+    /**
+     * @covers \loeye\base\Utils
+     * @expectedException \loeye\error\DataException
+     */
+    public function testCheckValueWithNoEquels()
+    {
+        Utils::checkValue('a', 'b', null);
+    }
+
+    /**
+     * @covers \loeye\base\Utils
+     * @expectedException \loeye\error\DataException
+     */
+    public function testCheckValueWithContextValueNoEquels()
+    {
+        $context = new Context();
+        $context->set('key', 'value');
+        Utils::checkValue($context, 'b', 'key');
+    }
+
+    /**
+     * @covers \loeye\base\Utils
+     * @expectedException \loeye\error\DataException
+     */
+    public function testCheckValueWithArrayValueNoEquels()
+    {
+        $context = ['key'=> 'value'];
+        Utils::checkValue($context, 'b', 'key');
     }
 
     /**
@@ -651,15 +833,13 @@ class UtilsTest extends TestCase
      */
     public function testCheckValue()
     {
-
-    }
-
-    /**
-     * @covers \loeye\base\Utils
-     */
-    public function testThrowError()
-    {
-
+        $a = 'value';
+        $this->assertEquals('value', Utils::checkValue($a, 'value'));
+        $context = new Context();
+        $context->set('key', 'value');
+        $this->assertEquals('value', Utils::checkValue($context, 'value', 'key'));
+        $context = ['key'=> 'value'];
+        $this->assertEquals('value', Utils::checkValue($context, 'value', 'key'));
     }
 
     /**
@@ -667,7 +847,11 @@ class UtilsTest extends TestCase
      */
     public function testGetErrors()
     {
-
+        $context = new Context();
+        $context->addErrors('error', 'error message');
+        $this->assertNotNull(Utils::getErrors($context,['err' => 'error']));
+        $this->assertNotNull(Utils::getErrors($context,['err_key' => 'error']));
+        $this->assertNotNull(Utils::getErrors($context,[], 'error'));
     }
 
     /**
