@@ -329,7 +329,7 @@ EOF;
         $validateData = $this->validate($criteria, <{$entityName}>::class, $this->group);
         $orderBy = $this->getOrderBy($req);
         $start = $req['start'] ?? null;
-        $offset = $req['offset'] ?? null;
+        $offset = $req['offset'] ?? 100;
 EOF;
         $parameter = '$validateData, $orderBy, $start, $offset';
         return [GeneratorUtils::generateCodeByTemplate(['entityName' => $entityName], $parameterStatement), $parameter];
