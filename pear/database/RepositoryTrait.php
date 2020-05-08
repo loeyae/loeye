@@ -78,6 +78,9 @@ trait RepositoryTrait
      */
     public function all($criteria = null, $orderBy = null, $start = null, $offset = null): ?array
     {
+        if ($offset === null || $offset > 200) {
+            $offset = 200;
+        }
         if ($criteria === null) {
             return $this->db->repository($this->entityClass)->findAll();
         }

@@ -345,7 +345,10 @@ abstract class Handler extends Resource
                     throw new ValidateError($validateError, ValidateError::DEFAULT_ERROR_MSG,
                         ValidateError::DEFAULT_ERROR_CODE);
                 }
-                return Utils::entity2array(Factory::db()->em(), $entityObject);
+                $validated = Utils::entity2array(Factory::db()->em(), $entityObject);
+                return array_filter($validated, static function ($item) {
+                    return $item !== null;
+                });
             } catch (ReflectionException $e) {
                 $validateError = ['Entity Class Not Exists.'];
                 throw new ValidateError($validateError, ValidateError::DEFAULT_ERROR_MSG,

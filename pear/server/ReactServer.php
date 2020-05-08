@@ -124,7 +124,7 @@ class ReactServer extends Server
             ->setMethod($request->getMethod())
             ->setQuery($request->getQueryParams())
             ->setBody($request->getParsedBody())
-            ->setContent($request->getBody())
+            ->setContent($request->getBody()->getContents())
             ->setCookie($request->getCookieParams())
             ->setHeader($request->getHeaders())
             ->setFiles($request->getUploadedFiles())
