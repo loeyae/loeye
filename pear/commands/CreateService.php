@@ -294,7 +294,7 @@ EOF;
                 $methodDoc .= "\r\n     * @throws ValidateError";
                 $methodDoc .= "\r\n     * @throws InvalidArgumentException";
                 $methodDoc .= "\r\n     * @throws Throwable";
-                $propertyStatement = "    protected \$group = '" . $methodName . "';\r\n";
+                $propertyStatement = "    protected \$group = '" . $this->getGroup($methodName) . "';\r\n";
             }
             $variable = [
                 'className' => $nClassName,
@@ -528,6 +528,23 @@ EOF;
         }
         $ui->block(sprintf('create dir: %1s', $clientDir));
         return [$handlerDir, $clientDir];
+    }
+
+    /**
+     * @param string $methodName
+     * @return string
+     */
+    private function getGroup(string $methodName): ?string
+    {
+        switch ($methodName) {
+            case 'insert':
+                return 'create';
+            case 'update':
+            case 'delete':
+                return $methodName;
+            default:
+                return 'query';
+        }
     }
 
 }

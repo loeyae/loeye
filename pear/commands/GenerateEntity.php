@@ -161,6 +161,7 @@ class GenerateEntity extends Command
         if ($fieldMapping['type'] === 'datetime' &&  isset($fieldMapping['options']['default'])
             && $fieldMapping['options']['default'] === 'CURRENT_TIMESTAMP') {
             $validate[] = "     * @Assert\IsNull(groups={\"create\",\"update\"})\r\n";
+            $validate[] = "     * @Assert\DateTime(groups={\"query\"})\r\n";
             return $validate;
         }
         if (in_array($name, $metadata->identifier)) {
@@ -191,14 +192,14 @@ class GenerateEntity extends Command
             case 'bool':
             case 'mediumint':
             case 'bigint':
-                return "     * @Assert\Type(type=\"integer\", groups={\"create\",\"update\"})\r\n";
+                return "     * @Assert\Type(type=\"integer\", groups={\"create\",\"update\", \"query\"})\r\n";
             case 'decimal':
             case 'float':
             case 'double':
                 return "     * @Assert\Regex(pattern=\"/^\d{1,". $fieldMapping['precision'] ."}\.\d{1,".$fieldMapping['scale']."}$/\", 
-                groups={\"create\",\"update\"})\r\n";
+                groups={\"create\",\"update\", \"query\"})\r\n";
             default:
-                return "     * @Assert\NotBlank(allowNull=true, normalizer=\"trim\", groups={\"create\",\"update\"})\r\n";
+                return "     * @Assert\NotBlank(allowNull=true, normalizer=\"trim\", groups={\"create\",\"update\", \"query\"})\r\n";
         }
     }
 
