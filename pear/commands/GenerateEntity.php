@@ -129,7 +129,8 @@ class GenerateEntity extends Command
             }
             if (mb_strpos($content, 'use Doctrine\\ORM\\Mapping as ORM') !== false) {
                  $newContent[] = "use Gedmo\\Mapping\\Annotation as Gedmo;\r\n";
-                 $line++;
+                 $newContent[] = "use Symfony\Component\Validator\Constraints as Assert;\r\n";
+                 $line+=2;
             } elseif (mb_strpos($content, '* @ORM\\Entity') !== false) {
                 $newContent[$line] = " * @ORM\Entity(repositoryClass=\"". self::getRepositoryName
                     ($name)."\")\r\n";
