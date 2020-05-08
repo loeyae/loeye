@@ -22,7 +22,7 @@ use Gedmo\Mapping\Annotation as Gedmo;
  * @ORM\Table(name="test")
  * @ORM\Entity(repositoryClass="\loeye\models\repository\TestRepository")
  */
-class Test implements Entity {
+class Test extends Entity {
 
     /**
      * @var

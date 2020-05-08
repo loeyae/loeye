@@ -20,8 +20,8 @@ if (count($_SERVER['argv']) < 2) {
     echo 'loeye-orm <db-id> [command] [--]' . PHP_EOL;
     exit(0);
 }
-$dbId            = $_SERVER['argv'][1];
-unset($_SERVER['argv'][1]);
+$dbId            = $_SERVER['argv'][2];
+unset($_SERVER['argv'][2]);
 $_SERVER['argv'] = array_values($_SERVER['argv']);
 $command         = $_SERVER['argv'][1] ?? null;
 if ($command === 'convert:mapping') {

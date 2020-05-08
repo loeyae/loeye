@@ -14,10 +14,13 @@ namespace loeye\commands;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Tools\Console\Command\ConvertMappingCommand;
 use Doctrine\ORM\Tools\Console\Command\GenerateEntitiesCommand;
+use Doctrine\ORM\Tools\Console\Command\GenerateRepositoriesCommand;
 use Doctrine\ORM\Tools\Console\ConsoleRunner;
 use Doctrine\ORM\Tools\Console\MetadataFilter;
+use Doctrine\ORM\Tools\DisconnectedClassMetadataFactory;
 use Doctrine\ORM\Version;
 use Doctrine\Persistence\Mapping\ClassMetadata;
 use loeye\base\AppConfig;
@@ -54,72 +57,84 @@ class GenerateEntity extends Command
             $this->generateEntity($input, $output, $entityManager);
         }
         $metaData = $this->getMetaData($input, $output, $entityManager);
-        $this->updateDateTime($metaData);
+        $this->updateEntity($metaData);
+        if (class_exists(Version::class) && Version::VERSION < '3.0') {
+            $this->generateRepository($input, $output, $entityManager);
+        }
+    }
+
+    protected function generateRepository(InputInterface $input, OutputInterface $output, EntityManager $em)
+    {
+        $command = new GenerateRepositoriesCommand();
+        $command->setHelperSet($this->createHelperSet($em));
+        $generateEntitiesInput = new ArgvInput(
+            ['', dirname(PROJECT_DIR) . '/'],
+            $command->getDefinition()
+        );
+        $command->run($generateEntitiesInput, $output);
     }
 
     /**
      * @param ClassMetadata[] $metaData
      */
-    protected function updateDateTime($metaData): void
+    protected function updateEntity($metaData): void
     {
         foreach ($metaData as $datum) {
             if ($datum->hasField('createTime') || $datum->hasField('modifyTime')) {
                 $path = dirname(PROJECT_DIR) . '/' . str_replace('\\', DIRECTORY_SEPARATOR,
                         $datum->name) .'.php';
-                self::updateGedmoInfo($path);
+                $name = substr($datum->name, strrpos($datum->name, '\\')+1);
+                self::updateEntityInfo($path, $name, $datum);
             }
         }
     }
 
     /**
      * @param $file
-     * @return int
+     * @param $name
+     * @param ClassMetadata $metadata
+     * @return void
      */
-    protected static function updateGedmoInfo($file): int
+    protected static function updateEntityInfo($file, $name, ClassMetadata $metadata): void
     {
-        $fp = fopen($file, 'rb');
+        $fp = new \SplFileObject( $file, 'rb');
         $line = 0;
-        $updated = 0;
-        while (!feof($fp)) {
-            $line++;
-            $content = fgets($fp);
-            if (mb_strpos($content, 'use Doctrine\ORM\Mapping as ORM;') !== false) {
-                var_dump($line, 'import');
-                 fseek($fp, $line, SEEK_CUR);
-                 fwrite($fp, "use Doctrine\ORM\Mapping as ORM;\r\nuse Gedmo\Mapping\Annotation as Gedmo;");
+        $newContent = [];
+        while (!$fp->eof()) {
+            $content = $fp->fgets();
+            $newContent[] = $content;
+            if (preg_match('/private \$(?<name>\w+)/', $content, $matches)) {
+                $validate = self::generateValidate($matches['name'], $metadata);
+            }
+            if (mb_strpos($content, 'use Doctrine\\ORM\\Mapping as ORM') !== false) {
+                 $newContent[] = "use Gedmo\\Mapping\\Annotation as Gedmo;\r\n";
                  $line++;
-                 fseek($fp, $line, SEEK_END);
-                 $updated++;
-            }
-            if (mb_strpos($content, 'private $createTime = \'CURRENT_TIMESTAMP\';') !== false) {
-                var_dump($line, 'create');
-                fseek($fp, $line, SEEK_CUR);
-                fwrite($fp, 'private $createTime;');
-                fseek($fp, $line-1, SEEK_CUR);
-                fwrite($fp, "     * @Gedmo\Timestampable(on=\"create\")\r\n    */");
+            } elseif (mb_strpos($content, '* @ORM\\Entity') !== false) {
+                $newContent[$line] = " * @ORM\Entity(repositoryClass=\"\\app\models\\repository\\". $name ."Repository\")\r\n";
+            } elseif (mb_strpos($content, 'private $createTime = \'CURRENT_TIMESTAMP\';') !== false) {
+                $newContent[$line] = "    private \$createTime;\r\n";
+                array_splice($newContent, $line - 1, 0, ["     * @Gedmo\Timestampable(on=\"create\")\r\n"]);
                 $line++;
-                fseek($fp, $line, SEEK_END);
-                $updated++;
-            }
-            if (mb_strpos($content, 'private $modifyTime = \'CURRENT_TIMESTAMP\';') !== false) {
-                var_dump($line, 'update');
-                fseek($fp, $line, SEEK_CUR);
-                fwrite($fp, 'private $modifyTime;');
-                fseek($fp, $line-1, SEEK_CUR);
-                fwrite($fp, "     * @Gedmo\Timestampable(on=\"update\")\r\n    */");
+            } elseif (mb_strpos($content, 'private $modifyTime = \'CURRENT_TIMESTAMP\';') !== false) {
+                $newContent[$line] = "    private \$modifyTime;\r\n";
+                array_splice($newContent, $line - 1, 0, ["     * @Gedmo\Timestampable(on=\"update\")\r\n"]);
                 $line++;
-                fseek($fp, $line, SEEK_END);
-                $updated++;
             }
-            if (mb_strpos($content, 'public function') !== false) {
-                break;
-            }
-            if( $updated === 3) {
-                break;
-            }
+            $line++;
         }
-        fclose($fp);
-        return $updated;
+        file_put_contents($file, implode('', $newContent));
+    }
+
+    protected static function generateValidate($name, ClassMetadataInfo $metadata)
+    {
+        $valudate = [];
+        $fieldMapping = $metadata->getFieldMapping($name);
+        if (in_array($name, $metadata->identifier)) {
+            $valudate[] = "     * @Assert\IsNull(groups={\"insert\"})\r\n";
+            $valudate[] = "     * @Assert\NotNull(groups={\"update\", \"delete\"})\r\n";
+        } elseif (!$fieldMapping['nullable']) {
+            $valudate[] = "     * @Assert\NotNull(groups={\"insert\", \"update\"})\r\n";
+        }
     }
 
     /**
@@ -130,8 +145,10 @@ class GenerateEntity extends Command
      */
     protected function getMetaData(InputInterface $input, OutputInterface $output, EntityManager $em): array
     {
-        $metaData = $em->getMetadataFactory()->getAllMetadata();
-        return MetadataFilter::filter($metaData, $input->getOption('filter'));
+        $cmf = new DisconnectedClassMetadataFactory();
+        $cmf->setEntityManager($em);
+        $metadatas = $cmf->getAllMetadata();
+        return MetadataFilter::filter($metadatas, $input->getOption('filter'));
     }
 
     /**
