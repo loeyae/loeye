@@ -880,5 +880,4 @@ class UtilsTest extends TestCase
         $mimeType = Utils::mimeType($file);
         $this->assertEquals('application/xml; charset=us-ascii', $mimeType);
     }
-
 }

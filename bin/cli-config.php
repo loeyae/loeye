@@ -20,31 +20,31 @@ if (count($_SERVER['argv']) < 2) {
     echo 'loeye-orm <db-id> [command] [--]' . PHP_EOL;
     exit(0);
 }
-$dbId            = $_SERVER['argv'][1];
-unset($_SERVER['argv'][1]);
+$dbId            = $_SERVER['argv'][2];
+unset($_SERVER['argv'][2]);
 $_SERVER['argv'] = array_values($_SERVER['argv']);
-$command         = isset($_SERVER['argv'][1]) ? $_SERVER['argv'][1] : null;
-if ($command == 'convert:mapping') {
+$command         = $_SERVER['argv'][1] ?? null;
+if ($command === 'convert:mapping') {
     $_SERVER['argv'][1] = 'orm:convert-mapping';
-    array_push($_SERVER['argv'], '--from-database');
-    array_push($_SERVER['argv'], '-f');
-    array_push($_SERVER['argv'], '--namespace=app\\models\\entity\\');
-    array_push($_SERVER['argv'], 'annotation');
-    array_push($_SERVER['argv'], realpath(PROJECT_DIR . '/../'));
-} else if ($command == 'generate:proxies') {
+    $_SERVER['argv'][] = '--from-database';
+    $_SERVER['argv'][] = '-f';
+    $_SERVER['argv'][] = '--namespace=app\\models\\entity\\';
+    $_SERVER['argv'][] = 'annotation';
+    $_SERVER['argv'][] = dirname(PROJECT_DIR) . '/';
+} else if ($command === 'generate:proxies') {
     $_SERVER['argv'][1] = 'orm:generate-proxies';
-    array_push($_SERVER['argv'], realpath(PROJECT_DIR . '/models/proxy'));
-} else if ($command == 'generate:repositories') {
+    $_SERVER['argv'][] = realpath(PROJECT_DIR . '/models/proxy');
+} else if ($command === 'generate:repositories') {
     $_SERVER['argv'][1] = 'orm:generate-repositories';
-    array_push($_SERVER['argv'], realpath(PROJECT_DIR . '/../'));
-} else if ($command == 'generate:entities') {
+    $_SERVER['argv'][] = dirname(PROJECT_DIR) . '/';
+} else if ($command === 'generate:entities') {
     $_SERVER['argv'][1] = 'orm:generate-entities';
-    array_push($_SERVER['argv'], '--generate-annotations=true');
-    array_push($_SERVER['argv'], '--regenerate-entities=true');
-    array_push($_SERVER['argv'], '--update-entities=true');
-    array_push($_SERVER['argv'], '--generate-methods=true');
-    array_push($_SERVER['argv'], '--no-backup');
-    array_push($_SERVER['argv'], realpath(PROJECT_DIR . '/../'));
+    $_SERVER['argv'][] = '--generate-annotations=true';
+    $_SERVER['argv'][] = '--regenerate-entities=true';
+    $_SERVER['argv'][] = '--update-entities=true';
+    $_SERVER['argv'][] = '--generate-methods=true';
+    $_SERVER['argv'][] = '--no-backup';
+    $_SERVER['argv'][] = dirname(PROJECT_DIR) . '/';
 }
 $appConfig     = new \loeye\base\AppConfig();
 $dbKey         = $appConfig->getSetting('application.database.' . $dbId) ?? 'default';
