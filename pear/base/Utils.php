@@ -1100,15 +1100,22 @@ class Utils
      * @param object $entity instance of object
      * @param string $field field
      * @param mixed $value value
+     * @param bool $force
      * @return void
      * @throws ReflectionException
      */
-    public static function setWriteMethodValue($entity, $field, $value): void
+    public static function setWriteMethodValue($entity, $field, $value, $force = false): void
     {
         $method = 'set' . ucfirst($field);
         if (method_exists($entity, $method)) {
             $refMethod = new ReflectionMethod($entity, $method);
             $refMethod->invokeArgs($entity, [$value]);
+        } elseif ($force) {
+            $property = new \ReflectionProperty($entity, $field);
+            if (!$property->isPublic()) {
+                $property->setAccessible(true);
+                $property->setValue($entity, $value);
+            }
         }
     }
 
@@ -1136,15 +1143,16 @@ class Utils
      *
      * @param array|object $source
      * @param string $class
+     * @param bool $force
      *
      * @return object
      * @throws ReflectionException
      */
-    public static function source2entity($source, $class)
+    public static function source2entity($source, $class, $force = false)
     {
         $rfc = new ReflectionClass($class);
         $object = $rfc->newInstanceArgs();
-        self::copyProperties($source, $object);
+        self::copyProperties($source, $object, $force);
         return $object;
     }
 
@@ -1153,14 +1161,15 @@ class Utils
      *
      * @param array|object $source
      * @param object $object
+     * @param bool $force
      * @return object
      * @throws ReflectionException
      */
-    public static function copyProperties($source, $object)
+    public static function copyProperties($source, $object, $force = false)
     {
         if (is_array($source)) {
             foreach ($source as $key => $value) {
-                self::setWriteMethodValue($object, self::camelize($key), $value);
+                self::setWriteMethodValue($object, self::camelize($key), $value, $force);
             }
         } else if (is_object($source)) {
             $sourceRefClass = new ReflectionClass($source);
@@ -1169,7 +1178,7 @@ class Utils
                 $methodName = $method->getName();
                 if (self::startWith($methodName, "get")) {
                     $value = $method->invokeArgs($source, []);
-                    self::setWriteMethodValue($object, substr($methodName, 3), $value);
+                    self::setWriteMethodValue($object, substr($methodName, 3), $value, $force);
                 }
             }
         }

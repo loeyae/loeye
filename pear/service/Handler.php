@@ -336,7 +336,7 @@ abstract class Handler extends Resource
     {
         if ($entity) {
             try {
-                $entityObject = Utils::source2entity($data, $entity);
+                $entityObject = Utils::source2entity($data, $entity, true);
                 $validator = Validation::createValidator();
                 $violationList = $validator->validate($entityObject, null, $group);
                 if ($violationList->count() > 0) {
