@@ -145,4 +145,17 @@ class GeneratorUtils
         return $namespace .'\\'. $className;
     }
 
+    /**
+     * @param $fullClassName
+     * @return string
+     */
+    public static function getNamespaceByFullName($fullClassName): string
+    {
+        $pos = strrpos($fullClassName, '\\');
+        if ($pos === false) {
+            return '';
+        }
+        return trim(substr( $fullClassName,0, $pos),'\\');
+    }
+
 }
