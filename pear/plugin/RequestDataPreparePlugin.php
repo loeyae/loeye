@@ -53,27 +53,29 @@ class RequestDataPreparePlugin implements Plugin
         if (isset($inputs[$this->_postOnly]) && $inputs[$this->_postOnly] === 'true') {
             $postOnly = true;
         }
+        $post = $context->getRequest()->getBody();
+        $get = $context->getRequest()->getQuery();
         if (empty($inputs[$this->_dataKey])) {
             foreach ($keyList as $key => $value) {
                 $outKey = empty($value) ? $key : $value;
-                if (filter_has_var(INPUT_POST, $key)) {
-                    $context->set($outKey, filter_input(INPUT_POST, $key));
+                if (isset($post[$key])) {
+                    $context->set($outKey, filter_var($post[$key]));
                 } else if ($postOnly === true) {
                     $context->set($outKey, null);
                 } else {
-                    $context->set($outKey, filter_input(INPUT_GET, $key));
+                    $context->set($outKey, filter_var($get[$key] ?? null));
                 }
             }
         } else {
             $requestData = array();
             foreach ($keyList as $key => $value) {
                 $outKey = empty($value) ? $key : $value;
-                if (filter_has_var(INPUT_POST, $key)) {
-                    $requestData[$outKey] = filter_input(INPUT_POST, $key);
+                if (isset($post[$key])) {
+                    $requestData[$outKey] = filter_var($post[$key]);
                 } else if ($postOnly === true) {
                     $requestData[$outKey] = null;
                 } else {
-                    $requestData[$outKey] = filter_input(INPUT_GET, $key);
+                    $requestData[$outKey] = filter_var($get[$key] ?? null);
                 }
             }
             $data = $context->get($inputs[$this->_dataKey], array());

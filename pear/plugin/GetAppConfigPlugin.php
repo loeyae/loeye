@@ -69,7 +69,7 @@ class GetAppConfigPlugin extends ParallelPlugin
         $configKeys = (array)$inputs[$this->_configKeys];
         foreach ($configKeys as $key) {
             $setting = $this->_config->getSetting($key);
-            $outKey = empty($outKeys[$key]) ? __CLASS__ . '_' . $key . '_setting' : $outKeys[$key];
+            $outKey = empty($outKeys[$key]) ? 'GetAppConfigPlugin_' . $key . '_setting' : $outKeys[$key];
             $context->set($outKey, $setting);
         }
     }

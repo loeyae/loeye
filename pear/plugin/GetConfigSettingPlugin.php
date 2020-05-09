@@ -53,8 +53,7 @@ class GetConfigSettingPlugin extends ParallelPlugin
         $bundle = Utils::checkNotEmpty($inputs, $this->_bundle);
         $ctx = Utils::getData($inputs, $this->_context, null);
         Utils::checkNotEmpty($inputs, $this->_configKeys);
-        $this->_config = new Configuration(
-            $context->getAppConfig()->getPropertyName(), $bundle, $ctx);
+        $this->_config = new Configuration($bundle, null, null, $ctx);
     }
 
     /**

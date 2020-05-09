@@ -47,7 +47,7 @@ class SetRouterPlugin implements Plugin
         if ($router instanceof Router) {
             return PROJECT_SUCCESS;
         }
-        $router = new Router($context->getAppConfig()->getPropertyName());
+        $router = new Router();
         $context->setRouter($router);
     }
 

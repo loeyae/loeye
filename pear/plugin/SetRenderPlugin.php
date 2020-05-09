@@ -116,10 +116,7 @@ class SetRenderPlugin implements Plugin
             return false;
         }
         if (isset($inputs['force']) && $inputs['force']) {
-            $render = Factory::getRender($context->getResponse()->getFormat());
-            $render->header($context->getResponse());
-            $render->output($context->getResponse());
-            exit;
+            return Factory::getRender($context->getResponse()->getFormat(), $context->getResponse());
         }
     }
 

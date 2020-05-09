@@ -45,16 +45,17 @@ class UploadPlugin implements Plugin
         $fields = Utils::checkNotEmpty($inputs, 'field');
         $data = array();
         $errorMessage = 'no file upload';
+        $files = $context->getRequest()->getFiles();
         foreach ((array)$fields as $field => $out) {
-            if (!isset($_FILES[$field])) {
+            if (!isset($files[$field])) {
                 $data[$field] = new Exception(
                     $errorMessage, Exception::DEFAULT_ERROR_CODE);
                 Utils::addErrors($data[$field], $context, $inputs, $out . '_error');
                 continue;
             }
-            if (is_array($_FILES[$field]['name'])) {
-                foreach ($_FILES[$field]['name'] as $key => $name) {
-                    if ($_FILES[$field]['error'][$key] !== 0) {
+            if (is_array([$field]['name'])) {
+                foreach ($files[$field]['name'] as $key => $name) {
+                    if ($files[$field]['error'][$key] !== 0) {
                         $data[$field][$key] = new Exception(
                             $errorMessage, Exception::DEFAULT_ERROR_CODE);
                         continue;
@@ -62,7 +63,7 @@ class UploadPlugin implements Plugin
                     try {
                         $file = array('name' => $name);
                         $fileName = $this->_getFileName($file, $inputs);
-                        $data[$field][$key] = $this->_moveUploadFile($_FILES[$field]['tmp_name'][$key], $fileName);
+                        $data[$field][$key] = $this->_moveUploadFile($files[$field]['tmp_name'][$key], $fileName);
                     } catch (Exception $ex) {
                         $data[$field][$key] = $ex;
                     }
@@ -77,10 +78,10 @@ class UploadPlugin implements Plugin
             } else {
                 $uploadData = array();
                 $uploadError = null;
-                if ($_FILES[$field]['error'] === 0) {
+                if ($files[$field]['error'] === 0) {
                     try {
-                        $fileName = $this->_getFileName($_FILES[$field], $inputs);
-                        $data[$field] = $this->_moveUploadFile($_FILES[$field]['tmp_name'], $fileName);
+                        $fileName = $this->_getFileName($files[$field], $inputs);
+                        $data[$field] = $this->_moveUploadFile($files[$field]['tmp_name'], $fileName);
                     } catch (Exception $ex) {
                         $data[$field] = $ex;
                     }

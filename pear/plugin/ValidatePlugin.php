@@ -43,6 +43,7 @@ class ValidatePlugin implements Plugin
     public const BUNDLE_KEY     = 'bundle';
     public const INPUT_TYPE_KEY = 'type';
     public const GROUPS_KEY     = 'groups';
+    public const FILTER_KEY     = 'filter';
     public const ERROR_KEY      = 'ValidatePlugin_validate_error';
     public const DATA_KEY       = 'ValidatePlugin_filter_data';
 
@@ -66,11 +67,12 @@ class ValidatePlugin implements Plugin
      */
     public function process(Context $context, array $inputs): void
     {
-        $data = $this->getData($inputs);
+        $data = $this->getData($context, $inputs);
         $entity = Utils::getData($inputs, self::ENTITY_KEY);
+        $filter = Utils::getData($inputs, self::FILTER_KEY, []);
         if ($entity) {
             $groups = Utils::getData($inputs, self::GROUPS_KEY);
-            $entityObject = Utils::source2entity(Validation::filterData($data, []), $entity, true);
+            $entityObject = Utils::source2entity(Validation::filterData($data, $filter), $entity, true);
             $validator     = Validation::createValidator();
             $violationList = $validator->validate($entityObject, null, $groups);
             $errors        = Validator::buildErrmsg($violationList, Validator::initTranslator());
@@ -91,24 +93,25 @@ class ValidatePlugin implements Plugin
                     $report['valid_data'], $context, $inputs, self::DATA_KEY);
         }
     }
-    
+
     /**
      * getData
-     * 
+     *
+     * @param Context $context
      * @param array $inputs
-     * 
+     *
      * @return array
      */
-    protected function getData(array $inputs): ?array
+    protected function getData(Context $context, array $inputs): ?array
     {
         $type = Utils::getData($inputs, self::INPUT_TYPE_KEY, INPUT_REQUEST);
         switch ($type) {
             case INPUT_POST:
-                return filter_input_array(INPUT_POST);
+                return $context->getRequest()->getBody();
             case INPUT_GET:
-                return filter_input_array(INPUT_GET);
+                return $context->getRequest()->getQuery();
             case self::INPUT_ORIGIN:
-                $data = file_get_contents('php://input');
+                $data = $context->getRequest()->getContent();
                 return json_decode($data, true);
             default:
                 return $_REQUEST;
