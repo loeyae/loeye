@@ -7,8 +7,8 @@
         '^/<controller:\w+>.html': '{controller}/index'
         '^/<controller:\w+>/<action:\w+>.html': '{controller}/{action}'
         '^/<module:\w+>/<controller:\w+>/<action:\w+>.html': '{module}/{controller}/{action}'
-        '^/<controller:\w+>/<action:\w+>\<id:\d+>.html': '{controller}/{action}'
-        '^/<module:\w+>/<controller:\w+>/<action:\w+>\<id:\d+>.html': '{module}/{controller}/{action}'
+        '^/<controller:\w+>/<action:\w+>/<id:\d+>.html': '{controller}/{action}'
+        '^/<module:\w+>/<controller:\w+>/<action:\w+>/<id:\d+>.html': '{module}/{controller}/{action}'
       static_path:
         - ../htdocs
         - ../vendor/twbs/bootstrap

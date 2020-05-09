@@ -4,11 +4,11 @@
       dispatcher: service
       rewrite:
         '^/$': 'index'
-        '^/<handler:\w+>.html': '{handler}'
-        '^/<service:\w+>/<handler:\w+>.html': '{service}/{handler}'
-        '^/<module:\w+>/<service:\w+>/<handler:\w+>.html': '{module}/{service}/{handler}'
-        '^/<service:\w+>/<handler:\w+>\<id:\d+>.html': '{service}/{handler}'
-        '^/<module:\w+>/<service:\w+>/<handler:\w+>\<id:\d+>.html': '{module}/{service}/{handler}'
+        '^/<handler:\w+>$': '{handler}'
+        '^/<service:\w+>/<handler:\w+>$': '{service}/{handler}'
+        '^/<module:\w+>/<service:\w+>/<handler:\w+>$': '{module}/{service}/{handler}'
+        '^/<service:\w+>/<handler:\w+>/<id:\d+>$': '{service}/{handler}'
+        '^/<module:\w+>/<service:\w+>/<handler:\w+>/<id:\d+>$': '{module}/{service}/{handler}'
       static_path:
         - ../htdocs
         - ../vendor/twbs/bootstrap
