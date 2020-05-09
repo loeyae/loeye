@@ -59,6 +59,11 @@ vendor\bin\loeye loeye:generate-server
 ```
 vendor\bin\loeye loeye:create-service
 ```
+> service中会生成client的配置文件和client类，可用于其它应用访问该service使用，
+> 使用时复制conf/clien,service/client目录下的文件到相应应用，注意修改conf/client/master.yml
+> 中的service.server_url地址,以及service/client目录下各文件的namespace。
+> 如果需要创建相应的plugin，可使用命令 ```  vendor\bin\loeye loeye:generate-client-plugin ```
+
 * 运行应用
 ```
 vendor\bin\loeye loeye:run-app
