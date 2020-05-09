@@ -166,7 +166,7 @@ EOF;
         $ui->text(sprintf('Processing AbstractPlugin "<info>%s</info>"', $fullAbstractClassName));
         $code = $this->generateAbstractPluginClass($namespace, $className, $serverClass);
 
-        GeneratorUtils::writeFile($outputDirectory, $className, $code, $force);
+        GeneratorUtils::writePHPClass($outputDirectory, $className, $code, $force);
     }
 
     /**
@@ -211,7 +211,7 @@ EOF;
             $code = $this->generatePluginClass($namespace, $nClassName, $abstractClassName, $methodName, $useStatement,
                 $paramsStatement, $params, $returnType);
 
-            GeneratorUtils::writeFile($outputDirectory, $nClassName, $code, $force);
+            GeneratorUtils::writePHPClass($outputDirectory, $nClassName, $code, $force);
         }
     }
 

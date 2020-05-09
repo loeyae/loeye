@@ -60,10 +60,20 @@ class GeneratorUtils
      * @param string $code
      * @param string $force
      */
-    public static function writeFile($outputDirectory, $className, $code, $force): void
+    public static function writePHPClass($outputDirectory, $className, $code, $force = false): void
     {
         $path = $outputDirectory . D_S
             . str_replace('\\', D_S, $className) . '.php';
+        self::writeFile($path, $code, $force);
+    }
+
+    /**
+     * @param $path
+     * @param $code
+     * @param bool $force
+     */
+    public static function writeFile($path, $code, $force = false): void
+    {
         $dir  = dirname($path);
 
         if (!file_exists($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {

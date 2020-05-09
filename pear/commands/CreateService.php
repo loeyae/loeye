@@ -115,7 +115,7 @@ EOF;
         $classBody = $this->generateClientBody($serverClass, $entityName);
         $code = $this->generateClientFile($clientName, $namespace, $classBody);
 
-        GeneratorUtils::writeFile($this->clientDir, $clientName, $code, $force);
+        GeneratorUtils::writePHPClass($this->clientDir, $clientName, $code, $force);
     }
 
     /**
@@ -241,7 +241,7 @@ EOF;
             'serverClass' => GeneratorUtils::getClassName($serverClass),
         ];
         $code = GeneratorUtils::getCodeFromTemplate('service/AbstractBaseHandler', $variable);
-        GeneratorUtils::writeFile($destPath, $abstractClassName, $code, $force);
+        GeneratorUtils::writePHPClass($destPath, $abstractClassName, $code, $force);
     }
 
     /**
@@ -312,7 +312,7 @@ EOF;
             } else {
                 $code = GeneratorUtils::getCodeFromTemplate('service/Handler', $variable);
             }
-            GeneratorUtils::writeFile($destPath, $nClassName, $code, $force);
+            GeneratorUtils::writePHPClass($destPath, $nClassName, $code, $force);
         }
     }
 
@@ -504,9 +504,15 @@ EOF;
     protected function getDestPath(InputInterface $input, SymfonyStyle $ui): string
     {
         $baseDir = dirname(PROJECT_DIR);
-        [$handlerDir, $clientDir] = $this->mkdir($baseDir, $ui);
+        [$handlerDir, $clientDir, $clientConfDir] = $this->mkdir($baseDir, $ui);
         $this->handlerDir = $handlerDir;
         $this->clientDir = $clientDir;
+        $appConfig = $this->loadAppConfig();
+        $clientConf = GeneratorUtils::getCodeFromTemplate('service/ClientConf', ['port' => $appConfig->getSetting
+        ('server.port')]);
+        $clientConfPath = GeneratorUtils::buildPath($clientConfDir, 'master.yml');
+        GeneratorUtils::writeFile($clientConfPath, $clientConf);
+        $ui->text(sprintf('Processing Client Config  "<info>%s</info>"', $clientConfPath));
         return $handlerDir;
     }
 
@@ -527,7 +533,12 @@ EOF;
             throw new RuntimeException(sprintf('Directory "%s" was not created', $clientDir));
         }
         $ui->block(sprintf('create dir: %1s', $clientDir));
-        return [$handlerDir, $clientDir];
+        $clientConfDir = $baseDir . D_S . 'app' . D_S .'conf' . D_S .'client';
+        if (!file_exists($clientConfDir) && (!mkdir($clientConfDir, 0755, true) || !is_dir($clientConfDir))) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $clientConfDir));
+        }
+        $ui->block(sprintf('create dir: %1s', $clientConfDir));
+        return [$handlerDir, $clientDir, $clientConfDir];
     }
 
     /**

@@ -87,7 +87,7 @@ class GenerateEntity extends Command
             $namespace = GeneratorUtils::getNamespaceByFullName($repositoryClass);
             $code = GeneratorUtils::getCodeFromTemplate('entity/Repository', ['namespace' =>
                 $namespace, 'className' => $className]);
-            GeneratorUtils::writeFile(dirname(PROJECT_DIR) .'/', $repositoryClass, $code, true);
+            GeneratorUtils::writePHPClass(dirname(PROJECT_DIR) .'/', $repositoryClass, $code, true);
             $ui->text(sprintf('Processing entity "<info>%s</info>"', $repositoryClass));
         }
     }

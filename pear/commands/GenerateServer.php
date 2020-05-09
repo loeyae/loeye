@@ -118,7 +118,7 @@ class GenerateServer extends Command
     {
         $code = $this->generateServerClass($namespace, $className, $entityClass);
 
-        GeneratorUtils::writeFile($outputDirectory, $className, $code, $force);
+        GeneratorUtils::writePHPClass($outputDirectory, $className, $code, $force);
     }
 
 }

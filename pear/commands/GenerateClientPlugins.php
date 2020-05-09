@@ -112,7 +112,7 @@ EOF;
         $fullClassName = GeneratorUtils::generateClassName($namespace, $className);
         $ui->text(sprintf('Processing AbstractPluginFile "<info>%s</info>"', $fullClassName));
         $code = GeneratorUtils::getCodeFromTemplate('client/AbstractBasePlugin', $variable);
-        GeneratorUtils::writeFile($destDir, $className, $code, $force);
+        GeneratorUtils::writePHPClass($destDir, $className, $code, $force);
     }
 
     /**
@@ -140,7 +140,7 @@ EOF;
         $fullClassName = GeneratorUtils::generateClassName($namespace, $className);
         sprintf('Processing PluginFile "<info>%s</info>"', $fullClassName);
         $code = GeneratorUtils::getCodeFromTemplate('client/Plugin', $variable);
-        GeneratorUtils::writeFile($destDir, $className, $code, $force);
+        GeneratorUtils::writePHPClass($destDir, $className, $code, $force);
     }
 
     /**
