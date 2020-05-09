@@ -1167,7 +1167,7 @@ class Utils
      */
     public static function copyProperties($source, $object, $force = false)
     {
-        if (is_array($source)) {
+        if (is_iterable($source)) {
             foreach ($source as $key => $value) {
                 self::setWriteMethodValue($object, self::camelize($key), $value, $force);
             }

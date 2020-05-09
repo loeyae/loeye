@@ -56,6 +56,7 @@ abstract class Handler extends Resource
     protected $pathParameter = array();
     protected $cmd;
     protected $output;
+    protected $filterRule = [];
 
     /**
      * _processRequest
@@ -321,6 +322,32 @@ abstract class Handler extends Resource
         return $expression ? Criteria::create()->andWhere($expression) : null;
     }
 
+
+    /**
+     * @param $key
+     * @param $filter
+     * @param string|null $flag
+     * @param array $options
+     * @return Handler
+     */
+    public function setFilterRule($key, $filter, $flag = null, $options = []): Handler
+    {
+        $this->filterRule[$key] = ['filter' => ['type' => $filter, 'flag' => $flag, 'options' => $options]];
+        return $this;
+    }
+
+    /**
+     * @param $key
+     * @return array
+     */
+    public function getFilterRule($key = null)
+    {
+        if ($key === null) {
+            return $this->filterRule;
+        }
+        return $this->filterRule[$key] ?? [];
+    }
+
     /**
      * validate
      *
@@ -336,7 +363,7 @@ abstract class Handler extends Resource
     {
         if ($entity) {
             try {
-                $entityObject = Utils::source2entity($data, $entity, true);
+                $entityObject = Utils::source2entity(Validation::filterData($data, $this->getFilterRule()), $entity, true);
                 $validator = Validation::createValidator();
                 $violationList = $validator->validate($entityObject, null, $group);
                 if ($violationList->count() > 0) {

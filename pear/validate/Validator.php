@@ -508,60 +508,17 @@ class Validator
     {
         $filteredData = [];
         foreach ($data as $key => $value) {
+            $ruleset = [];
             if (isset($schema[$key])) {
-                $ruleset = $ruleSets[$schema[$key]['rule']] ?? null;
+                $ruleset = $ruleSets[$schema[$key]['rule']] ?? [];
                 if (!$ruleset) {
-                    throw new BusinessException(BusinessException::INVALID_CONFIG_SET_MSG, BusinessException::INVALID_CONFIG_SET_CODE, ['setting' => 'validate ruleset: ' . $schema[$key]['rule']]);
-                }
-                if (!empty($ruleset['filter'])) {
-                    $filteredData[$key] = $this->_filterVar($value, $ruleset);
-                    continue;
+                    throw new BusinessException(BusinessException::INVALID_CONFIG_SET_MSG,
+                        BusinessException::INVALID_CONFIG_SET_CODE, ['setting' => 'validate ruleset: ' . $schema[$key]['rule']]);
                 }
             }
-            $filteredData[$key] = filter_var($value, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_NO_ENCODE_QUOTES);
+            $filteredData[$key] = \loeye\validate\Validation::filterVar($value, $ruleset);
         }
         return $filteredData;
-    }
-
-    /**
-     * _filterVar
-     *
-     * @param array $data data
-     * @param array $ruleset ruleset
-     * @return array
-     */
-    private function _filterVar($data, $ruleset): array
-    {
-        if (is_iterable($data)) {
-            $filtered = [];
-            foreach ($data as $key => $value) {
-                $filtered[$key] = $this->_filterVar($value, $ruleset);
-            }
-            return $filtered;
-        }
-        $filter = isset($ruleset['filter']['filter_type']) ? constant($ruleset['filter']['filter_type']) : FILTER_SANITIZE_FULL_SPECIAL_CHARS;
-        $ops = [];
-        if (!empty($ruleset['filter']['options'])) {
-            if (is_iterable($ruleset['filter']['options'])) {
-                $ops = $ruleset['filter']['options'];
-            } else {
-                $ops['flag'] = $ruleset['filter']['options'];
-            }
-        }
-        !isset($ruleset['filter']['filter_flag']) ?: $ops['flag'] = constant($ruleset['filter']['filter_flag']);
-        !isset($ruleset['filter']['filter_options']) ?: $ops['options'] = $ruleset['filter']['filter_options'];
-        $validated = filter_var($data, $filter, $ops);
-        if (($validated !== false) && !empty($ruleset['fun'])) {
-            foreach ($ruleset['fun'] as $funSet) {
-                $fun = $funSet['name'];
-                if (is_callable($fun)) {
-                    $params = (array )($funSet['params'] ?? []);
-                    array_unshift($params, $validated);
-                    $validated = call_user_func_array($fun, $params);
-                }
-            }
-        }
-        return $validated;
     }
 
     /**
