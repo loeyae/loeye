@@ -218,6 +218,7 @@ class Request
         if (in_array($fmt, $this->_allowedFormatType, true)) {
             return $fmt;
         }
+        return null;
     }
 
     /**

@@ -69,4 +69,4 @@ vendor\bin\loeye loeye:create-service
 vendor\bin\loeye loeye:run-app
 ```
 ## License
-Loeye is under <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache 2 license</a>.
+Licensed under <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache 2 license</a>.

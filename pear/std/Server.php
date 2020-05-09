@@ -112,7 +112,7 @@ abstract class Server
      */
     protected function staticRouter($path): Render
     {
-        $response = new \loeye\web\Response();
+        $response = new \loeye\web\Response(new \loeye\web\Request());
         if(!is_file($path)) {
             $response->setStatusCode(404);
             $response->setReason('Bad Request');

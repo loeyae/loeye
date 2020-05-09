@@ -363,7 +363,8 @@ abstract class Handler extends Resource
     {
         if ($entity) {
             try {
-                $entityObject = Validation::validate($data, $entity, $this->getFilterRule(), $group);
+                $entityObject = Validation::validate($data ?? [], $entity, $this->getFilterRule(),
+                    $group);
                 $validated = Utils::entity2array(Factory::db()->em(), $entityObject);
                 return array_filter($validated, static function ($item) {
                     return $item !== null;
