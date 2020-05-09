@@ -43,9 +43,13 @@ class PermissionException extends Exception
 
     public const ACCESS_UNAPPROVED = 401002;
 
-    public const CRUMB_ERROR_CODE = 401003;
+    public const TOKEN_EXPIRED = 401003;
+    public const TOKEN_EXPIRED_MSG = 'Token Expired';
+    public const TOKEN_INVALID_MSG = 'Token Invalid';
 
-    public const REPEAT_ERROR_CODE = 401004;
+    public const CRUMB_ERROR_CODE = 401004;
+
+    public const REPEAT_ERROR_CODE = 401005;
 
     public function __construct(string $errorMessage = self::DEFAULT_ERROR_MSG, int $errorCode =
     self::DEFAULT_ERROR_CODE, $parameter = array())

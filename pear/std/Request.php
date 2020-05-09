@@ -199,6 +199,13 @@ class Request
         return $this->moduleId;
     }
 
+    /**
+     * @return array
+     */
+    public function getAllowedFormatType(): array
+    {
+        return $this->_allowedFormatType;
+    }
 
     /**
      * getFormatType
@@ -207,7 +214,10 @@ class Request
      */
     public function getFormatType(): ?string
     {
-        return $this->getQuery('fmt');
+        $fmt = $this->getQuery('fmt');
+        if (in_array($fmt, $this->_allowedFormatType, true)) {
+            return $fmt;
+        }
     }
 
     /**

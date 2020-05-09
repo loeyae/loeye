@@ -37,9 +37,11 @@ class Response extends \loeye\std\Response
 
     /**
      * __construct
+     * @param \loeye\std\Request $request
      */
-    public function __construct()
+    public function __construct(\loeye\std\Request $request)
     {
+        parent::__construct($request);
         $this->header = array();
     }
 

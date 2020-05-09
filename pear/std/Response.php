@@ -17,6 +17,7 @@
 
 namespace loeye\std;
 
+use loeye\Centra;
 use Symfony\Component\HttpFoundation\Cookie;
 
 /**
@@ -52,6 +53,18 @@ abstract class Response
      * @var string
      */
     private $redirect;
+
+    /**
+     * @var Request
+     */
+    private $request;
+
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+        $format = Centra::$appConfig->getSetting('application.response.format');
+        $this->setFormat($format);
+    }
 
     /**
      * @param string $version
@@ -159,7 +172,7 @@ abstract class Response
      */
     public function getFormat()
     {
-        return $this->format;
+        return $this->format ?? $this->request->getFormatType();
     }
 
     /**

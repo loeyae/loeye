@@ -158,7 +158,7 @@ abstract class Server
     {
         $dispatcher = $this->appConfig->getSetting('server.dispatcher', self::DEFAULT_DISPATCHER);
         return ($dispatcher === self::SERVICE_DISPATCHER) ? new \loeye\service\Response($request) : new
-        \loeye\web\Response();
+        \loeye\web\Response($request);
     }
 
     /**
