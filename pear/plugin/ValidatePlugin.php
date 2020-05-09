@@ -70,10 +70,10 @@ class ValidatePlugin implements Plugin
         $entity = Utils::getData($inputs, self::ENTITY_KEY);
         if ($entity) {
             $groups = Utils::getData($inputs, self::GROUPS_KEY);
-            $entityObject = Utils::source2entity($data, $entity, true);
+            $entityObject = Utils::source2entity(Validation::filterData($data, []), $entity, true);
             $validator     = Validation::createValidator();
             $violationList = $validator->validate($entityObject, null, $groups);
-            $errors        = Validator::buildErrmsg($violationList, Validator::initTranslator($context->getAppConfig()));
+            $errors        = Validator::buildErrmsg($violationList, Validator::initTranslator());
             if ($errors) {
                 Utils::addErrors($errors, $context, $inputs, self::ERROR_KEY);
             }

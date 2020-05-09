@@ -20,6 +20,7 @@ namespace loeye\validate;
 use Generator;
 use loeye\base\Utils;
 use loeye\database\Entity;
+use loeye\error\ValidateError;
 use ReflectionException;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -67,13 +68,20 @@ final class Validation
      * @param string $entityClass
      * @param array $filterRule
      * @param null $group
-     * @return ConstraintViolationListInterface
+     * @return object
      * @throws ReflectionException
+     * @throws ValidateError
      */
-    public static function validate(array $data, string $entityClass, array $filterRule, $group = null): ConstraintViolationListInterface
+    public static function validate(array $data, string $entityClass, array $filterRule, $group = null)
     {
         $entity = Utils::source2entity(self::filterData($data, $filterRule), $entityClass, true);
-        return self::createValidator()->validate($entity, null, $group);
+        $violationList = self::createValidator()->validate($entity, null, $group);
+        if ($violationList->count() > 0) {
+            $validateError = Validator::buildErrmsg($violationList, Validator::initTranslator());
+            throw new ValidateError($validateError, ValidateError::DEFAULT_ERROR_MSG,
+                ValidateError::DEFAULT_ERROR_CODE);
+        }
+        return $entity;
     }
 
 

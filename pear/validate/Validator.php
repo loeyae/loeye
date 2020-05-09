@@ -78,7 +78,7 @@ class Validator
     {
         $this->appConfig = $appConfig;
         $definition = [new RulesetConfigDefinition(), new DeltaConfigDefinition()];
-        $this->config = $this->bundleConfig($appConfig->getPropertyName(), $bundle, $definition);
+        $this->config = $this->bundleConfig($definition, $bundle);
         $this->_report = array('has_error' => false, 'error_message' => []);
     }
 
@@ -625,13 +625,11 @@ class Validator
     /**
      * initTranslator
      *
-     * @param AppConfig $appConfig AppConfig instance
-     *
      * @return Translator
      */
-    public static function initTranslator(AppConfig $appConfig): Translator
+    public static function initTranslator(): Translator
     {
-        $translator = Factory::translator($appConfig)->getTranslator();
+        $translator = Factory::translator()->getTranslator();
         $loader = new I18n\Loader\XliffFileLoader();
         $resourceDir = PROJECT_DIR . '/../vendor/symfony/validator/Resources/translations/';
         foreach (new FilesystemIterator($resourceDir, FilesystemIterator::KEY_AS_FILENAME) as $key => $item) {

@@ -363,15 +363,7 @@ abstract class Handler extends Resource
     {
         if ($entity) {
             try {
-                $entityObject = Utils::source2entity(Validation::filterData($data, $this->getFilterRule()), $entity, true);
-                $validator = Validation::createValidator();
-                $violationList = $validator->validate($entityObject, null, $group);
-                if ($violationList->count() > 0) {
-                    $validateError = Validator::buildErrmsg($violationList, Validator::initTranslator
-                    ($this->context->getAppConfig()));
-                    throw new ValidateError($validateError, ValidateError::DEFAULT_ERROR_MSG,
-                        ValidateError::DEFAULT_ERROR_CODE);
-                }
+                $entityObject = Validation::validate($data, $entity, $this->getFilterRule(), $group);
                 $validated = Utils::entity2array(Factory::db()->em(), $entityObject);
                 return array_filter($validated, static function ($item) {
                     return $item !== null;
