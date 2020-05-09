@@ -142,6 +142,19 @@ class GenerateEntity extends Command
                 $newContent[$line] = "    private \$modifyTime;\r\n";
                 array_splice($newContent, $line - 1, 0, ["     * @Gedmo\Timestampable(on=\"update\")\r\n"]);
                 $line++;
+            } elseif (mb_strpos($content, '$this->createTime = $createTime') !== false) {
+                array_splice($newContent, $line, 0,
+                    [
+                        "        if (is_string(\$createTime)) {\r\n",
+                        "            \$createTime = \DateTime::createFromFormat('Y-m-d H:i:s', \$createTime);\r\n",
+                        "        }\r\n"]);
+                $line += 3;
+            } elseif (mb_strpos($content, '$this->modifyTime = $modifyTime') !== false) {
+                array_splice($newContent, $line, 0,
+                    ["        if (is_string(\$modifyTime)) {\r\n",
+                        "            \$modifyTime = \DateTime::createFromFormat('Y-m-d H:i:s', \$modifyTime);\r\n",
+                        "        }\r\n"]);
+                $line += 3;
             }
             $line++;
         }
