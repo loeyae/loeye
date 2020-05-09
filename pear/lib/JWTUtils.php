@@ -19,7 +19,7 @@ class JWTUtils
 {
     public const DEFAULT_LIFETIME = 7200;
     public const FUN_OPENSSL = 'openssl';
-    public const DEFAULT_SUB = 'client';
+    public const DEFAULT_SUB = 'loeye token';
     private $defaultKey = '1234567890abcdef';
 
     /**
@@ -70,7 +70,7 @@ class JWTUtils
      */
     private static function parseAddr()
     {
-        return (Centra::$request->getServer('REMOTE_ADDR') ?? filter_input(INPUT_SERVER, 'REMOTE_ADDR')) ?: ($_SERVER['REMOTE_ADDR']
+        return (Centra::$request->getServer('remote_addr') ?? filter_input(INPUT_SERVER, 'REMOTE_ADDR')) ?: ($_SERVER['REMOTE_ADDR']
         ?? '127.0.0.1');
     }
 
@@ -79,7 +79,7 @@ class JWTUtils
      */
     private function parseAud(): void
     {
-        $host = (Centra::$request->getServer('REMOTE_HOST') ?? filter_input(INPUT_SERVER, 'REMOTE_HOST')) ?: ($_SERVER['REMOTE_HOST'] ?? null);
+        $host = (Centra::$request->getServer('remote_host') ?? filter_input(INPUT_SERVER, 'REMOTE_HOST')) ?: ($_SERVER['REMOTE_HOST'] ?? null);
         $this->aud = $host ?? gethostbyaddr(self::parseAddr());
     }
 
@@ -91,7 +91,7 @@ class JWTUtils
         if (defined('BASE_SERVER_URL')) {
             $this->iss = parse_url(BASE_SERVER_URL, PHP_URL_HOST);
         } else {
-            $this->iss = (Centra::$request->getServer('HTTP_HOST') ?? filter_input(INPUT_SERVER, 'HTTP_HOST')) ?:
+            $this->iss = (Centra::$request->getServer('http_host') ?? filter_input(INPUT_SERVER, 'HTTP_HOST')) ?:
                 ($_SERVER['HTTP_HOST'] ?? 'localhost');
         }
     }
@@ -173,7 +173,7 @@ class JWTUtils
         $now = time();
         $payload = [
             'iss' => $this->getIss(), #'签发者',
-            'sub' => $encryptInfo['uid'] ?? $encryptInfo['appId'] ?? self::DEFAULT_SUB, #'面向的用户',
+            'sub' => self::DEFAULT_SUB, #'主题',
             'aud' => $this->getAud(), #'接收方',
             'exp' => $now + $this->lifeTime, #'过期时间',
             'iat' => $now, #'创建时间',
@@ -192,12 +192,21 @@ class JWTUtils
      * @param $encryptString
      * @return object
      */
-    public function getToken($encryptString)
+    public function verifyToken($encryptString)
     {
         $key = $this->key;
         if ($this->fun === self::FUN_OPENSSL) {
             $key = openssl_pkey_get_private($this->key);
         }
         return JWT::decode($encryptString, $key, [$this->alg]);
+    }
+
+    /**
+     * @return object
+     */
+    public function verifyTokenByHeader()
+    {
+        $token = Centra::$request->getHeader('authorization') ?? filter_input(INPUT_SERVER, 'HTTP_Authorization') ?: ($_SERVER['HTTP_Authorization'] ?? '');
+        return $this->verifyToken($token);
     }
 }
