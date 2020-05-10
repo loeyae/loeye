@@ -60,7 +60,7 @@ class JWTPlugin implements Plugin
                 Utils::setContextData($token, $context, $inputs, $this->outputKey);
             } catch (ExpiredException $e) {
                 Utils::errorLog($e);
-                $context->getResponse()->setStatusCode(PermissionException::ACCESS_DENIED);
+                $context->getResponse()->setStatusCode(PermissionException::TOKEN_EXPIRED);
                 $context->getResponse()->setReason(PermissionException::TOKEN_EXPIRED_MSG);
                 $context->getResponse()->addOutput(PermissionException::TOKEN_EXPIRED_MSG, 'data');
                 return Factory::getRender($context->getResponse()->getFormat(), $context->getResponse());

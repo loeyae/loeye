@@ -20,6 +20,7 @@ namespace loeye\plugin;
 use loeye\base\{Context, Exception, Factory, Utils};
 use loeye\database\Entity;
 use loeye\error\BusinessException;
+use loeye\error\ValidateError;
 use loeye\lib\ModuleParse;
 use loeye\std\Plugin;
 use Psr\Cache\InvalidArgumentException;
@@ -68,14 +69,24 @@ class OutputPlugin implements Plugin
         if (!empty($outDataKey)) {
             $data = Utils::getData($context, $outDataKey);
         } 
-        if (empty($data) && isset($inputs['error'])) {
-            $this->responseCode = LOEYE_REST_STATUS_BAD_REQUEST;
-            $this->responseMsg = 'error';
-            $data = Utils::getErrors($context, $inputs, $inputs['error']);
+        if (empty($data) ){
+         if (isset($inputs['error'])) {
+             $data = Utils::getErrors($context, $inputs, $inputs['error']);
+             if ($data) {
+                 $this->responseCode = LOEYE_REST_STATUS_BAD_REQUEST;
+                 $this->responseMsg = 'Internal Error';
+             }
+         } elseif (isset($inputs['validate_error'])) {
+             $data = $context->getErrors($inputs['validate_error']);
+             if ($data) {
+                 $this->responseCode = ValidateError::DEFAULT_ERROR_CODE;
+                 $this->responseMsg = ValidateError::DEFAULT_ERROR_MSG;
+             }
+         }
         }
         if ($data instanceof Entity) {
             $data = Utils::entity2array(Factory::db()->em(), $data);
-        } else {
+        } elseif (is_array($data)) {
             $data = Utils::entities2array(Factory::db()->em(), $data);
         }
         $redirect  = null;

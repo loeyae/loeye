@@ -107,17 +107,17 @@ class ValidatePlugin implements Plugin
         $type = Utils::getData($inputs, self::INPUT_TYPE_KEY, INPUT_REQUEST);
         switch ($type) {
             case INPUT_POST:
-                $data = $context->getRequest()->getBody();
+                $data = $context->getRequest()->getBody() ?? [];
                 break;
             case INPUT_GET:
-                $data = $context->getRequest()->getQuery();
+                $data = $context->getRequest()->getQuery() ?? [];
                 break;
             case BuildQueryPlugin::INPUT_ORIGIN:
                 $content = $context->getRequest()->getContent();
-                $data = json_decode($content, true);
+                $data = json_decode($content, true) ?: [];
                 break;
             default:
-                $data = $context->getRequest()->getRequest();
+                $data = $context->getRequest()->getRequest() ?? [];
                 break;
         }
         $merge = Utils::getData($inputs, self::MERGE_KEY);

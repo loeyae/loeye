@@ -225,15 +225,15 @@ class BuildQueryPlugin implements Plugin {
     private function getData(Context $context, $method): ?array
     {
         if ($method === INPUT_GET) {
-            return $context->getRequest()->getQuery();
+            return $context->getRequest()->getQuery()  ?? [];
         }
         if ($method === INPUT_POST) {
-            return $context->getRequest()->getBody();
+            return $context->getRequest()->getBody() ?? [];
         }
         if ($method === self::INPUT_ORIGIN) {
-            return json_decode($context->getRequest()->getContent(), true);
+            return json_decode($context->getRequest()->getContent(), true)  ?: [];
         }
-        return $context->getRequest()->getRequest();
+        return $context->getRequest()->getRequest() ?? [];
     }
 
 }
