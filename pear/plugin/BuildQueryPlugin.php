@@ -220,9 +220,9 @@ class BuildQueryPlugin implements Plugin {
     /**
      * @param Context $context
      * @param $method
-     * @return array
+     * @return array|null
      */
-    private function getData(Context $context, $method): array
+    private function getData(Context $context, $method): ?array
     {
         if ($method === INPUT_GET) {
             return $context->getRequest()->getQuery();
