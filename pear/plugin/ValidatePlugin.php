@@ -36,8 +36,6 @@ use const INPUT_REQUEST;
  */
 class ValidatePlugin implements Plugin
 {
-
-    public const INPUT_ORIGIN   = 2;
     public const ENTITY_KEY     = 'entity';
     public const RULE_KEY       = 'validate_rule';
     public const BUNDLE_KEY     = 'bundle';
@@ -50,9 +48,9 @@ class ValidatePlugin implements Plugin
 
     public static $inputTypes = [
         INPUT_REQUEST,
-        self::INPUT_ORIGIN,
         INPUT_POST,
         INPUT_GET,
+        BuildQueryPlugin::INPUT_ORIGIN,
     ];
 
     /**
@@ -113,7 +111,7 @@ class ValidatePlugin implements Plugin
             case INPUT_GET:
                 $data = $context->getRequest()->getQuery();
                 break;
-            case self::INPUT_ORIGIN:
+            case BuildQueryPlugin::INPUT_ORIGIN:
                 $content = $context->getRequest()->getContent();
                 $data = json_decode($content, true);
                 break;
