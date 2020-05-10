@@ -186,7 +186,8 @@ class GenerateEntity extends Command
         }
         if (in_array($columnName, $metadata->identifier, true)) {
             $validate[] = "     * @Assert\IsNull(groups={\"create\"})\r\n";
-            $validate[] = "     * @Assert\NotNull(groups={\"update\", \"delete\"})\r\n";
+            $validate[] = "     * @Assert\NotBlank(groups={\"update\", \"delete\"})\r\n";
+            $validate[] = "     * @Assert\GreaterThan(value=\"0\", groups={\"update\", \"delete\"})\r\n";
         } elseif (!$fieldMapping['nullable']) {
             $validate[] = "     * @Assert\NotNull(groups={\"create\", \"update\"})\r\n";
             if (isset($fieldMapping['length']) && $fieldMapping['length'] > 0) {
@@ -212,7 +213,7 @@ class GenerateEntity extends Command
             case 'bool':
             case 'mediumint':
             case 'bigint':
-                return "     * @Assert\Type(type=\"integer\", groups={\"create\",\"update\", \"query\"})\r\n";
+                return "     * @Assert\Regex(pattern=\"/\d+/\", groups={\"create\",\"update\", \"query\"})\r\n";
             case 'decimal':
             case 'float':
             case 'double':

@@ -71,7 +71,8 @@ class ValidatePlugin implements Plugin
         $filter = Utils::getData($inputs, self::FILTER_KEY, []);
         if ($entity) {
             $groups = Utils::getData($inputs, self::GROUPS_KEY);
-            $entityObject = Utils::source2entity(Validation::filterData($data, $filter), $entity, true);
+            $entityObject = Utils::source2entity(Validation::filterData($data ?: [], $filter),
+                $entity, true);
             $validator     = Validation::createValidator();
             $violationList = $validator->validate($entityObject, null, $groups);
             $errors        = Validator::buildErrmsg($violationList, Validator::initTranslator());
