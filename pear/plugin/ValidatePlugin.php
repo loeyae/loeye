@@ -42,6 +42,7 @@ class ValidatePlugin implements Plugin
     public const RULE_KEY       = 'validate_rule';
     public const BUNDLE_KEY     = 'bundle';
     public const INPUT_TYPE_KEY = 'type';
+    public const MERGE_KEY      = 'merge';
     public const GROUPS_KEY     = 'groups';
     public const FILTER_KEY     = 'filter';
     public const ERROR_KEY      = 'ValidatePlugin_validate_error';
@@ -107,15 +108,24 @@ class ValidatePlugin implements Plugin
         $type = Utils::getData($inputs, self::INPUT_TYPE_KEY, INPUT_REQUEST);
         switch ($type) {
             case INPUT_POST:
-                return $context->getRequest()->getBody();
+                $data = $context->getRequest()->getBody();
+                break;
             case INPUT_GET:
-                return $context->getRequest()->getQuery();
+                $data = $context->getRequest()->getQuery();
+                break;
             case self::INPUT_ORIGIN:
-                $data = $context->getRequest()->getContent();
-                return json_decode($data, true);
+                $content = $context->getRequest()->getContent();
+                $data = json_decode($content, true);
+                break;
             default:
-                return $_REQUEST;
+                $data = $context->getRequest()->getRequest();
+                break;
         }
+        $merge = Utils::getData($inputs, self::MERGE_KEY);
+        if ($merge) {
+            return array_merge((array)$merge, $data);
+        }
+        return $data;
     }
 
 }

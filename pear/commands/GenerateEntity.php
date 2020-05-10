@@ -119,6 +119,7 @@ class GenerateEntity extends Command
         $fp = new \SplFileObject( $file, 'rb');
         $line = 0;
         $newContent = [];
+        $entityLine = 0;
         while (!$fp->eof()) {
             $content = $fp->fgets();
             $newContent[] = $content;
@@ -132,6 +133,7 @@ class GenerateEntity extends Command
                  $newContent[] = "use Symfony\Component\Validator\Constraints as Assert;\r\n";
                  $line+=2;
             } elseif (mb_strpos($content, '* @ORM\\Entity') !== false) {
+                $entityLine = $line;
                 $newContent[$line] = " * @ORM\Entity(repositoryClass=\"". self::getRepositoryName
                     ($name)."\")\r\n";
             } elseif (mb_strpos($content, 'private $createTime = \'CURRENT_TIMESTAMP\';') !== false) {
@@ -155,6 +157,9 @@ class GenerateEntity extends Command
                         "            \$modifyTime = \DateTime::createFromFormat('Y-m-d H:i:s', \$modifyTime);\r\n",
                         "        }\r\n"]);
                 $line += 3;
+            } elseif (mb_strpos($content, 'private $deleteTime') !== false) {
+                array_splice($newContent, $entityLine + 1, 0, [" * @Gedmo\SoftDeleteable(fieldName=\"deleteTime\")\r\n"]);
+                $line++;
             }
             $line++;
         }
@@ -171,13 +176,15 @@ class GenerateEntity extends Command
     {
         $validate = [];
         $fieldMapping = $metadata->getFieldMapping($name);
-        if ($fieldMapping['type'] === 'datetime' &&  isset($fieldMapping['options']['default'])
-            && $fieldMapping['options']['default'] === 'CURRENT_TIMESTAMP') {
+        $columnName = $metadata->getColumnName($name);
+        if (($fieldMapping['type'] === 'datetime' && isset($fieldMapping['options']['default'])
+            && $fieldMapping['options']['default'] === 'CURRENT_TIMESTAMP') || $columnName
+            === 'delete_time') {
             $validate[] = "     * @Assert\IsNull(groups={\"create\",\"update\"})\r\n";
             $validate[] = "     * @Assert\DateTime(groups={\"query\"})\r\n";
             return $validate;
         }
-        if (in_array($name, $metadata->identifier)) {
+        if (in_array($columnName, $metadata->identifier, true)) {
             $validate[] = "     * @Assert\IsNull(groups={\"create\"})\r\n";
             $validate[] = "     * @Assert\NotNull(groups={\"update\", \"delete\"})\r\n";
         } elseif (!$fieldMapping['nullable']) {
