@@ -71,7 +71,7 @@ class BuildQueryPlugin implements Plugin {
         if (null === $method) {
             $data = Utils::getContextData($context, $inputs, $this->inDataKey);
         } else {
-            $data = filter_input_array($method);
+            $data = $this->getData($context, $method);
         }
         $page  = self::DEFAULT_PAGE;
         $hits  = self::DEFAULT_HITS;
@@ -138,6 +138,22 @@ class BuildQueryPlugin implements Plugin {
             unset($data[$key]);
         }
         return $value;
+    }
+
+    /**
+     * @param Context $context
+     * @param $method
+     * @return array
+     */
+    private function getData(Context $context, $method): array
+    {
+        if ($method === INPUT_GET) {
+            return $context->getRequest()->getQuery();
+        }
+        if ($method === INPUT_POST) {
+            return $context->getRequest()->getBody();
+        }
+        return $context->getRequest()->getRequest();
     }
 
 }

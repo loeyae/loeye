@@ -544,4 +544,17 @@ class Request
         return $this->getServer('server_protocol') ?? $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0';
     }
 
+    /**
+     * @param null $key
+     * @return array|mixed|null
+     */
+    public function getRequest($key = null)
+    {
+        $request = array_merge($this->body ?? [], $this->query ?? []);
+        if (null === $key) {
+            return $request;
+        }
+        return $request[$key] ?? null;
+    }
+
 }
