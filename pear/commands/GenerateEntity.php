@@ -186,7 +186,6 @@ class GenerateEntity extends Command
         }
         if (in_array($columnName, $metadata->identifier, true)) {
             $validate[] = "     * @Assert\IsNull(groups={\"create\"})\r\n";
-            $validate[] = "     * @Assert\NotBlank(groups={\"update\", \"delete\"})\r\n";
             $validate[] = "     * @Assert\GreaterThan(value=\"0\", groups={\"update\", \"delete\"})\r\n";
         } elseif (!$fieldMapping['nullable']) {
             $validate[] = "     * @Assert\NotNull(groups={\"create\", \"update\"})\r\n";
