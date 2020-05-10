@@ -108,9 +108,11 @@ class BuildQueryPlugin implements Plugin {
                 } else {
                     $query = null;
                 }
-            } else if ($fields) {
-                $fields = array_fill_keys($fields, null);
-                $query = array_intersect_key($data, $fields);
+            } else {
+                if ($fields) {
+                    $fields = array_fill_keys($fields, null);
+                    $query = array_intersect_key($data, $fields);
+                }
                 if ($validate) {
                     try {
                         $entity = Validation::validate($query, $validate, [], $this->group);
@@ -124,8 +126,6 @@ class BuildQueryPlugin implements Plugin {
                         return PROJECT_SUCCESS;
                     }
                 }
-            } else {
-                $query = $data;
             }
         }
         $context->set($prefix . '_input', $query);
