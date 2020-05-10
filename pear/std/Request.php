@@ -141,7 +141,7 @@ class Request
      */
     private function _getRequestType(): void
     {
-        $this->requestMethod ?: $this->requestMethod = mb_strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+        $this->requestMethod = &$this->method;
     }
 
     /**

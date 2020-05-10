@@ -31,6 +31,7 @@ use Gedmo\Blameable\BlameableListener;
 use Gedmo\DoctrineExtensions;
 use Gedmo\Loggable\LoggableListener;
 use Gedmo\Sluggable\SluggableListener;
+use Gedmo\SoftDeleteable\Filter\SoftDeleteableFilter;
 use Gedmo\SoftDeleteable\SoftDeleteableListener;
 use Gedmo\Sortable\SortableListener;
 use Gedmo\Timestampable\TimestampableListener;
@@ -155,7 +156,10 @@ class EntityManager
         // mysql set names UTF-8 if required
         //$evm->addEventSubscriber(new \Doctrine\DBAL\Event\Listeners\MysqlSessionInit());
         // Finally, create entity manager
-        return \Doctrine\ORM\EntityManager::create($dbSetting, $config, $evm);
+        $config->addFilter('soft-deleteable', SoftDeleteableFilter::class);
+        $em = \Doctrine\ORM\EntityManager::create($dbSetting, $config, $evm);
+        $em->getFilters()->enable('soft-deleteable');
+        return $em;
     }
 
 }

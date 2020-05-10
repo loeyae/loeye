@@ -158,7 +158,7 @@ class GenerateEntity extends Command
                         "        }\r\n"]);
                 $line += 3;
             } elseif (mb_strpos($content, 'private $deleteTime') !== false) {
-                array_splice($newContent, $entityLine + 1, 0, [" * @Gedmo\SoftDeleteable(fieldName=\"deleteTime\")\r\n"]);
+                array_splice($newContent, $entityLine + 1, 0, [" * @Gedmo\SoftDeleteable(fieldName=\"deleteTime\",  timeAware=false, hardDelete=false)\r\n"]);
                 $line++;
             }
             $line++;

@@ -45,6 +45,7 @@ class ValidatePlugin implements Plugin
     public const FILTER_KEY     = 'filter';
     public const ERROR_KEY      = 'ValidatePlugin_validate_error';
     public const DATA_KEY       = 'ValidatePlugin_filter_data';
+    public const INPUT_PATH     = 101;
 
     public static $inputTypes = [
         INPUT_REQUEST,
@@ -115,6 +116,9 @@ class ValidatePlugin implements Plugin
             case BuildQueryPlugin::INPUT_ORIGIN:
                 $content = $context->getRequest()->getContent();
                 $data = json_decode($content, true) ?: [];
+                break;
+            case self::INPUT_PATH:
+                $data = $context->getRequest()->getPathVariable();
                 break;
             default:
                 $data = $context->getRequest()->getRequest() ?? [];
