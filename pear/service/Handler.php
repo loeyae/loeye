@@ -268,11 +268,7 @@ abstract class Handler extends Resource
      */
     protected function getExpression($query): ?CompositeExpression
     {
-        $expression = ExpressionFactory::createExpr($query);
-        if ($expression instanceof CompositeExpression) {
-            return $expression;
-        }
-        return $expression ? new CompositeExpression(CompositeExpression::TYPE_AND, [$expression]) : null;
+        return ExpressionFactory::create($query);
     }
 
     /**
@@ -283,13 +279,7 @@ abstract class Handler extends Resource
      */
     protected function expressionToArray(CompositeExpression $expression): array
     {
-        $expressionList = $expression->getExpressionList();
-        return array_reduce($expressionList, static function($carry, $item) {
-            if ($item instanceof Comparison) {
-                $carry[$item->getField()] = $item->getValue()->getValue();
-            }
-            return $carry;
-        }, []);
+        return ExpressionFactory::toFieldArray($expression);
     }
 
     /**
@@ -301,14 +291,7 @@ abstract class Handler extends Resource
      */
     protected function filterCompositeExpression(CompositeExpression $expression, $data): ?CompositeExpression
     {
-        $expressionList = $expression->getExpressionList();
-        $filteredExpression = array_filter($expressionList, static function ($item) use ($data) {
-            return ($item instanceof Comparison && array_key_exists($item->getField(), $data));
-        });
-        if ($filteredExpression) {
-            return new CompositeExpression($expression->getType(), $filteredExpression);
-        }
-        return null;
+        return ExpressionFactory::filter($expression, $data);
     }
 
     /**
@@ -319,7 +302,7 @@ abstract class Handler extends Resource
      */
     protected function expressionToCriteria(Expression $expression = null): ?Criteria
     {
-        return $expression ? Criteria::create()->andWhere($expression) : null;
+        return ExpressionFactory::toCriteria($expression);
     }
 
 

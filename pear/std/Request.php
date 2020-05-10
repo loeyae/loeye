@@ -343,7 +343,8 @@ class Request
     {
         if ($header) {
             foreach ($header as $key => $value) {
-                $this->header[strtolower($key)] = $value;
+                $this->header[strtolower($key)] = (is_array($value) && count($value) === 1) ?
+                    current($value) : $value;
             }
         }
         return $this;

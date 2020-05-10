@@ -27,7 +27,22 @@ use loeye\std\Response;
  */
 class JsonRender extends Render
 {
-    //put your code here
+
+    /**
+     * @return int
+     */
+    public function code(): int
+    {
+        return 200;
+    }
+
+    /**
+     * @return string
+     */
+    public function reason(): string
+    {
+        return 'Ok';
+    }
 
     /**
      * header
@@ -48,10 +63,13 @@ class JsonRender extends Render
     public function output(): ?string
     {
         $output = $this->response->getOutput();
-
-        $json = json_encode($output, true);
-
-        return $json;
+        if (!isset($output['status'])) {
+            $output['status'] = [
+                'code' => $this->response->getStatusCode(),
+                'msg' => $this->response->getReason()
+            ];
+        }
+        return json_encode($output, true);
     }
 
 }

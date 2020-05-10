@@ -244,17 +244,4 @@ class CreateApp extends Command
         return GeneratorUtils::buildPath($base, 'app', 'conf', $type, 'master.yml');
     }
 
-    /**
-     * replaceProperty
-     *
-     * @param string $tpl
-     *
-     * @return string
-     * @throws SmartyException
-     */
-    protected function replaceProperty(string $tpl): string
-    {
-        return GeneratorUtils::getCodeFromTemplate($tpl, ['property' => $this->property]);
-    }
-
 }

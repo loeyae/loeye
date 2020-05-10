@@ -42,7 +42,7 @@ class OutputPlugin implements Plugin
      */
     protected $dataKey = 'output_data';
     
-    protected $reponseCode = LOEYE_REST_STATUS_OK;
+    protected $responseCode = LOEYE_REST_STATUS_OK;
     
     protected $responseMsg = 'OK';
 
@@ -59,7 +59,7 @@ class OutputPlugin implements Plugin
      */
     public function process(Context $context, array $inputs)
     {
-        $format     = Utils::getData($inputs, 'format', 'json');
+        $format     = Utils::getData($inputs, 'format', $context->getResponse()->getFormat());
         $data       = array();
         $outDataKey = Utils::getData($inputs, $this->dataKey, null);
         if ($outDataKey === null) {
@@ -69,7 +69,7 @@ class OutputPlugin implements Plugin
             $data = Utils::getData($context, $outDataKey);
         } 
         if (empty($data) && isset($inputs['error'])) {
-            $this->reponseCode = LOEYE_REST_STATUS_BAD_REQUEST;
+            $this->responseCode = LOEYE_REST_STATUS_BAD_REQUEST;
             $this->responseMsg = 'error';
             $data = Utils::getErrors($context, $inputs, $inputs['error']);
         }
@@ -89,6 +89,7 @@ class OutputPlugin implements Plugin
                 $redirect = $url;
             }
         }
+        $context->getResponse()->setFormat($format);
         if ($format === RENDER_TYPE_SEGMENT) {
             $status = Utils::getData($inputs, 'code');
             $header = Utils::getData($inputs, 'header', null);
@@ -125,9 +126,8 @@ class OutputPlugin implements Plugin
                     $context->getResponse()->addHeader($key, $value);
                 }
             }
-            $context->getResponse()->setFormat($format);
-            $status  = Utils::getData($inputs, 'code', $this->reponseCode);
-            $context->getResponse()->addOutput($status, 'status');
+            $code  = Utils::getData($inputs, 'code', $this->responseCode);
+            $status = ['code' => $code];
             $message = Utils::getData($inputs, 'msg', $this->responseMsg);
             if ($message !== null) {
                 if (is_array($message)) {
@@ -135,14 +135,15 @@ class OutputPlugin implements Plugin
                         $result = ModuleParse::conditionResult($key, $context);
                         if ($result === true) {
                             $msg = $this->printf($msg, $context, $inputs);
-                            $context->getResponse()->addOutput($msg, 'message');
+                            $status['msg'] = $msg;
                         }
                     }
                 } else {
                     $message = $this->printf($message, $context, $inputs);
-                    $context->getResponse()->addOutput($message, 'message');
+                    $status['msg'] = $message;
                 }
             }
+            $context->getResponse()->addOutput($status, 'status');
             $context->getResponse()->addOutput($data, 'data');
             if (!empty($redirect)) {
                 $context->getResponse()->addOutput($redirect, 'redirect');

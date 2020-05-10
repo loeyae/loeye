@@ -1111,10 +1111,12 @@ class Utils
             $refMethod = new ReflectionMethod($entity, $method);
             $refMethod->invokeArgs($entity, [$value]);
         } elseif ($force) {
-            $property = new \ReflectionProperty($entity, $field);
-            if (!$property->isPublic()) {
-                $property->setAccessible(true);
-                $property->setValue($entity, $value);
+            if (property_exists($entity, $field)) {
+                $property = new \ReflectionProperty($entity, $field);
+                if (!$property->isPublic()) {
+                    $property->setAccessible(true);
+                    $property->setValue($entity, $value);
+                }
             }
         }
     }

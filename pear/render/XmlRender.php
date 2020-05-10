@@ -54,6 +54,22 @@ class XmlRender extends Render
     }
 
     /**
+     * @return int
+     */
+    public function code(): int
+    {
+        return 200;
+    }
+
+    /**
+     * @return string
+     */
+    public function reason(): string
+    {
+        return 'Ok';
+    }
+
+    /**
      * header
      *
      * @return array|null
@@ -72,7 +88,12 @@ class XmlRender extends Render
     public function output(): ?string
     {
         $output = $this->response->getOutput();
-
+        if (!isset($output['status'])) {
+            $output['status'] = [
+                'code' => $this->response->getStatusCode(),
+                'msg' => $this->response->getReason()
+            ];
+        }
         return $this->array2xml($output);
     }
 

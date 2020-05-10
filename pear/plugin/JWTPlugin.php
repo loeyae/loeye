@@ -36,6 +36,10 @@ class JWTPlugin implements Plugin
     {
         $encryptData = Utils::getContextData($context, $inputs, $this->inputKey);
         $utils = JWTUtils::getInstance();
+        $format = Utils::getData($inputs, 'format');
+        if ($format) {
+            $context->getResponse()->setFormat($format);
+        }
         if ($encryptData) {
             $expire = Utils::getData($inputs, $this->expireKey);
             if (null !== $expire) {

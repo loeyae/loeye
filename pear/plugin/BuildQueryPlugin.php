@@ -96,7 +96,7 @@ class BuildQueryPlugin implements Plugin {
             (self::PARAMETER_ERROR_MSG));
             return PROJECT_SUCCESS;
         }
-        $context->set($prefix . '_query', $query);
+        $context->set($prefix . '_input', $query);
         $context->set($prefix . '_start', ($page - 1) * $hits);
         $context->set($prefix . '_offset', $hits);
         if ($sort) {
