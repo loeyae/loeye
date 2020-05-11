@@ -16,6 +16,7 @@ use loeye\{base\Context,
     base\Factory,
     base\Utils,
     database\ExpressionFactory,
+    database\QueryHelper,
     error\ValidateError,
     std\Plugin,
     validate\Validation};
@@ -34,36 +35,35 @@ class BuildQueryPlugin implements Plugin {
     protected $outDataKey    = 'BuildQueryPlugin_output';
     protected $outErrorsKey  = 'BuildQueryPlugin_errors';
     protected $prefixKey     = 'prefix';
+    protected $denyQueryKey  = 'deny';
+    protected $allowedFields = 'fields';
+    protected $validateKey   = 'validate';
+    protected $criteriaKey   = 'criteria';
+
+
     protected $pageKey       = 'page';
     protected $hitsKey       = 'hits';
     protected $sortKey       = 'sort';
     protected $orderKey      = 'order';
     protected $groupKey      = 'group';
     protected $havingKey     = 'having';
-    protected $denyQueryKey  = 'deny';
-    protected $allowedFields = 'fields';
-    protected $validateKey   = 'validate';
-    protected $criteriaKey   = 'criteria';
 
-    public const PAGE_NAME           = 'p';
-    public const HITS_NAME           = 'h';
-    public const ORDER_NAME          = 'o';
-    public const SORT_NAME           = 's';
     public const INPUT_TYPE          = 'type';
     public const DEFAULT_HITS        = 10;
     public const DEFAULT_PAGE        = 1;
-    public const ORDER_ASC           = 'ASC';
-    public const ORDER_DESC          = 'DESC';
-    public const PARAMETER_ERROR_MSG = 'Page and Hits must be number';
     private $group = 'query';
 
     /**
      * process
      *
      * @param Context $context context
-     * @param array               $inputs  inputs
+     * @param array $inputs inputs
      *
      * @return string|void
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \ReflectionException
+     * @throws \Throwable
+     * @throws \loeye\error\DAOException
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function process(Context $context, array $inputs)
@@ -80,11 +80,7 @@ class BuildQueryPlugin implements Plugin {
         } else {
             $data = $this->getData($context, (int)$method);
         }
-        if (!$this->parsePaging($context, $inputs, $prefix, $data)) {
-            return PROJECT_SUCCESS;
-        }
-        $this->parseAdvanced($context, $inputs, $prefix, $data);
-        $query = $data;
+        $query = $this->parseQuery($context, $inputs, $prefix, $data);
         if ($data) {
             if ($deny) {
                 $query = null;
@@ -137,85 +133,35 @@ class BuildQueryPlugin implements Plugin {
      * @param array $inputs
      * @param $prefix
      * @param $data
+     * @return array
      */
-    protected function parseAdvanced(Context $context, array $inputs, $prefix, &$data): void
+    protected function parseQuery(Context $context, array $inputs, $prefix, $data): array
     {
-        $sortKey  = Utils::getData($inputs, $this->sortKey, self::SORT_NAME);
-        $orderKey = Utils::getData($inputs, $this->orderKey, self::ORDER_NAME);
+        $pageKey  = Utils::getData($inputs, $this->pageKey, QueryHelper::PAGE_NAME);
+        $hitsKey  = Utils::getData($inputs, $this->hitsKey, QueryHelper::HITS_NAME);
+        $sortKey  = Utils::getData($inputs, $this->sortKey, QueryHelper::SORT_NAME);
+        $orderKey = Utils::getData($inputs, $this->orderKey, QueryHelper::ORDER_NAME);
         $group    = Utils::getData($inputs, $this->groupKey);
         $having   = Utils::getData($inputs, $this->havingKey);
-        $sort  = null;
-        $order = null;
-        if (null !== $data) {
-            $order = $this->pop($data, $orderKey);
-            $sort  = $this->pop($data, $sortKey);
-        }
-        if ($sort) {
-            $sortArray = (array)$sort;
-            $orderArray = (array)$order;
-            $sortCount = count($sortArray);
-            $orderArray = array_slice(array_pad($orderArray, $sortCount, 0), 0, $sortCount);
-            $orderBy = array_combine(array_map(static function($item){
-                return htmlentities($item);
-            }, $sortArray), array_map(static function($item){
-                return $item > 0 ? self::ORDER_ASC :self::ORDER_DESC;
-            }, $orderArray));
+        $queryHelper = QueryHelper::getInstance()->setPageKey($pageKey)->setHitsKey($hitsKey)
+            ->setSortKey($sortKey)->setOrderKey($orderKey)->setGroup($group)->setHaving($having)
+            ->setGroupKey('?')->setHavingKey('?')
+            ->setDefaultHits(self::DEFAULT_HITS)->setDefaultPage(self::DEFAULT_PAGE);
+        $data = $queryHelper->parseQuery($data);
+        $context->set($prefix . '_start', $queryHelper->getStart());
+        $context->set($prefix . '_offset', $queryHelper->getOffset());
+        if ($orderBy = $queryHelper->getOrderBy()) {
             $context->set($prefix . '_orderBy', $orderBy);
         }
-        if ($group) {
-            $context->set($prefix . '_groupBy', array_map(static function($item){
-                return htmlentities($item);
-            }, (array)$group));
+        if ($groupBy = $queryHelper->getGroupBy()) {
+            $context->set($prefix . '_groupBy', $groupBy);
         }
-        if ($having) {
+        if ($having = $queryHelper->getHaving()) {
             $context->set($prefix . '_having', $having);
         }
+        return $data;
     }
 
-    /**
-     * @param Context $context
-     * @param array $inputs
-     * @param $prefix
-     * @param $data
-     * @return bool
-     */
-    protected function parsePaging(Context $context, array $inputs, $prefix, &$data): bool
-    {
-        $pageKey  = Utils::getData($inputs, $this->pageKey, self::PAGE_NAME);
-        $hitsKey  = Utils::getData($inputs, $this->hitsKey, self::HITS_NAME);
-        $page  = self::DEFAULT_PAGE;
-        $hits  = self::DEFAULT_HITS;
-        if ($data) {
-            $page = (int)$this->pop($data, $pageKey, self::DEFAULT_PAGE);
-            $hits = (int)$this->pop($data, $hitsKey, self::DEFAULT_HITS);
-        }
-        if ($page <= 0 || $hits <= 0) {
-            $context->addErrors($this->outErrorsKey, Factory::translator()->getString(self::PARAMETER_ERROR_MSG));
-            return false;
-        }
-        $context->set($prefix . '_start', ($page - 1) * $hits);
-        $context->set($prefix . '_offset', $hits);
-        return true;
-    }
-
-    /**
-     * pop value from array
-     * 
-     * @param array $data    data
-     * @param mixed $key     key
-     * @param mixed $default default
-     * 
-     * @return mixed
-     */
-    protected function pop(array &$data, $key, $default = null)
-    {
-        $value = $default;
-        if (isset($data[$key])) {
-            $value = $data[$key];
-            unset($data[$key]);
-        }
-        return $value;
-    }
 
     /**
      * @param Context $context

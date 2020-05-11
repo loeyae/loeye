@@ -1307,4 +1307,20 @@ class Utils
         }
     }
 
+    /**
+     * @param array $data
+     * @param $key
+     * @param null $default
+     * @return array
+     */
+    public static function arrayPop(array $data, $key, $default = null): array
+    {
+        $value = $default;
+        if (array_key_exists($key, $data)) {
+            $value = $data[$key];
+            unset($data[$key]);
+        }
+        return [$data, $value];
+    }
+
 }

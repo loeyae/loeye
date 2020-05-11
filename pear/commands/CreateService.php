@@ -21,6 +21,7 @@ use Doctrine\Persistence\Mapping\ClassMetadata;
 use loeye\commands\helper\EntityGeneratorTrait;
 use loeye\commands\helper\GeneratorUtils;
 use loeye\console\Command;
+use loeye\database\QueryHelper;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
@@ -62,7 +63,7 @@ EOF;
 EOF;
 
     protected $postHandlerParameterStatementTemplate = <<<'EOF'
-        $<{$parameter}> = $req['<{$parameter}>'];
+        $<{$parameter}> = QueryHelper::getInstance()->parseQuery($req)'];
 EOF;
 
     protected $methodDocTemplate = <<<'EOF'
@@ -274,28 +275,26 @@ EOF;
             $parameters = $method->getParameters();
             $propertyStatement = '';
             $methodDoc = $this->methodDocTemplate;
-            if ($type === 'GET') {
-                [$parameterStatement, $parameter] = $this->generateGetHandlerParameter($parameters);
-                $useStatement = 'use loeye\base\Exception;';
-                $methodDoc .= "\r\n     * @throws Exception";
+            $generateMethod = 'generate' . ucfirst($methodName) . 'HandlerParameter';
+            if (method_exists($this, $generateMethod)) {
+                [$parameterStatement, $parameter] = $this->$generateMethod($entityName);
             } else {
-                $generateMethod = 'generate' . ucfirst($methodName) . 'HandlerParameter';
-                if (method_exists($this, $generateMethod)) {
-                    [$parameterStatement, $parameter] = $this->$generateMethod($entityName);
-                } else {
-                    [$parameterStatement, $parameter] = $this->generatePostHandlerParameter($parameters);
-                }
-                $useStatement = 'use ' . $className . ';';
-                $useStatement .= "\r\nuse loeye\\error\\ValidateError;";
-                $useStatement .= "\r\nuse Psr\Cache\InvalidArgumentException;";
-                if ($methodName !== 'page') {
-                    $useStatement .= "\r\nuse Throwable;";
-                }
-                $methodDoc .= "\r\n     * @throws ValidateError";
-                $methodDoc .= "\r\n     * @throws InvalidArgumentException";
-                $methodDoc .= "\r\n     * @throws Throwable";
-                $propertyStatement = "    protected \$group = '" . $this->getGroup($methodName) . "';\r\n";
+                [$parameterStatement, $parameter] = $this->generatePostHandlerParameter($parameters);
             }
+            $useStatement = 'use ' . $className . ';';
+            if ($methodName !== 'get') {
+                $useStatement .= "\r\nuse loeye\database\QueryHelper;";
+            }
+            $useStatement .= "\r\nuse loeye\\error\ValidateError;";
+            $useStatement .= "\r\nuse Psr\Cache\InvalidArgumentException;";
+            if ($methodName !== 'page') {
+                $useStatement .= "\r\nuse Throwable;";
+            }
+            $methodDoc .= "\r\n     * @throws ValidateError";
+            $methodDoc .= "\r\n     * @throws InvalidArgumentException";
+            $methodDoc .= "\r\n     * @throws Throwable";
+            $propertyStatement = "    protected \$group = '" . $this->getGroup($methodName) . "';\r\n";
+
             $variable = [
                 'className' => $nClassName,
                 'useStatement' => $useStatement,
@@ -325,11 +324,11 @@ EOF;
     protected function generateAllHandlerParameter($entityName): array
     {
         $parameterStatement = <<<'EOF'
-        $criteria = $req['criteria'] ?? null;
+        $criteria = QueryHelper::getInstance()->setDefaultHits(100)->parseQuery($req);
         $validateData = $this->validate($criteria, <{$entityName}>::class, $this->group);
-        $orderBy = $this->getOrderBy($req);
-        $start = $req['start'] ?? null;
-        $offset = $req['offset'] ?? 100;
+        $orderBy = QueryHelper::getInstance()->getOrderBy();
+        $start = QueryHelper::getInstance()->getStart();
+        $offset = QueryHelper::getInstance()->getOffset();
 EOF;
         $parameter = '$validateData, $orderBy, $start, $offset';
         return [GeneratorUtils::generateCodeByTemplate(['entityName' => $entityName], $parameterStatement), $parameter];
@@ -344,7 +343,7 @@ EOF;
     protected function generateDeleteHandlerParameter($entityName): array
     {
         $parameterStatement = <<<'EOF'
-        $id = $req['id'];
+        $id = $this->checkNotEmptyPathParameter('id');
         $validatedData = $this->validate(['id' => $id], <{$entityName}>::class, $this->group);
 EOF;
         $parameter = '$validatedData[\'id\']';
@@ -360,8 +359,7 @@ EOF;
     protected function generateInsertHandlerParameter($entityName): array
     {
         $parameterStatement = <<<'EOF'
-        $data = $req['data'];
-        $validatedData = $this->validate($data, <{$entityName}>::class, $this->group);
+        $validatedData = $this->validate($req, <{$entityName}>::class, $this->group);
 EOF;
         $parameter = '$validatedData';
         return [GeneratorUtils::generateCodeByTemplate(['entityName' => $entityName], $parameterStatement), $parameter];
@@ -376,9 +374,9 @@ EOF;
     protected function generateOneHandlerParameter($entityName): array
     {
         $parameterStatement = <<<'EOF'
-        $criteria = $req['criteria'];
+        $criteria = QueryHelper::getInstance()->parseQuery($req);
         $validatedData = $this->validate($criteria, <{$entityName}>::class, $this->group);
-        $orderBy = $this->getOrderBy($req);
+        $orderBy = QueryHelper::getInstance()->getOrderBy();
 EOF;
         $parameter = '$validatedData, $orderBy';
         return [GeneratorUtils::generateCodeByTemplate(['entityName' => $entityName], $parameterStatement), $parameter];
@@ -393,7 +391,7 @@ EOF;
     protected function generatePageHandlerParameter($entityName): array
     {
         $parameterStatement = <<<'EOF'
-        $query = $req['query'] ?? [];
+        $query = QueryHelper::getInstance()->parseQuery($req);
         $expression = $this->getExpression($query);
         if ($expression) {
             $validatedData = $this->validate($this->expressionToArray($expression), <{$entityName}>::class, 
@@ -403,11 +401,11 @@ EOF;
         } else {
             $criteria = null;
         }
-        $start = $req['start'] ?? 0;
-        $offset = $req['offset'] ?? 10;
-        $orderBy = $this->getOrderBy($req);
-        $groupBy = $this->getGroupBy($req);
-        $having = $req['having'] ?? null;
+        $start = QueryHelper::getInstance()->getStart() ?? 0;
+        $offset = QueryHelper::getInstance()->getOffset() ?? 10;
+        $orderBy = QueryHelper::getInstance()->getOrderBy();
+        $groupBy = QueryHelper::getInstance()->getGroupBy();
+        $having = QueryHelper::getInstance()->getHaving();
 EOF;
         $parameter = '$criteria, $start, $offset, $orderBy, $groupBy, $having';
         return [GeneratorUtils::generateCodeByTemplate(['entityName' => $entityName], $parameterStatement), $parameter];
@@ -422,8 +420,8 @@ EOF;
     protected function generateUpdateHandlerParameter($entityName): array
     {
         $parameterStatement = <<<'EOF'
-        $id = $req['id'];
-        $data = $req['data'];
+        $id = $this->checkNotEmptyPathParameter('id');
+        $data = QueryHelper::getInstance()->parseQuery($req);
         $validatedData = $this->validate(array_merge(['id' => $id], $data), <{$entityName}>::class, $this->group);
         $id = $validatedData['id'];
         unset($validatedData['id']);
@@ -435,19 +433,18 @@ EOF;
     /**
      * generateGetHandlerParameter
      *
-     * @param ReflectionParameter[] $parameters
+     * @param $entityName
      * @return array
      */
-    protected function generateGetHandlerParameter($parameters): array
+    protected function generateGetHandlerParameter($entityName): array
     {
-        $codes = [];
-        $parameterList = [];
-        foreach ($parameters as $parameter) {
-            $codes[] = GeneratorUtils::generateCodeByTemplate(['parameter' => $parameter->getName()],
-                $this->getHandlerParameterStatementTemplate);
-            $parameterList[] = '$' . $parameter->getName();
-        }
-        return [implode("\r\n", $codes), implode(', ', $parameterList)];
+        $parameterStatement = <<<'EOF'
+        $id = $this->checkNotEmptyPathParameter('id');
+        $this->validate(['id' => $id], <{$entityName}>::class, $this->group);
+EOF;
+
+        return [GeneratorUtils::generateCodeByTemplate(['entityName' => $entityName],
+            $parameterStatement), '$id'];
     }
 
     /**
