@@ -13,6 +13,7 @@
 namespace loeye\lib;
 use Firebase\JWT\JWT;
 
+use loeye\base\Utils;
 use loeye\Centra;
 
 class JWTUtils
@@ -207,6 +208,9 @@ class JWTUtils
     public function verifyTokenByHeader()
     {
         $token = Centra::$request->getHeader('authorization') ?? filter_input(INPUT_SERVER, 'HTTP_Authorization') ?: ($_SERVER['HTTP_Authorization'] ?? '');
+        if (Utils::startWith($token, 'Bearer ')) {
+            $token = substr($token, 7);
+        }
         return $this->verifyToken($token);
     }
 }
