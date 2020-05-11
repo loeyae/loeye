@@ -188,7 +188,7 @@ class GenerateEntity extends Command
             $validate[] = "     * @Assert\IsNull(groups={\"create\"})\r\n";
             $validate[] = "     * @Assert\GreaterThan(value=\"0\", groups={\"update\", \"delete\"})\r\n";
         } elseif (!$fieldMapping['nullable']) {
-            $validate[] = "     * @Assert\NotNull(groups={\"create\", \"update\"})\r\n";
+            $validate[] = "     * @Assert\NotNull(groups={\"create\"})\r\n";
             if (isset($fieldMapping['length']) && $fieldMapping['length'] > 0) {
                 $validate[] = "     * @Assert\Length(max=". $fieldMapping['length'] .", min=1, normalizer=\"trim\", allowEmptyString=false, groups={\"create\",\"update\"})\r\n";
             }
