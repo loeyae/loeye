@@ -63,6 +63,10 @@ abstract class Server
             self::SERVICE_DISPATCHER => \loeye\service\Dispatcher::class,
         ];
         $dispatcher = $this->appConfig->getSetting('server.dispatcher', self::DEFAULT_DISPATCHER);
+        if (!Centra::$context instanceof Context || !Centra::$request
+                instanceof Request || !Centra::$response instanceof Response) {
+            Centra::init($dispatcher);
+        }
         $dispatcherClass = $map[$dispatcher] ?? \loeye\web\Dispatcher::class;
         $processMode = $this->appConfig->getSetting('application.process_mode',
             LOEYE_PROCESS_MODE__NORMAL);

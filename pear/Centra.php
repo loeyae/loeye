@@ -49,10 +49,10 @@ class Centra
      */
     public static function init($dispatcher = Server::DEFAULT_DISPATCHER): void
     {
-        static::$appConfig = new AppConfig();
+        (static::$appConfig instanceof AppConfig) ?: static::$appConfig = new AppConfig();
         static::createRequest($dispatcher);
         static::createResponse(static::$request);
-        static::$context = new Context(static::$appConfig);
+        (static::$context instanceof Context) ?: static::$context = new Context(static::$appConfig);
         static::$context->setRequest(static::$request);
         static::$context->setResponse(static::$response);
     }
@@ -62,8 +62,8 @@ class Centra
      */
     public static function createRequest($dispatcher = Server::DEFAULT_DISPATCHER): void
     {
-        static::$request = ($dispatcher === Server::SERVICE_DISPATCHER) ? new service\Request() : new
-        web\Request();
+        (static::$request instanceof Request) ?: static::$request = ($dispatcher === Server::SERVICE_DISPATCHER) ? new
+    service\Request() : new web\Request();
     }
 
     /**
@@ -72,8 +72,8 @@ class Centra
      */
     public static function createResponse(Request $request, $dispatcher = Server::DEFAULT_DISPATCHER): void
     {
-        static::$response = ($dispatcher === Server::SERVICE_DISPATCHER) ? new service\Response($request) : new
-        web\Response($request);
+        (static::$response instanceof Response) ?: static::$response = ($dispatcher === Server::SERVICE_DISPATCHER) ? new
+    service\Response($request) : new web\Response($request);
     }
 
     /**
