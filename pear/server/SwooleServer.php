@@ -110,12 +110,11 @@ class SwooleServer extends Server
      */
     protected function createContext(Request $request): Context
     {
-        $context = new Context($this->appConfig);
-        Centra::$context = $context;
-        $myRequest = $this->createRequest();
-        $response = $this->createResponse($myRequest);
+        Centra::$context = new Context($this->appConfig);
+        Centra::$request = $this->createRequest();
+        Centra::$response = $this->createResponse(Centra::$request);
         $router = $this->createRouter();
-        $myRequest->setRouter($router)
+        Centra::$request->setRouter($router)
             ->setUri($request->server['request_uri'])
             ->setMethod($request->server['request_method'])
             ->setServer($request->server)
@@ -125,12 +124,10 @@ class SwooleServer extends Server
             ->setContent($request->rawContent())
             ->setFiles($request->files)
             ->setHeader($request->header);
-        $context->setRouter($router);
-        $context->setRequest($myRequest);
-        $context->setResponse($response);
-        Centra::$request = $myRequest;
-        Centra::$response = $response;
-        return $context;
+        Centra::$context->setRouter($router);
+        Centra::$context->setRequest(Centra::$request);
+        Centra::$context->setResponse(Centra::$response);
+        return Centra::$context;
     }
 
     /**

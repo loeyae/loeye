@@ -119,8 +119,8 @@ class ReactServer extends Server
      */
     private function createContext(ServerRequestInterface $request): Context
     {
-        $myRequest = $this->createRequest();
-        $myRequest->setUri($request->getUri()->__toString())
+        Centra::$request = $this->createRequest();
+        Centra::$request->setUri($request->getUri()->__toString())
             ->setMethod($request->getMethod())
             ->setQuery($request->getQueryParams())
             ->setBody($request->getParsedBody())
@@ -129,16 +129,13 @@ class ReactServer extends Server
             ->setHeader($request->getHeaders())
             ->setFiles($request->getUploadedFiles())
             ->setServer($request->getServerParams());
-        $context = new Context($this->appConfig);
+        Centra::$context = new Context($this->appConfig);
         $router = $this->createRouter();
-        $myRequest->setRouter($router);
-        $context->setRouter($router);
-        $context->setRequest($myRequest);
-        $response = $this->createResponse($myRequest);
-        $context->setResponse($response);
-        Centra::$context = $context;
-        Centra::$request = $myRequest;
-        Centra::$response = $response;
-        return $context;
+        Centra::$request->setRouter($router);
+        Centra::$context->setRouter($router);
+        Centra::$context->setRequest(Centra::$request);
+        Centra::$response = $this->createResponse(Centra::$request);
+        Centra::$context->setResponse(Centra::$response);
+        return Centra::$context;
     }
 }

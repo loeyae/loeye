@@ -370,14 +370,15 @@ EOF;
     public static function cache($type = null): Cache
     {
         static $cache = [];
-        if (!isset($cache[$type])) {
+        $sType = $type ?? 'default';
+        if (!isset($cache[$sType])) {
             $c = Cache::init(Centra::$appConfig, $type);
             if (!$c) {
                 $c = Cache::init(Centra::$appConfig, Cache::CACHE_TYPE_FILE);
             }
-            $cache[$type] = $c;
+            $cache[$sType] = $c;
         }
-        return $cache[$type];
+        return $cache[$sType];
     }
 
     /**
