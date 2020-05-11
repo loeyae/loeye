@@ -99,9 +99,11 @@ trait EntityTrait
     {
         try {
             $entity = $this->get($id);
-            Utils::checkNotNull($entity);
-            Utils::copyProperties($data, $entity);
-            $this->db->save($entity);
+            if ($data) {
+                Utils::checkNotNull($entity);
+                Utils::copyProperties($data, $entity);
+                $this->db->save($entity);
+            }
             return $entity;
         } catch (OptimisticLockException $e) {
             \loeye\base\Logger::exception($e);
