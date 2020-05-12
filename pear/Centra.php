@@ -24,6 +24,12 @@ use Throwable;
 
 class Centra
 {
+
+    /**
+     * @var string
+     */
+    public static $hash;
+
     /**
      * @var Context
      */

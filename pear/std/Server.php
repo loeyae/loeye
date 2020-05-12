@@ -136,6 +136,7 @@ abstract class Server
      */
     protected function process(): ?Render
     {
+        Centra::$hash = Centra::$request->hash();
         $dispatcher = $this->getDispatcher();
         return $dispatcher->dispatch();
     }
