@@ -51,7 +51,7 @@ class CookiePlugin implements Plugin
                 if (is_numeric($key)) {
                     continue;
                 }
-                Cookie::setCookie($key, $value);
+                Cookie::setCookie($value);
             }
         }
         $key = Utils::getData($inputs, 'get', null);

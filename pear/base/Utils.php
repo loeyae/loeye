@@ -630,17 +630,14 @@ class Utils
     /**
      * setPageCache
      *
-     * @param AppConfig $appConfig appConfig
      * @param string $moduleId module id
      * @param string $page page source
      * @param int $expire expire
      * @param array $params params
      *
      * @return void
-     * @throws Exception
-     * @throws CacheException
      */
-    public static function setPageCache(AppConfig $appConfig, $moduleId, $page, $expire = null,
+    public static function setPageCache($moduleId, $page, $expire = null,
                                         $params = []): void
     {
         $fileKey = $moduleId;
@@ -648,31 +645,27 @@ class Utils
             ksort($params);
             $fileKey .= '?' . http_build_query($params);
         }
-        $cache = Cache::getInstance($appConfig, 'templates');
+        $cache = Factory::cache('templates');
         $cache->set($fileKey, $page, $expire);
     }
 
     /**
      * getPageCache
      *
-     * @param AppConfig $appConfig appConfig
      * @param string $moduleId module id
      * @param array $params params
      *
      * @return string|null
-     * @throws CacheException
-     * @throws Exception
      * @throws InvalidArgumentException
      */
-    public static function getPageCache(AppConfig $appConfig, $moduleId, $params = []): ?string
+    public static function getPageCache($moduleId, $params = []): ?string
     {
         $fileKey = $moduleId;
         if (!empty($params)) {
             ksort($params);
             $fileKey .= '?' . http_build_query($params);
         }
-        var_dump($fileKey);
-        $cache = Cache::getInstance($appConfig, 'templates');
+        $cache = Factory::cache('templates');
         return $cache->get($fileKey);
     }
 
@@ -712,21 +705,14 @@ class Utils
      */
     public static function includeModule($moduleId, $parameter = array()): Render
     {
-        $request = Centra::$request;
-        $response = Centra::$response;
-        $context = Centra::$context;
-        Centra::$request = new Request();
-        Centra::$request->setModuleId($moduleId);
-        Centra::$response = new Response();
-        Centra::$context = new Context(Centra::$appConfig);
-        Centra::$context->setRequest(Centra::$request);
-        Centra::$context->setResponse(Centra::$response);
-        $dispatcher = new Dispatcher();
-        $render = $dispatcher->dispatch($moduleId);
-        Centra::$context = $context;
-        Centra::$request = $request;
-        Centra::$response = $response;
-        return $render;
+        $request = new Request();
+        $request->setModuleId($moduleId);
+        $response = new Response($request);
+        $context = new Context(Centra::$appConfig);
+        $context->setRequest($request);
+        $context->setResponse($response);
+        $dispatcher = new Dispatcher($context);
+        return $dispatcher->dispatch($moduleId);
     }
 
     /**
@@ -880,9 +866,6 @@ class Utils
             }
             if (isset($_SERVER['REQUEST_URI'])) {
                 $message = "# REQUEST_URI: {$_SERVER['REQUEST_URI']}";
-                Logger::log($message, $messageType, $logfile);
-            } else if (Centra::$request) {
-                $message = '# REQUEST_URI: ' . Centra::$request->getUri()->getPath();
                 Logger::log($message, $messageType, $logfile);
             }
         }

@@ -85,27 +85,13 @@ class Context
      * @var ModuleDefinition
      */
     private $_mDfnObj;
-    /**
-     * @var Cache
-     */
-    private $_cache;
-    /**
-     * @var array
-     */
-    private $_object = array(
-        'AppConfig',
-        'Request',
-        'Response',
-        'Router',
-        'ParallelClientManager',
-        'Expire',
-        'Template',
-        'Module',
-    );
+
     /**
      * @var bool
      */
     private $_errorProcessed;
+    private $db = [];
+    private $cache = [];
 
     /**
      * __construct
@@ -149,15 +135,39 @@ class Context
     }
 
     /**
+     * @param string $type
+     * @return DB
+     * @throws InvalidArgumentException
+     * @throws Throwable
+     */
+    public function db($type = 'default'): DB
+    {
+        if (!$this->db[$type]) {
+            $this->db[$type] = DB::init($type);
+        }
+        return $this->db[$type];
+    }
+
+    /**
+     * @param null $type
+     * @return Cache
+     */
+    public function cache($type = null): Cache
+    {
+        $sType = $type ?? 'default';
+        if (!$this->cache[$sType]) {
+            $this->cache[$sType] = Cache::init($type);
+        }
+        return $this->cache[$sType];
+    }
+
+    /**
      * cacheData
      *
      * @return void
      */
     public function cacheData(): void
     {
-        if (!$this->_cache){
-            $this->_cache = Factory::cache();
-        }
         $g = $this->getDataGenerator();
         $data = [];
         foreach ($g as $key => $value) {
@@ -166,7 +176,7 @@ class Context
             }
         }
         if ($data) {
-            $this->_cache->set($this->getRequest()->getModuleId(), $data, $this->getExpire());
+            $this->cache()->set($this->getRequest()->getModuleId(), $data, $this->getExpire());
         }
     }
 
@@ -178,10 +188,7 @@ class Context
      */
     public function loadCacheData(): void
     {
-        if (!$this->_cache){
-            $this->_cache = Factory::cache();
-        }
-        $array = $this->_cache->get($this->getRequest()->getModuleId());
+        $array = $this->cache()->get($this->getRequest()->getModuleId());
         if ($array) {
             foreach ($array as $key => $value) {
                 $cdata = unserialize($value, ['allowed_classes' => true]);
@@ -322,19 +329,6 @@ class Context
     public function getTraceData($key)
     {
         return $this->_traceData[$key] ?? null;
-    }
-
-
-    /**
-     * db
-     *
-     * @return DB
-     * @throws InvalidArgumentException
-     * @throws Throwable
-     */
-    public function db(): DB
-    {
-        return DB::getInstance($this->getAppConfig());
     }
 
     /**

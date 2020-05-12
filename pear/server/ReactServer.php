@@ -48,8 +48,8 @@ class ReactServer extends Server
             if (($file = $this->isStaticFile($path)) !== false) {
                 $render = $this->staticRouter($file);
             } else {
-                $this->createContext($request);
-                $render = $this->process();
+                $context = $this->createContext($request);
+                $render = $this->process($context);
             }
             $header = $render->header();
             $cookies = $render->cookie();
@@ -119,8 +119,8 @@ class ReactServer extends Server
      */
     private function createContext(ServerRequestInterface $request): Context
     {
-        Centra::$request = $this->createRequest();
-        Centra::$request->setUri($request->getUri()->__toString())
+        $myRequest = $this->createRequest();
+        $myRequest->setUri($request->getUri()->__toString())
             ->setMethod($request->getMethod())
             ->setQuery($request->getQueryParams())
             ->setBody($request->getParsedBody())
@@ -129,13 +129,13 @@ class ReactServer extends Server
             ->setHeader($request->getHeaders())
             ->setFiles($request->getUploadedFiles())
             ->setServer($request->getServerParams());
-        Centra::$context = new Context($this->appConfig);
+        $context = new Context(Centra::$appConfig);
         $router = $this->createRouter();
-        Centra::$request->setRouter($router);
-        Centra::$context->setRouter($router);
-        Centra::$context->setRequest(Centra::$request);
-        Centra::$response = $this->createResponse(Centra::$request);
-        Centra::$context->setResponse(Centra::$response);
-        return Centra::$context;
+        $myRequest->setRouter($router);
+        $context->setRouter($router);
+        $context->setRequest($myRequest);
+        $response = $this->createResponse($myRequest);
+        $context->setResponse($response);
+        return $context;
     }
 }

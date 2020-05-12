@@ -18,6 +18,7 @@
 namespace loeye\base;
 
 use loeye\Centra;
+use loeye\std\Request;
 
 /**
  * UrlManager
@@ -34,10 +35,12 @@ class UrlManager extends \loeye\std\Router
     /**
      * UrlManager constructor.
      *
+     * @param Request $request
      * @param $setting
      */
-    public function __construct($setting)
+    public function __construct(Request $request, $setting)
     {
+        parent::__construct($request);
         $this->_rule = $setting;
     }
 
@@ -81,12 +84,12 @@ class UrlManager extends \loeye\std\Router
                         $rKeys = array_keys($replaceKey, $pkey);
                         if (!empty($rKeys)) {
                             $replace[$rKeys[0]] = $value;
-                            Centra::$request->addQuery(self::REWRITE_KEY_PREFIX . $pkey, $value);
+                            $this->request->addQuery(self::REWRITE_KEY_PREFIX . $pkey, $value);
                             $this->addSetting($pkey, $value);
                             unset($replaceKey[$rKeys[0]]);
                         } else {
                             $this->addPathVariable($pkey, $value);
-                            Centra::$request->addQuery($pkey, $value);
+                            $this->request->addQuery($pkey, $value);
                         }
                     }
                     if (count($replaceKey) > 1) {

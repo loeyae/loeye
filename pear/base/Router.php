@@ -21,6 +21,7 @@ use ArrayAccess;
 use loeye\config\router\ConfigDefinition;
 use loeye\error\BusinessException;
 use loeye\std\ConfigTrait;
+use loeye\std\Request;
 
 /**
  * Description of Router
@@ -40,11 +41,13 @@ class Router extends \loeye\std\Router
     /**
      * __construct
      *
+     * @param Request $request
      * @param string $property property name
      * @throws BusinessException
      */
-    public function __construct($property = null)
+    public function __construct(Request $request, $property = null)
     {
+        parent::__construct($request);
         $definition = new ConfigDefinition();
         $this->config = $this->bundleConfig($definition, $property);
         $this->_initRouter();
@@ -112,7 +115,7 @@ class Router extends \loeye\std\Router
                 $moduleId = $setting['module_id'];
                 if (!empty($setting['params'])) {
                     foreach ($setting['params'] as $key => $value) {
-                        $_REQUEST[$key] = $value;
+                        $this->request->addQuery($key, $value);
                     }
                 }
                 $searchKey = [];
@@ -136,7 +139,7 @@ class Router extends \loeye\std\Router
                             $this->addSetting($key, $value);
                         } else {
                             $this->addPathVariable($key, $value);
-                            $_REQUEST[$key] = $value;
+                            $this->request->addQuery($key, $value);
                         }
                     }
                     $moduleId = str_replace($search, $replace, $moduleId);

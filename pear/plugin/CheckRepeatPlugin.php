@@ -77,7 +77,7 @@ class CheckRepeatPlugin implements Plugin
         if (Utils::getData($inputs, 'clear') == 'true') {
             Cookie::destructCookie($this->cookieName);
         } else {
-            Cookie::setCookie($this->cookieName, $crumb);
+            Cookie::setCookie($crumb);
         }
     }
 

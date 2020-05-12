@@ -32,6 +32,7 @@ use Doctrine\ORM\ORMException;
 use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\TransactionRequiredException;
+use loeye\Centra;
 use loeye\error\BusinessException;
 use loeye\lib\Secure;
 use loeye\std\CacheTrait;
@@ -67,19 +68,29 @@ class DB
     /**
      * __construct
      *
-     * @param AppConfig $appConfig AppConfig
      * @param string|null $type type
      * @throws Throwable
      * @throws InvalidArgumentException
      */
-    public function __construct(AppConfig $appConfig, $type = null)
+    public function __construct($type = null)
     {
-        $settings = $appConfig->getSetting('application.database');
+        $settings = Centra::$appConfig->getSetting('application.database');
         $config = $this->databaseConfig();
         $this->defaultType = $settings['default'] ?? null;
         $this->isDevMode = $settings['is_dev_mode'] ?? false;
         $this->encryptMode = $settings['encrypt_mode'] ?? ENCRYPT_MODE_EXPLICIT;
-        $this->_getEntityManager($appConfig, $config, $type);
+        $this->_getEntityManager($config, $type);
+    }
+
+    /**
+     * @param null $type
+     * @return DB
+     * @throws InvalidArgumentException
+     * @throws Throwable
+     */
+    public static function init($type = null): DB
+    {
+        return new self($type);
     }
 
     /**
@@ -92,30 +103,8 @@ class DB
     }
 
     /**
-     * getInstance
-     *
-     * @param AppConfig $appConfig AppConfig
-     * @param string|null $type type
-     * @param string|null $sign sign
-     *
-     * @return DB
-     * @throws InvalidArgumentException
-     * @throws Throwable
-     */
-    public static function getInstance(AppConfig $appConfig, $type = null, $sign = null): DB
-    {
-        $it = ($type ?? 'default');
-        $it = md5($it . $sign);
-        if (!isset(self::$_instance[$it])) {
-            self::$_instance[$it] = new self($appConfig, $type);
-        }
-        return self::$_instance[$it];
-    }
-
-    /**
      * _getEntityManager
      *
-     * @param AppConfig $appConfig AppConfig
      * @param Configuration $config Configuration
      * @param string $type type
      *
@@ -126,7 +115,7 @@ class DB
      * @throws InvalidArgumentException
      * @throws ORMException
      */
-    private function _getEntityManager(AppConfig $appConfig, Configuration $config, $type): void
+    private function _getEntityManager(Configuration $config, $type): void
     {
         $key = $type ?? $this->defaultType;
         if (!$key) {
@@ -141,17 +130,16 @@ class DB
         } elseif (ENCRYPT_MODE_KEYDB === $this->encryptMode && $dbSetting['password']) {
             $dbSetting['password'] = Secure::getKeyDb($key, $dbSetting['password']);
         }
-        $cache = $this->getCache($appConfig);
+        $cache = $this->getCache();
         $this->em = \loeye\database\EntityManager::getManager($dbSetting, $cache);
     }
 
     /**
      * getCache
      *
-     * @param AppConfig $appConfig AppConfig
      * @return \Doctrine\Common\Cache\Cache
      */
-    protected function getCache(AppConfig $appConfig): \Doctrine\Common\Cache\Cache
+    protected function getCache(): \Doctrine\Common\Cache\Cache
     {
         if ($this->isDevMode) {
             return new ArrayCache();
@@ -159,7 +147,7 @@ class DB
         if (ApcuAdapter::isSupported()) {
             return new ApcuCache();
         }
-        $cacheType = $appConfig->getSetting('application.cache');
+        $cacheType = Centra::$appConfig->getSetting('application.cache');
         if (Cache::CACHE_TYPE_REDIS === $cacheType) {
             $cache = new RedisCache();
             $config = $this->cacheConfig();

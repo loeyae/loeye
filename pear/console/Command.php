@@ -18,6 +18,7 @@
 namespace loeye\console;
 
 use loeye\base\AppConfig;
+use loeye\Centra;
 use Symfony\Component\Console\Command as BaseCommand;
 use Symfony\Component\Console\Input;
 use Symfony\Component\Console\Input\InputInterface;
@@ -114,17 +115,8 @@ abstract class Command extends BaseCommand\Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
+        Centra::init();
         $this->process($input, $output);
-    }
-
-    /**
-     * loadAppConfig
-     *
-     * @return AppConfig
-     */
-    protected function loadAppConfig(): AppConfig
-    {
-        return new AppConfig();
     }
 
     /**

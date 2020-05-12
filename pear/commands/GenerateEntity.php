@@ -60,7 +60,7 @@ class GenerateEntity extends Command
         $dbId = $input->getOption('db-id');
         $appConfig     = new AppConfig();
         $dbKey         = $appConfig->getSetting('application.database.' . $dbId) ?? 'default';
-        $db            = DB::getInstance($appConfig, $dbKey);
+        $db            = DB::init($dbKey);
         $entityManager = $db->em();
         $this->convertMapping($input, $output, $entityManager);
         if (class_exists(Version::class) && Version::VERSION < '3.0') {

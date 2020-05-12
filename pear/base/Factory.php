@@ -24,12 +24,10 @@ use loeye\error\BusinessException;
 use loeye\error\ResourceException;
 use loeye\std\Plugin;
 use loeye\std\Render;
-use loeye\web\Request;
-use loeye\web\Response;
+use loeye\std\Response;
 use Psr\Cache\InvalidArgumentException;
 use ReflectionClass;
 use ReflectionException;
-use RuntimeException;
 use Throwable;
 
 /**
@@ -143,11 +141,12 @@ class Factory
      * getRender
      *
      * @param string $format format
-     * @param \loeye\std\Response $response
+     * @param Response $response
      *
      * @return Render
+     * @throws ReflectionException
      */
-    public static function getRender($format = null, \loeye\std\Response $response = null):
+    public static function getRender($format, Response $response):
     Render
     {
         $renderFormat = array(
@@ -158,9 +157,6 @@ class Factory
         );
         if (!in_array($format, $renderFormat, true)) {
             $format = RENDER_TYPE_SEGMENT;
-        }
-        if (null === $response) {
-            $response = Centra::$response;
         }
         $class = '' . ucfirst($format) . 'Render';
         $className = '\\loeye\\render\\' . $class;
@@ -369,16 +365,11 @@ EOF;
      */
     public static function cache($type = null): Cache
     {
-        static $cache = [];
-        $sType = $type ?? 'default';
-        if (!isset($cache[$sType])) {
-            $c = Cache::init(Centra::$appConfig, $type);
-            if (!$c) {
-                $c = Cache::init(Centra::$appConfig, Cache::CACHE_TYPE_FILE);
-            }
-            $cache[$sType] = $c;
+        $c = Cache::init($type);
+        if (!$c) {
+            $c = Cache::init(Cache::CACHE_TYPE_FILE);
         }
-        return $cache[$sType];
+        return $c;
     }
 
     /**
@@ -391,11 +382,7 @@ EOF;
      */
     public static function db($type = 'default'): DB
     {
-        static $db = [];
-        if (!isset($db[$type])) {
-            $db[$type] = DB::getInstance(Centra::$appConfig, $type);
-        }
-        return $db[$type];
+        return DB::init($type);
     }
 
     /**

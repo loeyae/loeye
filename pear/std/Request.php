@@ -100,14 +100,6 @@ class Request
     }
 
     /**
-     * @return string
-     */
-    public function hash(): string
-    {
-        return spl_object_hash($this);
-    }
-
-    /**
      * setRouter
      *
      * @param Router $router

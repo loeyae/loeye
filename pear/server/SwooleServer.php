@@ -66,8 +66,8 @@ class SwooleServer extends Server
             if (($file = $this->isStaticFile($path)) !== false) {
                 $render = $this->staticRouter($file);
             } else {
-                $this->createContext($request);
-                $render = $this->process();
+                $context = $this->createContext($request);
+                $render = $this->process($context);
             }
             $response->status($render->code(), $render->reason());
             $header = $render->header();
@@ -110,11 +110,11 @@ class SwooleServer extends Server
      */
     protected function createContext(Request $request): Context
     {
-        Centra::$context = new Context($this->appConfig);
-        Centra::$request = $this->createRequest();
-        Centra::$response = $this->createResponse(Centra::$request);
+        $context = new Context(Centra::$appConfig);
+        $myRequest = $this->createRequest();
+        $response = $this->createResponse($myRequest);
         $router = $this->createRouter();
-        Centra::$request->setRouter($router)
+        $myRequest->setRouter($router)
             ->setUri($request->server['request_uri'])
             ->setMethod($request->server['request_method'])
             ->setServer($request->server)
@@ -124,10 +124,10 @@ class SwooleServer extends Server
             ->setContent($request->rawContent())
             ->setFiles($request->files)
             ->setHeader($request->header);
-        Centra::$context->setRouter($router);
-        Centra::$context->setRequest(Centra::$request);
-        Centra::$context->setResponse(Centra::$response);
-        return Centra::$context;
+        $context->setRouter($router);
+        $context->setRequest($myRequest);
+        $context->setResponse($response);
+        return $context;
     }
 
     /**

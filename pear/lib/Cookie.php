@@ -17,6 +17,7 @@
 
 namespace loeye\lib;
 
+use loeye\base\Context;
 use loeye\Centra;
 use loeye\std\Request;
 use loeye\std\Response;
@@ -36,106 +37,107 @@ class Cookie
     /**
      * setCookie
      *
-     * @param string $name     name
-     * @param mixed  $value    value
-     * @param int    $expire   expire time
-     * @param string $path     path
-     * @param string $domain   domain
-     * @param bool   $secure   secure
-     * @param bool   $httpOnly http only
+     * @param Context $context
+     * @param string $name name
+     * @param mixed $value value
+     * @param int $expire expire time
+     * @param string $path path
+     * @param string $domain domain
+     * @param bool $secure secure
+     * @param bool $httpOnly http only
      *
      * @return boolean
      */
     public static function setCookie(
-        $name,
-        $value = null,
-        $expire = 0,
-        $path = '/',
-        $domain = null,
-        $secure = false,
+        Context $context, $name, $value = null, $expire = 0, $path = '/', $domain = null, $secure =
+        false,
         $httpOnly = true
     ): bool
     {
         $cookie = \Symfony\Component\HttpFoundation\Cookie::create($name, $value, $expire, $path,
         $domain, $secure, $httpOnly);
-        Centra::$response->addCookie($cookie);
+        $context->getResponse()->addCookie($cookie);
         return true;
     }
 
     /**
      * getCookie
      *
+     * @param Context $context
      * @param string|null $name name
      *
      * @return string|null
      */
-    public static function getCookie($name=null): ?string
+    public static function getCookie(Context $context, $name=null): ?string
     {
-        return Centra::$request->getCookie($name);
+        return $context->getRequest()->getCookie($name);
     }
 
     /**
      * destructCookie
      *
+     * @param Context $context
      * @param string $name name
      *
      * @return boolean
      */
-    public static function destructCookie($name): bool
+    public static function destructCookie(Context $context, $name): bool
     {
-        return self::setCookie($name, null, -1, '/');
+        return self::setCookie($context, $name, null, -1, '/');
     }
 
     /**
      * setLoeyeCookie
      *
-     * @param string $name  name
+     * @param Context $context
+     * @param string $name name
      * @param string $value value
-     * @param bool   $crypt is crypt
+     * @param bool $crypt is crypt
      *
      * @return boolean
      */
-    public static function setLoeyeCookie($name, $value, $crypt = false): bool
+    public static function setLoeyeCookie(Context $context, $name, $value, $crypt = false): bool
     {
-        static $userMessageInfo;
-        static $cryptFields;
-        if (empty($userMessageInfo)) {
-            $userMessageInfo = self::getLoeyeCookie(null, $decode=false);
-            if (!empty($userMessageInfo[self::CRYPT_COOKIE_FIELDS])) {
-                $cryptFields = $userMessageInfo[self::CRYPT_COOKIE_FIELDS];
-            } else {
-                $cryptFields = array();
-            }
+
+        $userMessageInfo = self::getLoeyeCookie($context, null, $decode=false);
+        if (!empty($userMessageInfo[self::CRYPT_COOKIE_FIELDS])) {
+            $cryptFields = $userMessageInfo[self::CRYPT_COOKIE_FIELDS];
+        } else {
+            $cryptFields = array();
         }
         if ($crypt) {
-            $userMessageInfo[$name] = self::crypt($value);
+            $userMessageInfo[$name] = Secure::crypt(self::uniqueId($context), $value);
             if (!in_array($name, $cryptFields, true)) {
                 $cryptFields[] = $name;
             }
         } else {
             $userMessageInfo[$name] = $value;
         }
-        $userMessageInfo[self::CRYPT_COOKIE_FIELDS] = self::crypt(json_encode($cryptFields));
-        return self::setCookie(self::USRE_MESSAGE_INFO, json_encode($userMessageInfo));
+        $userMessageInfo[self::CRYPT_COOKIE_FIELDS] = Secure::crypt(self::uniqueId($context), json_encode
+        ($cryptFields));
+        return self::setCookie($context, self::USRE_MESSAGE_INFO, json_encode($userMessageInfo));
     }
 
     /**
      * getLoeyeCookie
      *
+     * @param Context $context
      * @param string $name name
      * @param bool $decode
      *
      * @return mixed
      */
-    public static function getLoeyeCookie($name = null, $decode = true)
+    public static function getLoeyeCookie(Context $context, $name = null, $decode = true)
     {
-        if (filter_has_var(INPUT_COOKIE, self::USRE_MESSAGE_INFO)) {
-            $userMessageInfo = json_decode(filter_input(INPUT_COOKIE, self::USRE_MESSAGE_INFO), true);
-            $cryptFields     = json_decode(self::crypt($userMessageInfo[self::CRYPT_COOKIE_FIELDS], true), true);
+        if ($cookie = $context->getRequest()->getCookie(self::USRE_MESSAGE_INFO)) {
+            $userMessageInfo = json_decode($cookie, true);
+            $cryptFields     = json_decode(Secure::crypt
+            (self::uniqueId($context), $userMessageInfo[self::CRYPT_COOKIE_FIELDS], true), true);
             if (!empty($cryptFields) && $decode) {
                 foreach ($userMessageInfo as $key => $value) {
                     if (in_array($key, $cryptFields, true)) {
-                        $userMessageInfo[$key] = self::crypt($value, true);
+                        $userMessageInfo[$key] = Secure::crypt(self::uniqueId($context), $value,
+                            true);
                     }
                 }
             }
@@ -149,49 +151,36 @@ class Cookie
     }
 
     /**
-     * crypt
-     *
-     * @param string $data   data
-     * @param bool   $decode is decode
-     * @param string $key    key
-     *
-     * @return string
-     */
-    public static function crypt($data, $decode = false, $key = null): string
-    {
-        $key = empty($key) ? self::uniqueId() : $key;
-        return Secure::crypt($key, $data, $decode);
-    }
-
-    /**
      * getUniqueId
      *
+     * @param Context $context
      * @return string
      */
-    public static function uniqueId(): string
+    public static function uniqueId(Context $context): string
     {
         $sessionId = session_id();
         if ($sessionId) {
             return $sessionId;
         }
-        if (filter_has_var(INPUT_COOKIE, self::UNIQUE_ID_NAME)) {
-            return filter_input(INPUT_COOKIE, self::UNIQUE_ID_NAME);
+        if ($cookie = $context->getRequest()->getCookie(self::UNIQUE_ID_NAME)) {
+            return $cookie;
         }
-        $uniqueId = Secure::uniqueId();
-        self::setCookie(self::UNIQUE_ID_NAME, $uniqueId);
+        $uniqueId = Secure::uniqueId($context);
+        self::setCookie($context, self::UNIQUE_ID_NAME, $uniqueId);
         return $uniqueId;
     }
 
     /**
      * createCrumb
      *
+     * @param Context $context
      * @param string $name name
      *
      * @return string
      */
-    public static function createCrumb($name): string
+    public static function createCrumb(Context $context, $name): string
     {
-        $uid    = self::uniqueId();
+        $uid    = self::uniqueId($context);
         $string = $name . md5(($name . $uid));
         return hash('crc32', $string);
     }
@@ -199,14 +188,15 @@ class Cookie
     /**
      * validateCrumb
      *
-     * @param string $name  name
+     * @param Context $context
+     * @param string $name name
      * @param string $crumb crumb
      *
      * @return boolean
      */
-    public static function validateCrumb($name, $crumb): bool
+    public static function validateCrumb(Context $context, $name, $crumb): bool
     {
-        $oCrumb = self::createCrumb($name);
+        $oCrumb = self::createCrumb($context, $name);
         return ($oCrumb === $crumb);
     }
 

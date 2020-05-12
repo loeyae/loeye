@@ -143,7 +143,7 @@ class BuildQueryPlugin implements Plugin {
         $orderKey = Utils::getData($inputs, $this->orderKey, QueryHelper::ORDER_NAME);
         $group    = Utils::getData($inputs, $this->groupKey);
         $having   = Utils::getData($inputs, $this->havingKey);
-        $queryHelper = QueryHelper::getInstance()->setPageKey($pageKey)->setHitsKey($hitsKey)
+        $queryHelper = QueryHelper::init()->setPageKey($pageKey)->setHitsKey($hitsKey)
             ->setSortKey($sortKey)->setOrderKey($orderKey)->setGroup($group)->setHaving($having)
             ->setGroupKey('?')->setHavingKey('?')
             ->setDefaultHits(self::DEFAULT_HITS)->setDefaultPage(self::DEFAULT_PAGE);

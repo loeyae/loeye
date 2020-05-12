@@ -41,6 +41,15 @@ abstract class Router
      * @var array
      */
     private $settings;
+    /**
+     * @var Request
+     */
+    protected $request;
+
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+    }
 
     /**
      * setMatchedRule

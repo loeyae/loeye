@@ -26,102 +26,15 @@ class Centra
 {
 
     /**
-     * @var string
-     */
-    public static $hash;
-
-    /**
-     * @var Context
-     */
-    public static $context;
-
-    /**
-     * @var Request
-     */
-    public static $request;
-
-    /**
-     * @var Response
-     */
-    public static $response;
-
-    /**
      * @var AppConfig
      */
     public static $appConfig;
 
     /**
-     * @param string $dispatcher
      */
-    public static function init($dispatcher = Server::DEFAULT_DISPATCHER): void
+    public static function init(): void
     {
         (static::$appConfig instanceof AppConfig) ?: static::$appConfig = new AppConfig();
-        static::createRequest($dispatcher);
-        static::createResponse(static::$request);
-        (static::$context instanceof Context) ?: static::$context = new Context(static::$appConfig);
-        static::$context->setRequest(static::$request);
-        static::$context->setResponse(static::$response);
-    }
-
-    /**
-     * @param string $dispatcher
-     */
-    public static function createRequest($dispatcher = Server::DEFAULT_DISPATCHER): void
-    {
-        (static::$request instanceof Request) ?: static::$request = ($dispatcher === Server::SERVICE_DISPATCHER) ? new
-    service\Request() : new web\Request();
-    }
-
-    /**
-     * @param Request $request
-     * @param string $dispatcher
-     */
-    public static function createResponse(Request $request, $dispatcher = Server::DEFAULT_DISPATCHER): void
-    {
-        (static::$response instanceof Response) ?: static::$response = ($dispatcher === Server::SERVICE_DISPATCHER) ? new
-    service\Response($request) : new web\Response($request);
-    }
-
-    /**
-     * @param string $dbId
-     * @return base\DB
-     * @throws InvalidArgumentException
-     * @throws Throwable
-     */
-    public static function db($dbId = 'default'): base\DB
-    {
-        return Factory::db($dbId);
-    }
-
-    /**
-     * @param string $dbId
-     * @return EntityManager
-     * @throws InvalidArgumentException
-     * @throws Throwable
-     */
-    public static function em($dbId = 'default'): EntityManager
-    {
-        return Factory::db($dbId)->em();
-    }
-
-    /**
-     * @param string $dbId
-     * @return QueryBuilder
-     * @throws InvalidArgumentException
-     * @throws Throwable
-     */
-    public static function qb($dbId = 'default'): QueryBuilder
-    {
-        return Factory::db($dbId)->qb();
-    }
-
-    /**
-     * @param string|null $type
-     * @return base\Cache
-     */
-    public static function cache($type = null): base\Cache
-    {
-        return Factory::cache($type);
     }
 
 }

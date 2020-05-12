@@ -59,16 +59,21 @@ abstract class Dispatcher
      * @var array
      */
     protected $tracedContextData;
+    /**
+     * @var Context
+     */
+    protected $context;
 
 
     /**
      * __construct
      *
+     * @param Context $context
      * @param int $processMode process mode
-     *
      */
-    public function __construct($processMode = LOEYE_PROCESS_MODE__NORMAL)
+    public function __construct(Context $context, $processMode = LOEYE_PROCESS_MODE__NORMAL)
     {
+        $this->context = $context;
         $this->processMode = $processMode;
         if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL) {
             $this->setTraceDataIntoContext(array());
@@ -131,12 +136,12 @@ abstract class Dispatcher
      */
     protected function initAppConfig(): void
     {
-        if (null === Centra::$context->getAppConfig()) {
+        if (null === $this->context->getAppConfig()) {
             $appConfig = new AppConfig();
             Centra::$appConfig = $appConfig;
-            Centra::$context->setAppConfig($appConfig);
+            $this->context->setAppConfig($appConfig);
         }
-        Centra::$context->getAppConfig()->setLocale(Centra::$context->getRequest()->getLanguage());
+        $this->context->getAppConfig()->setLocale($this->context->getRequest()->getLanguage());
     }
 
 
@@ -147,7 +152,7 @@ abstract class Dispatcher
      */
     protected function initConfigConstants(): void
     {
-        $constants = Centra::$context->getAppConfig()->getSetting('constants', array());
+        $constants = $this->context->getAppConfig()->getSetting('constants', array());
         foreach ($constants as $key => $value) {
             $key = mb_strtoupper($key);
             if (!defined($key)) {
@@ -175,8 +180,8 @@ abstract class Dispatcher
      */
     protected function setTimezone(): void
     {
-        $timezone = Centra::$context->getAppConfig()->getSetting('configuration.timezone', 'UTC');
-        Centra::$context->getAppConfig()->setTimezone($timezone);
+        $timezone = $this->context->getAppConfig()->getSetting('configuration.timezone', 'UTC');
+        $this->context->getAppConfig()->setTimezone($timezone);
         date_default_timezone_set($timezone);
     }
 
@@ -188,7 +193,7 @@ abstract class Dispatcher
      */
     protected function initComponent(): void
     {
-        $component = Centra::$context->getAppConfig()->getSetting('application.component');
+        $component = $this->context->getAppConfig()->getSetting('application.component');
         if (!empty($component)) {
             foreach ((array)$component as $item => $list) {
                 if ($item === 'namespace') {
@@ -230,7 +235,7 @@ abstract class Dispatcher
      */
     protected function setTraceDataIntoContext($pluginSetting = []): void
     {
-        $trace = Centra::$context->getTraceData(LOEYE_CONTEXT_TRACE_KEY);
+        $trace = $this->context->getTraceData(LOEYE_CONTEXT_TRACE_KEY);
         if ($trace) {
             $time = microtime(true);
         } else {
@@ -243,7 +248,7 @@ abstract class Dispatcher
             'plugin_setting' => $pluginSetting,
         );
         $this->traceCount++;
-        Centra::$context->setTraceData(LOEYE_CONTEXT_TRACE_KEY, $trace);
+        $this->context->setTraceData(LOEYE_CONTEXT_TRACE_KEY, $trace);
         unset($contextData);
     }
 
@@ -260,15 +265,15 @@ abstract class Dispatcher
             return $data;
         }
         if ($this->tracedContextData) {
-            foreach (Centra::$context->getDataGenerator() as $key => $value) {
+            foreach ($this->context->getDataGenerator() as $key => $value) {
                 if (!isset($this->tracedContextData)) {
                     $data[$key] = $value;
-                } else if ($this->tracedContextData[$key] !== Centra::$context->getWithTrace($key)) {
+                } else if ($this->tracedContextData[$key] !== $this->context->getWithTrace($key)) {
                     $data[$key] = $value;
                 }
             }
         }
-        $this->tracedContextData = Centra::$context->getData();
+        $this->tracedContextData = $this->context->getData();
         return $data;
     }
 
@@ -277,15 +282,14 @@ abstract class Dispatcher
      * redirectUrl
      *
      * @return Render|null
-     * @throws ReflectionException
      */
-    protected function redirectUrl()
+    protected function redirectUrl(): ?Render
     {
-        $redirectUrl = Centra::$context->getResponse()->getRedirect();
+        $redirectUrl = $this->context->getResponse()->getRedirect();
 
         if (!empty($redirectUrl)) {
-            return Factory::getRender(Centra::$context->getResponse()->getFormat(),
-                Centra::$context->getResponse());
+            return Factory::getRender($this->context->getResponse()->getFormat(),
+                $this->context->getResponse());
         }
         return null;
     }
@@ -308,12 +312,12 @@ abstract class Dispatcher
             if (!$content) {
                 if (isset($view['src'])) {
                     ob_start();
-                    Factory::includeView(Centra::$context, $view);
+                    Factory::includeView($this->context, $view);
                     $content = ob_get_clean();
                 } else if (isset($view['tpl'])) {
-                    $loeyeTemplate = Centra::$context->getTemplate();
+                    $loeyeTemplate = $this->context->getTemplate();
                     if (!($loeyeTemplate instanceof Template)) {
-                        $loeyeTemplate = new Template(Centra::$context);
+                        $loeyeTemplate = new Template($this->context);
 
                         $caching = Smarty::CACHING_OFF;
                         $cacheLifeTime = 0;
@@ -339,11 +343,11 @@ abstract class Dispatcher
                         $loeyeTemplate->setCache($caching);
                         $loeyeTemplate->setCacheLifeTime($cacheLifeTime);
                         $loeyeTemplate->setCacheId($cacheId);
-                        Centra::$context->setTemplate($loeyeTemplate);
+                        $this->context->setTemplate($loeyeTemplate);
                     }
                     $loeyeTemplate->smarty()->registerClass('Cookie', Cookie::class);
                     $loeyeTemplate->smarty()->registerClass('Utils', Utils::class);
-                    Factory::includeHandle(Centra::$context, $view);
+                    Factory::includeHandle($this->context, $view);
                     $params = array();
                     if (isset($view['data'])) {
                         $params = (array)$view['data'];
@@ -357,7 +361,7 @@ abstract class Dispatcher
                 } else if (isset($view['body'])) {
                     $viewSetting = array('src' => $view['body']);
                     ob_start();
-                    Factory::includeView(Centra::$context, $viewSetting);
+                    Factory::includeView($this->context, $viewSetting);
                     $content = ob_get_clean();
                 }
                 $this->cacheContent($view, $content);
@@ -365,29 +369,29 @@ abstract class Dispatcher
             if (isset($view['head'])) {
                 $headSetting = array('src' => $view['head']);
                 ob_start();
-                Factory::includeView(Centra::$context, $headSetting);
+                Factory::includeView($this->context, $headSetting);
                 $head = ob_get_clean();
 
-                Centra::$context->getResponse()->addHtmlHead($head);
+                $this->context->getResponse()->addHtmlHead($head);
             }
             if (isset($view['layout'])) {
                 ob_start();
-                Factory::includeLayout(Centra::$context, $content, $view);
+                Factory::includeLayout($this->context, $content, $view);
                 $pageContent = ob_get_clean();
-                Centra::$context->getResponse()->addOutput($pageContent, 'view');
+                $this->context->getResponse()->addOutput($pageContent, 'view');
             } else {
-                Centra::$context->getResponse()->addOutput($content, 'view');
+                $this->context->getResponse()->addOutput($content, 'view');
             }
             if (!empty($view['head_key'])) {
                 $headers = (array)$view['head_key'];
                 foreach ($headers as $key) {
-                    Centra::$context->getResponse()->addHtmlHead(Centra::$context->get($key));
+                    $this->context->getResponse()->addHtmlHead($this->context->get($key));
                 }
             }
             if (!empty($view['content_key'])) {
                 $contents = (array)$view['content_key'];
                 foreach ($contents as $key) {
-                    Centra::$context->getResponse()->addOutput(Centra::$context->get($key), 'data');
+                    $this->context->getResponse()->addOutput($this->context->get($key), 'data');
                 }
             }
             if (isset($view['css'])) {
@@ -407,12 +411,12 @@ abstract class Dispatcher
      */
     protected function executeOutput(): Render
     {
-        $format = Centra::$context->getResponse()->getFormat();
+        $format = $this->context->getResponse()->getFormat();
         if ($format === null) {
-            $format = Centra::$context->getRequest()->getFormatType();
+            $format = $this->context->getRequest()->getFormatType();
         }
 
-        return Factory::getRender($format, Centra::$context->getResponse());
+        return Factory::getRender($format, $this->context->getResponse());
     }
 
 }

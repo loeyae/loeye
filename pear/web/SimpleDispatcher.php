@@ -80,13 +80,13 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
             $this->executeView($view);
             return $this->executeOutput();
         } catch (Exception $exc) {
-            return ExceptionHandler($exc, Centra::$context);
+            return ExceptionHandler($exc, $this->context);
         } catch (\Exception $exc) {
-            return ExceptionHandler($exc, Centra::$context);
+            return ExceptionHandler($exc, $this->context);
         } finally {
             if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL) {
                 $this->setTraceDataIntoContext(array());
-                Utils::logContextTrace(Centra::$context);
+                Utils::logContextTrace($this->context);
             }
         }
     }
@@ -100,16 +100,12 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
      */
     protected function initIOObject($moduleId): void
     {
-        $request = new Request($moduleId);
+        $this->context->getRequest()->setModuleId($moduleId);
 
-        Centra::$context->setRequest($request);
-
-        $response = new Response();
-        if (defined('MOBILE_RENDER_ENABLE') && MOBILE_RENDER_ENABLE && $request['device']) {
-            $response->setRenderId(Response::DEFAULT_MOBILE_RENDER_ID);
+        if (defined('MOBILE_RENDER_ENABLE') && MOBILE_RENDER_ENABLE && $this->context->getRequest
+            ()->getDevice()) {
+            $this->context->getResponse()->setRenderId(Response::DEFAULT_MOBILE_RENDER_ID);
         }
-        $response->setFormat($request->getFormatType());
-        Centra::$context->setResponse($response);
     }
 
     /**
@@ -140,7 +136,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
      */
     protected function executeModule(): Controller
     {
-        $controllerNamespace = Centra::$context->getAppConfig()->getSetting('controller_namespace', '');
+        $controllerNamespace = $this->context->getAppConfig()->getSetting('controller_namespace', '');
         if (!$controllerNamespace) {
             $controllerNamespace = PROJECT_NAMESPACE . '\\controllers';
         }
@@ -153,7 +149,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
             throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
         }
         $ref    = new ReflectionClass($controller);
-        $object = $ref->newInstance(Centra::$context);
+        $object = $ref->newInstance($this->context);
         if (!($object instanceof Controller)) {
             throw new ResourceException(ResourceException::INVALID_CONTROLLER_CODE,
                 ResourceException::INVALID_CONTROLLER_MSG);
@@ -191,7 +187,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
         isset($setting[self::KEY_ACTION]) && $this->action     = $setting[self::KEY_ACTION];
         isset($setting[self::KEY_REWRITE]) && $this->rewrite    = $setting[self::KEY_REWRITE];
         if ($this->rewrite) {
-            Centra::$context->setRouter(new UrlManager($this->rewrite));
+            $this->context->setRouter(new UrlManager($this->rewrite));
         }
     }
 
@@ -202,16 +198,16 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
      */
     protected function parseUrl(): void
     {
-        $requestUrl = Centra::$request->getUri()->getPath();
+        $requestUrl = $this->context->getRequest()->getUri()->getPath();
         $path       = null;
-        if (Centra::$context->getRouter() instanceof UrlManager) {
-            $path   = Centra::$context->getRouter()->match($requestUrl);
+        if ($this->context->getRouter() instanceof UrlManager) {
+            $path   = $this->context->getRouter()->match($requestUrl);
             if ($path === false) {
                 throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
             }
         }
         if ($path === null) {
-            $path = Centra::$request->getQuery(self::KEY_REQUEST_URI);
+            $path = $this->context->getRequest()->getQuery(self::KEY_REQUEST_URI);
         }
         if (!empty($path)) {
             $parts = explode('/', trim($path, '/'));
@@ -226,10 +222,10 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
                 $this->controller = Utils::camelize($parts[0]);
             }
         } else {
-            $this->module = Centra::$request->getQuery(self::KEY_REQUEST_MODULE);
-            $this->controller = Utils::camelize(Centra::$request->getQuery
+            $this->module = $this->context->getRequest()->getQuery(self::KEY_REQUEST_MODULE);
+            $this->controller = Utils::camelize($this->context->getRequest()->getQuery
             (self::KEY_REQUEST_CONTROLLER));
-            $this->action = Utils::camelize(Centra::$request->getQuery(self::KEY_REQUEST_ACTION));
+            $this->action = Utils::camelize($this->context->getRequest()->getQuery(self::KEY_REQUEST_ACTION));
         }
         if (empty($this->module) && empty($this->controller)) {
             throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
@@ -261,9 +257,9 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
             }
             $cacheParams = [];
             if (is_array($view['cache'])) {
-                $cacheParams = ModuleParse::parseInput($view['cache'], Centra::$context);
+                $cacheParams = ModuleParse::parseInput($view['cache'], $this->context);
             }
-            Utils::setPageCache(Centra::$context->getAppConfig(), Centra::$context->getRequest()->getModuleId(), $content, $expire, $cacheParams);
+            Utils::setPageCache($this->context->getRequest()->getModuleId(), $content, $expire, $cacheParams);
         }
     }
 
@@ -283,9 +279,9 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
         if (isset($view['cache'])) {
             $cacheParams = [];
             if (is_array($view['cache'])) {
-                $cacheParams = ModuleParse::parseInput($view['cache'], Centra::$context);
+                $cacheParams = ModuleParse::parseInput($view['cache'], $this->context);
             }
-            $content = Utils::getPageCache(Centra::$context->getAppConfig(), Centra::$context->getRequest()->getModuleId(), $cacheParams);
+            $content = Utils::getPageCache($this->context->getRequest()->getModuleId(), $cacheParams);
         }
         return $content;
     }
@@ -301,7 +297,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
     {
         $cacheId = $this->module . '_' . $this->controller . '_' . $this->action;
         if (isset($view['id'])) {
-            $cacheId .= '.' . Centra::$context->get($view['id']);
+            $cacheId .= '.' . $this->context->get($view['id']);
         }
         return $cacheId;
     }

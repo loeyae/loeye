@@ -42,9 +42,8 @@ trait EntityGeneratorTrait {
         $ui       = new SymfonyStyle($input, $output);
         $force    = $input->getOption('force');
 
-        $appConfig = $this->loadAppConfig();
         $type      = $input->getOption('db-id');
-        $db        = DB::getInstance($appConfig, $type);
+        $db        = DB::init($type);
         $em        = $db->em();
 
         $metaData = $em->getMetadataFactory()->getAllMetadata();

@@ -58,7 +58,7 @@ class QueryHelper
     /**
      * @return QueryHelper
      */
-    public static function getInstance(): QueryHelper
+    public static function init(): QueryHelper
     {
         static $instance;
         if (!$instance) {

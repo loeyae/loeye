@@ -15,6 +15,7 @@ use Firebase\JWT\JWT;
 
 use loeye\base\Utils;
 use loeye\Centra;
+use loeye\std\Request;
 
 class JWTUtils
 {
@@ -46,9 +47,14 @@ class JWTUtils
      * @var string
      */
     private $iss;
+    /**
+     * @var Request
+     */
+    private $request;
 
-    private function __construct()
+    public function __construct(Request $request)
     {
+        $this->request = $request;
         $tokenSetting = Centra::$appConfig->getSetting('token');
         $alg = $tokenSetting['alg'] ?? 'HS256';
         $this->alg = isset(JWT::$supported_algs[$this->alg]) ? $alg : 'HS256';
@@ -69,9 +75,10 @@ class JWTUtils
     /**
      * @return mixed|string
      */
-    private static function parseAddr()
+    private function parseAddr()
     {
-        return (Centra::$request->getServer('remote_addr') ?? filter_input(INPUT_SERVER, 'REMOTE_ADDR')) ?: ($_SERVER['REMOTE_ADDR']
+        return ($this->request->getServer('remote_addr') ?? filter_input(INPUT_SERVER, 'REMOTE_ADDR')) ?:
+            ($_SERVER['REMOTE_ADDR']
         ?? '127.0.0.1');
     }
 
@@ -80,8 +87,9 @@ class JWTUtils
      */
     private function parseAud(): void
     {
-        $host = (Centra::$request->getServer('remote_host') ?? filter_input(INPUT_SERVER, 'REMOTE_HOST')) ?: ($_SERVER['REMOTE_HOST'] ?? null);
-        $this->aud = $host ?? gethostbyaddr(self::parseAddr());
+        $host = ($this->request->getServer('remote_host') ?? filter_input(INPUT_SERVER, 'REMOTE_HOST'))
+            ?: ($_SERVER['REMOTE_HOST'] ?? null);
+        $this->aud = $host ?? gethostbyaddr($this->parseAddr());
     }
 
     /**
@@ -92,22 +100,11 @@ class JWTUtils
         if (defined('BASE_SERVER_URL')) {
             $this->iss = parse_url(BASE_SERVER_URL, PHP_URL_HOST);
         } else {
-            $this->iss = (Centra::$request->getServer('http_host') ?? filter_input(INPUT_SERVER, 'HTTP_HOST')) ?:
+            $this->iss = ($this->request->getServer('http_host') ?? filter_input(INPUT_SERVER, 'HTTP_HOST')) ?:
                 ($_SERVER['HTTP_HOST'] ?? 'localhost');
         }
     }
 
-    /**
-     * @return JWTUtils
-     */
-    public static function getInstance(): JWTUtils
-    {
-        static $instance;
-        if (!$instance) {
-            $instance = new self();
-        }
-        return $instance;
-    }
 
     /**
      * @param string $iss
@@ -207,7 +204,7 @@ class JWTUtils
      */
     public function verifyTokenByHeader()
     {
-        $token = Centra::$request->getHeader('authorization') ?? filter_input(INPUT_SERVER, 'HTTP_Authorization') ?: ($_SERVER['HTTP_Authorization'] ?? '');
+        $token = $this->request->getHeader('authorization') ?? filter_input(INPUT_SERVER, 'HTTP_Authorization') ?: ($_SERVER['HTTP_Authorization'] ?? '');
         if (Utils::startWith($token, 'Bearer ')) {
             $token = substr($token, 7);
         }

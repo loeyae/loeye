@@ -21,6 +21,7 @@ use loeye\base\UrlManager;
 use loeye\base\Utils;
 use loeye\Centra;
 use loeye\lib\Cookie;
+use loeye\lib\Secure;
 use loeye\render\SegmentRender;
 use loeye\web\SimpleDispatcher;
 use function GuzzleHttp\Psr7\mimetype_from_extension;
@@ -33,20 +34,12 @@ abstract class Server
     public const SERVICE_DISPATCHER = 'service';
 
     /**
-     * @var AppConfig
-     */
-    protected $appConfig;
-
-    /**
      * Server constructor.
      */
     public function __construct()
     {
-        if (!Centra::$appConfig) {
-            Centra::$appConfig  = new AppConfig();
-        }
-        $this->appConfig = Centra::$appConfig;
-        define('LOEYE_MODE', $this->appConfig->getSetting('debug', false) ? LOEYE_MODE_DEV :
+        Centra::init();
+        define('LOEYE_MODE', Centra::$appConfig->getSetting('debug', false) ? LOEYE_MODE_DEV :
             LOEYE_MODE_PROD);
     }
 
@@ -55,22 +48,18 @@ abstract class Server
      *
      * @return Dispatcher
      */
-    protected function getDispatcher(): Dispatcher
+    protected function getDispatcher(Context $context): Dispatcher
     {
         $map = [
             self::DEFAULT_DISPATCHER => \loeye\web\Dispatcher::class,
             self::SIMPLE_DISPATCHER => SimpleDispatcher::class,
             self::SERVICE_DISPATCHER => \loeye\service\Dispatcher::class,
         ];
-        $dispatcher = $this->appConfig->getSetting('server.dispatcher', self::DEFAULT_DISPATCHER);
-        if (!Centra::$context instanceof Context || !Centra::$request
-                instanceof Request || !Centra::$response instanceof Response) {
-            Centra::init($dispatcher);
-        }
+        $dispatcher = Centra::$appConfig->getSetting('server.dispatcher', self::DEFAULT_DISPATCHER);
         $dispatcherClass = $map[$dispatcher] ?? \loeye\web\Dispatcher::class;
-        $processMode = $this->appConfig->getSetting('application.process_mode',
+        $processMode = Centra::$appConfig->getSetting('application.process_mode',
             LOEYE_PROCESS_MODE__NORMAL);
-        return new $dispatcherClass($processMode);
+        return new $dispatcherClass($context, $processMode);
     }
 
     /**
@@ -78,7 +67,7 @@ abstract class Server
      */
     protected function getServerPort()
     {
-        return $this->appConfig->getSetting('server.port', 80);
+        return Centra::$appConfig->getSetting('server.port', 80);
     }
 
     /**
@@ -86,7 +75,7 @@ abstract class Server
      */
     protected function getSSLConfig(): ?array
     {
-        return $this->appConfig->getSetting('server.ssl');
+        return Centra::$appConfig->getSetting('server.ssl');
     }
 
     /**
@@ -94,7 +83,7 @@ abstract class Server
      */
     protected function getPeriodicTask(): array
     {
-        $periodicTimers = $this->appConfig->getSetting('server.periodic', []);
+        $periodicTimers = Centra::$appConfig->getSetting('server.periodic', []);
         return array_filter($periodicTimers, static function($item){
             return !empty(trim($item['callback']));
         });
@@ -105,7 +94,7 @@ abstract class Server
      */
     protected function getStaticPath()
     {
-        return $this->appConfig->getSetting('server.static_path');
+        return Centra::$appConfig->getSetting('server.static_path');
     }
 
     /**
@@ -132,12 +121,12 @@ abstract class Server
     /**
      * process
      *
+     * @param Context $context
      * @return Render|null
      */
-    protected function process(): ?Render
+    protected function process(Context $context): ?Render
     {
-        Centra::$hash = Centra::$request->hash();
-        $dispatcher = $this->getDispatcher();
+        $dispatcher = $this->getDispatcher($context);
         return $dispatcher->dispatch();
     }
 
@@ -148,7 +137,7 @@ abstract class Server
      */
     protected function createRequest(): Request
     {
-        $dispatcher = $this->appConfig->getSetting('server.dispatcher', self::DEFAULT_DISPATCHER);
+        $dispatcher = Centra::$appConfig->getSetting('server.dispatcher', self::DEFAULT_DISPATCHER);
         return ($dispatcher === self::SERVICE_DISPATCHER) ? new \loeye\service\Request() : new
         \loeye\web\Request();
     }
@@ -161,7 +150,7 @@ abstract class Server
      */
     protected function createResponse(Request $request): Response
     {
-        $dispatcher = $this->appConfig->getSetting('server.dispatcher', self::DEFAULT_DISPATCHER);
+        $dispatcher = Centra::$appConfig->getSetting('server.dispatcher', self::DEFAULT_DISPATCHER);
         return ($dispatcher === self::SERVICE_DISPATCHER) ? new \loeye\service\Response($request) : new
         \loeye\web\Response($request);
     }
@@ -171,7 +160,7 @@ abstract class Server
      */
     protected function createRouter(): ?UrlManager
     {
-        $rewrite = $this->appConfig->getSetting('server.rewrite');
+        $rewrite = Centra::$appConfig->getSetting('server.rewrite');
         if ($rewrite) {
             return new UrlManager($rewrite);
         }

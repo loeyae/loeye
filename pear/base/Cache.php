@@ -17,6 +17,7 @@
 
 namespace loeye\base;
 
+use loeye\Centra;
 use loeye\std\CacheTrait;
 use loeye\std\ConfigTrait;
 use Psr\Cache\InvalidArgumentException;
@@ -66,14 +67,13 @@ class Cache
     /**
      * __construct
      *
-     * @param AppConfig $appConfig
      * @param string $type cache type
      * @throws Exception
      * @throws CacheException
      */
-    public function __construct(AppConfig $appConfig, $type = null)
+    public function __construct($type = null)
     {
-        $settings = $appConfig->getSetting('application.cache');
+        $settings = Centra::$appConfig->getSetting('application.cache');
         if (is_string($settings)) {
             $this->defaultType = $settings;
         } else if (is_numeric($settings)) {
@@ -132,25 +132,6 @@ class Cache
                 $this->instance = new FilesystemAdapter($namespace, $defaultLifetime, $directory);
                 break;
         }
-    }
-
-
-    /**
-     * getInstance
-     *
-     * @param AppConfig $appConfig app config
-     * @param string|null $type type
-     * @return self
-     * @throws Exception
-     * @throws CacheException
-     */
-    public static function getInstance(AppConfig $appConfig, $type = null): self
-    {
-        $sType = $type ?? 'default';
-        if (!isset(self::$_instance[$sType])) {
-            self::$_instance[$sType] = new self($appConfig, $type);
-        }
-        return self::$_instance[$sType];
     }
 
     /**
@@ -313,15 +294,14 @@ class Cache
     /**
      * init
      *
-     * @param AppConfig $appConfig appConfig
      * @param string $type type
      *
      * @return mixed
      */
-    public static function init(AppConfig $appConfig, $type = null)
+    public static function init($type = null)
     {
         try {
-            return self::getInstance($appConfig, $type);
+            return new self($type);
         } catch (\Exception $exc) {
             Utils::errorLog($exc);
             return false;

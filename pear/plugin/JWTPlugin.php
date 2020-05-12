@@ -35,7 +35,7 @@ class JWTPlugin implements Plugin
     public function process(Context $context, array $inputs)
     {
         $encryptData = Utils::getContextData($context, $inputs, $this->inputKey);
-        $utils = JWTUtils::getInstance();
+        $utils = new JWTUtils($context->getRequest());
         $format = Utils::getData($inputs, 'format');
         if ($format) {
             $context->getResponse()->setFormat($format);

@@ -18,6 +18,8 @@
 namespace loeye\lib;
 
 use FilesystemIterator;
+use loeye\base\Context;
+use loeye\Centra;
 use Psr\Cache\InvalidArgumentException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -53,14 +55,16 @@ class Secure
      *
      * @return string
      */
-    public static function uniqueId($secret = null): string
+    public static function uniqueId(Context $context,$secret = null): string
     {
         if (filter_has_var(INPUT_SERVER, 'REQUEST_TIME_FLOAT')) {
             $REQUEST_TIME_FLOAT = filter_input(INPUT_SERVER, 'REQUEST_TIME_FLOAT', FILTER_SANITIZE_NUMBER_FLOAT);
         } else if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
             $REQUEST_TIME_FLOAT = filter_var($_SERVER['REQUEST_TIME_FLOAT'], FILTER_SANITIZE_NUMBER_FLOAT);
         } else {
-            $REQUEST_TIME_FLOAT = time();
+            $REQUEST_TIME_FLOAT = $context->getRequest()->getServer('request_time_float') ??
+            microtime
+            (true);
         }
 
         if (filter_has_var(INPUT_SERVER, 'HTTP_USER_AGENT')) {
@@ -68,7 +72,8 @@ class Secure
         } else if (isset($_SERVER['HTTP_USER_AGENT'])) {
             $HTTP_USER_AGENT = filter_var($_SERVER['HTTP_USER_AGENT'], FILTER_SANITIZE_STRING);
         } else {
-            $HTTP_USER_AGENT = mt_rand(10000, 99999);
+            $HTTP_USER_AGENT = $context->getRequest()->getServer('http_user_agent') ?? mt_rand(10000,
+                99999);
         }
 
         if (filter_has_var(INPUT_SERVER, 'REMOTE_ADDR')) {
@@ -76,7 +81,7 @@ class Secure
         } else if (isset($_SERVER['REMOTE_ADDR'])) {
             $REMOTE_ADDR = filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP);
         } else {
-            $REMOTE_ADDR = mt_rand(1000, 9999);
+            $REMOTE_ADDR = $context->getRequest()->getServer('remote_addr') ?? mt_rand(1000, 9999);
         }
 
         $string = $HTTP_USER_AGENT . $REQUEST_TIME_FLOAT . $REMOTE_ADDR . $secret;
