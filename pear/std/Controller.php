@@ -35,7 +35,6 @@ abstract class Controller
      * @var Context
      */
     protected $context;
-    public $view;
     public $layout;
 
     public function __construct(Context $context)
@@ -63,11 +62,15 @@ abstract class Controller
      *
      * @param string $src view page
      *
-     * @return void
+     * @return array
      */
-    protected function render($src): void
+    protected function render($src): array
     {
-        $this->view = ['src' => $src];
+        $view = ['src' => $src];
+        if ($this->layout) {
+            $view['layout'] = $this->layout;
+        }
+        return $view;
     }
 
     /**
@@ -78,11 +81,16 @@ abstract class Controller
      * @param mixed $cache cache setting
      * @param string $id cache id
      *
-     * @return void
+     * @return array
      */
-    protected function template($tpl, $data = array(), $cache = 7200, $id = null): void
+    protected function template($tpl, $data = array(), $cache = 7200, $id = null): array
     {
-        $this->view = ['tpl' => $tpl, 'data' => $data, 'cache' => $cache, 'id' => $id];
+        $view = ['tpl' => $tpl, 'data' => $data, 'cache' => $cache, 'id' => $id];
+
+        if ($this->layout) {
+            $view['layout'] = $this->layout;
+        }
+        return $view;
     }
 
     /**
@@ -124,7 +132,7 @@ abstract class Controller
     {
         $routeKey = $params[0];
         unset($params[0]);
-        $url = $this->context->getUrlManager()->generate($routeKey, $params);
+        $url = $this->context->getRouter()->generate($routeKey, $params);
         $this->redirectUrl($url);
     }
 

@@ -72,6 +72,9 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
             $this->setTimezone();
             $this->initComponent();
             $object = $this->executeModule();
+            if ($object instanceof Render) {
+                return $object;
+            }
             $result = $this->redirectUrl();
             if ($result instanceof Render) {
                 return $result;
@@ -115,15 +118,13 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
     protected function getView(Controller $object): array
     {
         $view = [];
-        if (!empty($object->view)) {
-            if (is_string($object->view)) {
-                $view = ['src' => $object->view];
-            } else {
-                $view = (array) $object->view;
-            }
+        if (!$object) {
+            return $view;
         }
-        if (!empty($object->layout)) {
-            $view['layout'] = $object->layout;
+        if (is_array($object)) {
+            $view = $object;
+        } else {
+            $view = ['src' => (string)$object];
         }
         return $view;
     }
