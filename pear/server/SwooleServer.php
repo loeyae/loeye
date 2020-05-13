@@ -113,7 +113,7 @@ class SwooleServer extends Server
         $context = new Context(Centra::$appConfig);
         $myRequest = $this->createRequest();
         $response = $this->createResponse($myRequest);
-        $router = $this->createRouter();
+        $router = $this->createRouter($myRequest);
         $myRequest->setRouter($router)
             ->setUri($request->server['request_uri'])
             ->setMethod($request->server['request_method'])

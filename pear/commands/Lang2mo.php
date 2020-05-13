@@ -12,6 +12,7 @@
 
 namespace loeye\commands;
 
+use loeye\Centra;
 use loeye\console\Command;
 use RuntimeException;
 use SplFileObject;
@@ -43,7 +44,7 @@ class Lang2mo extends Command
     public function process(InputInterface $input, OutputInterface $output): void
     {
         $PROPERTY = $input->getArgument('property');
-        $appConfig = $this->loadAppConfig($PROPERTY);
+        $appConfig = Centra::$appConfig;
         $EXT  = 'llt';
         $CHDIR = 'LC_MESSAGES';
 

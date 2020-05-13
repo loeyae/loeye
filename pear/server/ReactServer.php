@@ -130,7 +130,7 @@ class ReactServer extends Server
             ->setFiles($request->getUploadedFiles())
             ->setServer($request->getServerParams());
         $context = new Context(Centra::$appConfig);
-        $router = $this->createRouter();
+        $router = $this->createRouter($myRequest);
         $myRequest->setRouter($router);
         $context->setRouter($router);
         $context->setRequest($myRequest);

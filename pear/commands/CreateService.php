@@ -18,6 +18,7 @@
 namespace loeye\commands;
 
 use Doctrine\Persistence\Mapping\ClassMetadata;
+use loeye\Centra;
 use loeye\commands\helper\EntityGeneratorTrait;
 use loeye\commands\helper\GeneratorUtils;
 use loeye\console\Command;
@@ -501,7 +502,7 @@ EOF;
         [$handlerDir, $clientDir, $clientConfDir] = $this->mkdir($baseDir, $ui);
         $this->handlerDir = $handlerDir;
         $this->clientDir = $clientDir;
-        $appConfig = $this->loadAppConfig();
+        $appConfig = Centra::$appConfig;
         $clientConf = GeneratorUtils::getCodeFromTemplate('service/ClientConf', ['port' => $appConfig->getSetting
         ('server.port')]);
         $clientConfPath = GeneratorUtils::buildPath($clientConfDir, 'master.yml');

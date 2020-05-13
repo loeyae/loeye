@@ -156,13 +156,14 @@ abstract class Server
     }
 
     /**
+     * @param Request $request
      * @return UrlManager|null
      */
-    protected function createRouter(): ?UrlManager
+    protected function createRouter(Request $request): ?UrlManager
     {
         $rewrite = Centra::$appConfig->getSetting('server.rewrite');
         if ($rewrite) {
-            return new UrlManager($rewrite);
+            return new UrlManager($request, $rewrite);
         }
         return null;
     }

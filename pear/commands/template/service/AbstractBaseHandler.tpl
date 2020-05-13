@@ -39,7 +39,7 @@ abstract class <{$className}> extends Handler
     {
         parent::__construct($context);
         $this->server = new <{$serverClass}>($context);
-        $this->queryHelper = QueryHelper::init()
+        $this->queryHelper = QueryHelper::init();
     }
 
 }
