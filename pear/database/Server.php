@@ -18,8 +18,11 @@
 namespace loeye\database;
 
 use loeye\base\AppConfig;
+use loeye\base\Context;
 use loeye\base\DB;
 use loeye\base\Exception;
+use Psr\Cache\InvalidArgumentException;
+use Throwable;
 
 /**
  * Server
@@ -49,21 +52,17 @@ class Server
      */
     protected $appConfig;
 
-    public function __construct(AppConfig $appConfig, $type = null, $singleConnection = true)
+    /**
+     * Server constructor.
+     * @param Context $context
+     * @param null $type
+     * @param bool $singleConnection
+     * @throws InvalidArgumentException
+     * @throws Throwable
+     */
+    public function __construct(Context $context, $type = null, $singleConnection = true)
     {
-        if ($singleConnection) {
-            try {
-                $this->db = DB::getInstance($appConfig, $type, is_bool($singleConnection) ? null : (string)$singleConnection);
-            } catch (Exception $e) {
-                \loeye\base\Logger::exception($e);
-            }
-        } else {
-            try {
-                $this->db = new DB($appConfig, $type);
-            } catch (Exception $e) {
-                \loeye\base\Logger::exception($e);
-            }
-        }
+        $this->db = $singleConnection ? $context->db($type) : new DB($type);
     }
 
     /**

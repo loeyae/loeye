@@ -49,7 +49,7 @@ class CheckCrumbPlugin implements Plugin
         $crumbKey = Utils::checkNotEmpty($inputs, $this->_settingKey);
         if (isset($inputs['check_crumb']) && $inputs['check_crumb'] === 'true') {
             $crumb = $_REQUEST[$this->_crumbKey] ?? null;
-            if (Cookie::validateCrumb($crumbKey, $crumb) === false) {
+            if (Cookie::validateCrumb($context, $crumbKey, $crumb) === false) {
                 if (isset($inputs['output']) && $inputs['output']) {
                     $outputPlugin = new OutputPlugin();
                     $inputsData = ['format' => $inputs['output'],
@@ -62,7 +62,7 @@ class CheckCrumbPlugin implements Plugin
                 }
             }
         } else {
-            $crumb = Cookie::createCrumb($crumbKey);
+            $crumb = Cookie::createCrumb($context, $crumbKey);
             Utils::setContextData($crumb, $context, $inputs, __CLASS__ . '_crumb');
         }
     }

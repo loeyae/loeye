@@ -56,8 +56,8 @@ class RedirectPlugin implements Plugin
             if (filter_has_var(INPUT_GET, '_done')) {
                 $url = rawurldecode(filter_input(INPUT_GET, '_done', FILTER_SANITIZE_URL));
             } else if (filter_has_var(INPUT_COOKIE, '_done')) {
-                $url = rawurldecode(Cookie::getCookie('_done'));
-                Cookie::destructCookie('_done');
+                $url = rawurldecode(Cookie::getCookie($context,'_done'));
+                Cookie::destructCookie($context,'_done');
             }
         }
         $response = $context->getResponse();

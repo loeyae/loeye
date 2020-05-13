@@ -60,15 +60,12 @@ class SimpleCache
      *
      * @param string $type
      *
-     * @return self
+     * @return SimpleCache
      * @throws CacheException
      */
-    public static function getInstance($type = 'config'): self
+    public static function init($type = 'config'): SimpleCache
     {
-        if (!isset(self::$_instance[$type])) {
-            self::$_instance[$type] = new self($type);
-        }
-        return self::$_instance[$type];
+        return new self($type);
     }
 
     public function __destruct()

@@ -12,6 +12,7 @@ namespace <{$namespace}>;
 use <{$fullServerClass}>;
 use loeye\base\Context;
 use loeye\service\Handler;
+use loeye\database\QueryHelper;
 
 /**
  * <{$className}>
@@ -27,12 +28,18 @@ abstract class <{$className}> extends Handler
     protected $server;
 
     /**
+     * @var QueryHelper
+     */
+    protected $queryHelper;
+
+    /**
      * @inheritDoc
      */
     public function __construct(Context $context)
     {
         parent::__construct($context);
-        $this->server = new <{$serverClass}>($context->getAppConfig());
+        $this->server = new <{$serverClass}>($context);
+        $this->queryHelper = QueryHelper::init()
     }
 
 }

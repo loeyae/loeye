@@ -63,7 +63,7 @@ EOF;
 EOF;
 
     protected $postHandlerParameterStatementTemplate = <<<'EOF'
-        $<{$parameter}> = QueryHelper::getInstance()->parseQuery($req)'];
+        $<{$parameter}> = $this->queryHelper->parseQuery($req)'];
 EOF;
 
     protected $methodDocTemplate = <<<'EOF'
@@ -282,9 +282,6 @@ EOF;
                 [$parameterStatement, $parameter] = $this->generatePostHandlerParameter($parameters);
             }
             $useStatement = 'use ' . $className . ';';
-            if ($methodName !== 'get') {
-                $useStatement .= "\r\nuse loeye\database\QueryHelper;";
-            }
             $useStatement .= "\r\nuse loeye\\error\ValidateError;";
             $useStatement .= "\r\nuse Psr\Cache\InvalidArgumentException;";
             if ($methodName !== 'page') {
@@ -324,11 +321,11 @@ EOF;
     protected function generateAllHandlerParameter($entityName): array
     {
         $parameterStatement = <<<'EOF'
-        $criteria = QueryHelper::getInstance()->setDefaultHits(100)->parseQuery($req);
+        $criteria = $this->queryHelper->setDefaultHits(100)->parseQuery($req);
         $validateData = $this->validate($criteria, <{$entityName}>::class, $this->group);
-        $orderBy = QueryHelper::getInstance()->getOrderBy();
-        $start = QueryHelper::getInstance()->getStart();
-        $offset = QueryHelper::getInstance()->getOffset();
+        $orderBy = $this->queryHelper->getOrderBy();
+        $start = $this->queryHelper->getStart();
+        $offset = $this->queryHelper->getOffset();
 EOF;
         $parameter = '$validateData, $orderBy, $start, $offset';
         return [GeneratorUtils::generateCodeByTemplate(['entityName' => $entityName], $parameterStatement), $parameter];
@@ -374,9 +371,9 @@ EOF;
     protected function generateOneHandlerParameter($entityName): array
     {
         $parameterStatement = <<<'EOF'
-        $criteria = QueryHelper::getInstance()->parseQuery($req);
+        $criteria = $this->queryHelper->parseQuery($req);
         $validatedData = $this->validate($criteria, <{$entityName}>::class, $this->group);
-        $orderBy = QueryHelper::getInstance()->getOrderBy();
+        $orderBy = $this->queryHelper->getOrderBy();
 EOF;
         $parameter = '$validatedData, $orderBy';
         return [GeneratorUtils::generateCodeByTemplate(['entityName' => $entityName], $parameterStatement), $parameter];
@@ -391,7 +388,7 @@ EOF;
     protected function generatePageHandlerParameter($entityName): array
     {
         $parameterStatement = <<<'EOF'
-        $query = QueryHelper::getInstance()->parseQuery($req);
+        $query = $this->queryHelper->parseQuery($req);
         $expression = $this->getExpression($query);
         if ($expression) {
             $validatedData = $this->validate($this->expressionToArray($expression), <{$entityName}>::class, 
@@ -401,11 +398,11 @@ EOF;
         } else {
             $criteria = null;
         }
-        $start = QueryHelper::getInstance()->getStart() ?? 0;
-        $offset = QueryHelper::getInstance()->getOffset() ?? 10;
-        $orderBy = QueryHelper::getInstance()->getOrderBy();
-        $groupBy = QueryHelper::getInstance()->getGroupBy();
-        $having = QueryHelper::getInstance()->getHaving();
+        $start = $this->queryHelper->getStart() ?? 0;
+        $offset = $this->queryHelper->getOffset() ?? 10;
+        $orderBy = $this->queryHelper->getOrderBy();
+        $groupBy = $this->queryHelper->getGroupBy();
+        $having = $this->queryHelper->getHaving();
 EOF;
         $parameter = '$criteria, $start, $offset, $orderBy, $groupBy, $having';
         return [GeneratorUtils::generateCodeByTemplate(['entityName' => $entityName], $parameterStatement), $parameter];
@@ -421,7 +418,7 @@ EOF;
     {
         $parameterStatement = <<<'EOF'
         $id = $this->checkNotEmptyPathParameter('id');
-        $data = QueryHelper::getInstance()->parseQuery($req);
+        $data = $this->queryHelper->parseQuery($req);
         $validatedData = $this->validate(array_merge(['id' => $id], $data), <{$entityName}>::class, $this->group);
         $id = $validatedData['id'];
         unset($validatedData['id']);

@@ -47,7 +47,7 @@ abstract class <{$className}> implements Plugin
     public function process(Context $context, array $inputs)
     {
         $type = Utils::getContextData($context, $inputs, $this->dbId);
-        $this->server = new <{$serverClass}>($context->getAppConfig(), $type);
+        $this->server = new <{$serverClass}>($context, $type);
         $result = $this->execute($context, $inputs);
         Utils::filterResult($result, $data, $error);
         Utils::setContextData($data, $context, $inputs, $this->outDataKey);

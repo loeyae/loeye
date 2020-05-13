@@ -49,7 +49,7 @@ class GeneratorUtils
     public static function getNamespace($destDir): string
     {
         $dir = substr($destDir, strlen(PROJECT_DIR) + 1);
-        return PROJECT_NAMESPACE . '\\' . $dir;
+        return PROJECT_NAMESPACE . '\\' . str_replace('/', '\\', $dir);
     }
 
     /**

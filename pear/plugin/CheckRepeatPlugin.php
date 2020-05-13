@@ -46,12 +46,12 @@ class CheckRepeatPlugin implements Plugin
      */
     public function process(Context $context, array $inputs)
     {
-        $res   = print_r($_REQUEST, true);
+        $res   = print_r($context->getRequest()->getRequest(), true);
         $name  = md5($res);
-        $crumb = Cookie::createCrumb($name);
+        $crumb = Cookie::createCrumb($context, $name);
         $check = Utils::getData($inputs, 'check');
         if ($check === 'true') {
-            if (Cookie::getCookie($this->cookieName) === $crumb) {
+            if (Cookie::getCookie($context, $this->cookieName) === $crumb) {
                 $context->set('repeat_submit', true);
                 if (Utils::getData($inputs, 'throw_error') == true) {
                     $errmsg = 'repeated request';
@@ -75,9 +75,9 @@ class CheckRepeatPlugin implements Plugin
             }
         }
         if (Utils::getData($inputs, 'clear') == 'true') {
-            Cookie::destructCookie($this->cookieName);
+            Cookie::destructCookie($context, $this->cookieName);
         } else {
-            Cookie::setCookie($crumb);
+            Cookie::setCookie($context, $this->cookieName, $crumb);
         }
     }
 

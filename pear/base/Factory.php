@@ -144,10 +144,8 @@ class Factory
      * @param Response $response
      *
      * @return Render
-     * @throws ReflectionException
      */
-    public static function getRender($format, Response $response):
-    Render
+    public static function getRender($format, Response $response): Render
     {
         $renderFormat = array(
             RENDER_TYPE_HTML,

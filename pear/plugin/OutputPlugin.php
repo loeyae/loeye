@@ -85,9 +85,9 @@ class OutputPlugin implements Plugin
          }
         }
         if ($data instanceof Entity) {
-            $data = Utils::entity2array(Factory::db()->em(), $data);
+            $data = Utils::entity2array($context->db()->em(), $data);
         } elseif (is_array($data)) {
-            $data = Utils::entities2array(Factory::db()->em(), $data);
+            $data = Utils::entities2array($context->db()->em(), $data);
         }
         $redirect  = null;
         $routerKey = Utils::getData($inputs, 'router_key');

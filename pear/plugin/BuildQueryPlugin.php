@@ -17,9 +17,13 @@ use loeye\{base\Context,
     base\Utils,
     database\ExpressionFactory,
     database\QueryHelper,
+    error\DAOException,
     error\ValidateError,
     std\Plugin,
     validate\Validation};
+use Psr\Cache\InvalidArgumentException;
+use ReflectionException;
+use Throwable;
 use const loeye\base\PROJECT_SUCCESS;
 
 /**
@@ -60,10 +64,10 @@ class BuildQueryPlugin implements Plugin {
      * @param array $inputs inputs
      *
      * @return string|void
-     * @throws \Psr\Cache\InvalidArgumentException
-     * @throws \ReflectionException
-     * @throws \Throwable
-     * @throws \loeye\error\DAOException
+     * @throws InvalidArgumentException
+     * @throws ReflectionException
+     * @throws Throwable
+     * @throws DAOException
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function process(Context $context, array $inputs)
@@ -96,7 +100,7 @@ class BuildQueryPlugin implements Plugin {
                             return PROJECT_SUCCESS;
                         }
                         $filteredCompositeExpression = ExpressionFactory::filter($expression,
-                            Utils::entity2array(Factory::db()->em(), $validatedData));
+                            Utils::entity2array($context->db()->em(), $validatedData));
                         $query = ExpressionFactory::toCriteria($filteredCompositeExpression);
                     } else {
                         $query = ExpressionFactory::toCriteria($expression);
@@ -112,7 +116,7 @@ class BuildQueryPlugin implements Plugin {
                 if ($validate) {
                     try {
                         $entity = Validation::validate($query, $validate, [], $this->group);
-                        $validated = Utils::entity2array(Factory::db()->em(), $entity);
+                        $validated = Utils::entity2array($context->db()->em(), $entity);
                         $query = array_filter($validated, static function ($item) {
                             return $item !== null;
                         });

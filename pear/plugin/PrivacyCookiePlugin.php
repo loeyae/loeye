@@ -49,19 +49,19 @@ class PrivacyCookiePlugin implements Plugin
                 if (is_numeric($key)) {
                     continue;
                 }
-                Cookie::setLoeyeCookie($key, $value);
+                Cookie::setLoeyeCookie($context, $key, $value);
             }
         }
         $key = Utils::getData($inputs, 'get', null);
         $data = array();
         if (empty($key)) {
-            $cookie = Cookie::getLoeyeCookie() or $cookie = array();
+            $cookie = Cookie::getLoeyeCookie($context) or $cookie = array();
             foreach ($cookie as $key => $value) {
                 $data[$key] = $value;
             }
         } else {
             foreach ((array)$key as $item) {
-                $data[$item] = Cookie::getLoeyeCookie($item);
+                $data[$item] = Cookie::getLoeyeCookie($context, $item);
             }
         }
         Utils::setContextData($data, $context, $inputs, $this->outKey);
