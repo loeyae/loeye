@@ -159,7 +159,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
             throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);
         }
         $prepare = $object->prepare();
-        if ($prepare) {
+        if ($prepare === true) {
             $refMethod = new ReflectionMethod($object, $action);
             $refMethod->invoke($object);
         }
