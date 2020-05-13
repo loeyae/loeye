@@ -19,6 +19,7 @@ namespace loeye\std;
 
 use loeye\base\Context;
 use loeye\base\Exception;
+use loeye\base\Factory;
 use const loeye\base\RENDER_TYPE_JSON;
 
 /**
@@ -56,6 +57,34 @@ abstract class Controller
      * indexAction
      */
     abstract public function IndexAction();
+
+    /**
+     * @param $data
+     * @param int $code
+     * @param string $reason
+     *
+     * @return Render
+     */
+    protected function json($data, $code = 200, $reason = 'Ok'): Render
+    {
+        return $this->response(RENDER_TYPE_JSON, $data, $code, $reason);
+    }
+
+    /**
+     * @param $type
+     * @param $data
+     * @param int $code
+     * @param string $reason
+     *
+     * @return Render
+     */
+    protected function response($type, $data, $code = 200, $reason = 'Ok'): Render
+    {
+        $this->context->getResponse()->setStatusCode($code);
+        $this->context->getResponse()->setReason($reason);
+        $this->context->getResponse()->addOutput($data);
+        return Factory::getRender($type, $this->context->getResponse());
+    }
 
     /**
      * render

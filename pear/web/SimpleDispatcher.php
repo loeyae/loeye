@@ -20,7 +20,6 @@ namespace loeye\web;
 use loeye\base\Exception;
 use loeye\base\UrlManager;
 use loeye\base\Utils;
-use loeye\Centra;
 use loeye\error\ResourceException;
 use loeye\lib\ModuleParse;
 use loeye\std\Controller;
@@ -112,10 +111,10 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
     }
 
     /**
-     * @param Controller $object
+     * @param mixed $object
      * @return array
      */
-    protected function getView(Controller $object): array
+    protected function getView($object): array
     {
         $view = [];
         if (!$object) {
@@ -135,7 +134,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
      * @throws Exception
      * @throws ReflectionException
      */
-    protected function executeModule(): Controller
+    protected function executeModule()
     {
         $controllerNamespace = $this->context->getAppConfig()->getSetting('controller_namespace', '');
         if (!$controllerNamespace) {
@@ -161,9 +160,9 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
         $prepare = $object->prepare();
         if ($prepare === true) {
             $refMethod = new ReflectionMethod($object, $action);
-            $refMethod->invoke($object);
+            return $refMethod->invoke($object);
         }
-        return $object;
+        return $prepare;
     }
 
     /**

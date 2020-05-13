@@ -22,6 +22,7 @@ use loeye\base\AppConfig;
 use loeye\base\Configuration;
 use loeye\base\Exception;
 use loeye\base\Factory;
+use loeye\Centra;
 use loeye\config\validate\DeltaConfigDefinition;
 use loeye\config\validate\RulesetConfigDefinition;
 use loeye\error\BusinessException;
@@ -80,6 +81,15 @@ class Validator
         $definition = [new RulesetConfigDefinition(), new DeltaConfigDefinition()];
         $this->config = $this->bundleConfig($definition, $bundle);
         $this->_report = array('has_error' => false, 'error_message' => []);
+    }
+
+    /**
+     * @param $bundle
+     * @return Validator
+     */
+    public static function init($bundle): Validator
+    {
+        return new self(Centra::$appConfig, $bundle);
     }
 
     /**

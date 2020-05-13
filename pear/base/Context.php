@@ -142,7 +142,7 @@ class Context
      */
     public function db($type = 'default'): DB
     {
-        if (!$this->db[$type]) {
+        if (!isset($this->db[$type])) {
             $this->db[$type] = DB::init($type);
         }
         return $this->db[$type];
@@ -155,7 +155,7 @@ class Context
     public function cache($type = null): Cache
     {
         $sType = $type ?? 'default';
-        if (!$this->cache[$sType]) {
+        if (!isset($this->cache[$sType])) {
             $this->cache[$sType] = Cache::init($type);
         }
         return $this->cache[$sType];
