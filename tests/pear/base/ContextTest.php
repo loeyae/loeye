@@ -152,12 +152,12 @@ class ContextTest extends TestCase
         $context->setRequest(new Request());
         $this->assertInstanceOf(\loeye\std\Request::class, $context->getRequest());
         $this->assertNull($context->getResponse());
-        $context->setResponse(new Response());
+        $context->setResponse(new Response(new Request()));
         $this->assertInstanceOf(\loeye\std\Response::class, $context->getResponse());
         $this->assertNull($context->getRouter());
-        $context->setRouter(new Router());
+        $context->setRouter(new Router(new Request()));
         $this->assertInstanceOf(\loeye\std\Router::class, $context->getRouter());
-        $context->setRouter(new UrlManager($context->getAppConfig()));
+        $context->setRouter(new UrlManager(new Request(), ['rewrite'=> ['/' => '*']]));
         $this->assertInstanceOf(\loeye\std\Router::class, $context->getRouter());
         $this->assertNull($context->getTemplate());
         $context->setTemplate(new Template($context));

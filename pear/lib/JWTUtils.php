@@ -210,4 +210,15 @@ class JWTUtils
         }
         return $this->verifyToken($token);
     }
+
+    /**
+     * init
+     *
+     * @param Request $request
+     * @return JWTUtils
+     */
+    public static function init(Request $request)
+    {
+        return new self($request);
+    }
 }

@@ -16,8 +16,10 @@
 
 namespace loeye\unit\base;
 
+use loeye\base\AppConfig;
 use loeye\base\Cache;
 use loeye\base\Exception;
+use loeye\Centra;
 use loeye\unit\TestCase;
 use ReflectionException;
 use Symfony\Component\Cache\Adapter\ApcuAdapter;
@@ -36,6 +38,7 @@ class CacheTest extends TestCase
     protected function setUp()
     {
         $_ENV['LOEYE_PROFILE_ACTIVE'] = 'dev';
+        Centra::init();
         parent::setUp();
         $cacheDir = RUNTIME_CACHE_DIR .D_S.'app.file';
         $fileSystem = new Filesystem();
@@ -59,7 +62,7 @@ class CacheTest extends TestCase
      */
     public function testSetMulti()
     {
-        $cache = Cache::getInstance($this->appConfig);
+        $cache = Cache::init();
         $time = time();
         $cache->setMulti(['unit' => 'test', 'namespace' => 'unit', 'time' => $time]);
         $cacheItems = $cache->getMulti(['unit', 'namespace', 'time', 'test']);
@@ -85,7 +88,7 @@ class CacheTest extends TestCase
      */
     public function testSet()
     {
-        $cache = Cache::getInstance($this->appConfig);
+        $cache = Cache::init();
         $time = time();
         $cache->set('time', $time);
         $this->assertTrue($cache->has('time'));
@@ -102,7 +105,7 @@ class CacheTest extends TestCase
      */
     public function testAppend()
     {
-        $cache = Cache::getInstance($this->appConfig);
+        $cache = Cache::init();
         $cache->set('sample', ['now']);
         $this->assertContains('now', $cache->get('sample'));
         $this->assertNotContains('time', $cache->get('sample'));
@@ -126,33 +129,33 @@ class CacheTest extends TestCase
      */
     public function testGetInstance()
     {
-        $cache = Cache::getInstance($this->appConfig);
+        $cache = Cache::init();
         $this->assertInstanceOf(FilesystemAdapter::class, $this->getAdapter($cache));
         unset($cache);
         if (function_exists('apcu_add')) {
-            $cache = Cache::getInstance($this->appConfig, Cache::CACHE_TYPE_APC);
+            $cache = Cache::init(Cache::CACHE_TYPE_APC);
             $this->assertInstanceOf(ApcuAdapter::class, $this->getAdapter($cache));
             unset($cache);
         }
-        $cache = Cache::getInstance($this->appConfig, Cache::CACHE_TYPE_PHP_ARRAY);
+        $cache = Cache::init(Cache::CACHE_TYPE_PHP_ARRAY);
         $this->assertInstanceOf(PhpArrayAdapter::class, $this->getAdapter($cache));
         unset($cache);
-        $cache = Cache::getInstance($this->appConfig, Cache::CACHE_TYPE_PHP_FILE);
+        $cache = Cache::init(Cache::CACHE_TYPE_PHP_FILE);
         $this->assertInstanceOf(PhpFilesAdapter::class, $this->getAdapter($cache));
         unset($cache);
-        $cache = Cache::init($this->appConfig, Cache::CACHE_TYPE_ARRAY);
+        $cache = Cache::init( Cache::CACHE_TYPE_ARRAY);
         $this->assertInstanceOf(ArrayAdapter::class, $this->getAdapter($cache));
         unset($cache);
         $stub = $this->createMock(Cache::class);
         if (class_exists('\\Memcached')) {
             $stub->expects($this->any())->method('getMemcachedClient')->willReturn(new \Memcached());
-            $cache = Cache::getInstance($this->appConfig, Cache::CACHE_TYPE_MEMCACHED);
+            $cache = new $stub(Cache::CACHE_TYPE_MEMCACHED);
             $this->assertInstanceOf(MemcachedAdapter::class, $this->getAdapter($cache));
             unset($cache);
         }
         if (class_exists('\\Redis')) {
             $stub->expects($this->any())->method('getRedisClient')->willReturn(new \Redis());
-            $cache = new $stub($this->appConfig, Cache::CACHE_TYPE_REDIS);
+            $cache = new $stub(Cache::CACHE_TYPE_REDIS);
             $this->assertInstanceOf(RedisAdapter::class, $this->getAdapter($cache));
             unset($cache);
         }
@@ -173,7 +176,7 @@ class CacheTest extends TestCase
      */
     public function test__call()
     {
-        $cache = Cache::getInstance($this->appConfig);
+        $cache = Cache::init();
         $ret = $cache->commit();
         $this->assertTrue($ret);
         $ret = $cache->test();

@@ -11,6 +11,7 @@
 namespace loeye\unit\base;
 
 use loeye\base\UrlManager;
+use loeye\std\Request;
 use PHPUnit\Framework\TestCase;
 
 class UrlManagerTest extends TestCase
@@ -24,7 +25,7 @@ class UrlManagerTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
-        $this->router = new UrlManager(
+        $this->router = new UrlManager(new Request(),
             ['/<module:\w+>/<controller:\w+>/<action:\w+>/<id:\w+>' => '{module}/{controller}/{action}',
             '/<module:\w+>/<controller:\w+>/<action:\w+>' => '{module}/{controller}/{action}',
             '/<module:\w+>/<controller:\w+>/' => '{module}/{controller}/index',

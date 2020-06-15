@@ -5,6 +5,7 @@ namespace loeye\unit\base;
 use loeye\base\Exception;
 use loeye\base\Router;
 use loeye\error\BusinessException;
+use loeye\service\Request;
 use loeye\unit\TestCase;
 
 /**
@@ -25,7 +26,7 @@ class RouterTest extends TestCase
      */
     protected function setUp()
     {
-        $this->object = new Router();
+        $this->object = new Router(new Request());
     }
 
     /**

@@ -25,6 +25,7 @@ use loeye\Centra;
 use loeye\client\ParallelClientManager;
 use loeye\models\entity\Test;
 use loeye\render\JsonRender;
+use loeye\render\SegmentRender;
 use loeye\web\Request;
 use loeye\web\Template;
 use PHPUnit\Framework\TestCase;
@@ -99,18 +100,18 @@ class UtilsTest extends TestCase
      */
     public function testPageCache()
     {
-        $appConfig = new AppConfig();
-        Cache::getInstance($appConfig, 'templates')->delete('loeye.login');
-        $this->assertNull(Utils::getPageCache($appConfig, 'loeye.login'));
-        Utils::setPageCache($appConfig, 'loeye.login', 'test');
-        $this->assertEquals('test', Utils::getPageCache($appConfig, 'loeye.login'));
-        Cache::getInstance($appConfig, 'templates')->delete('loeye.login');
-        Utils::setPageCache($appConfig, 'loeye.login', 'test', 0);
-        $this->assertEquals(null, Utils::getPageCache($appConfig, 'loeye.login'));
-        Cache::getInstance($appConfig, 'templates')->delete('loeye.login?a=1');
-        Utils::setPageCache($appConfig, 'loeye.login', 'test', 1, ['a' => 1]);
-        $this->assertEquals('test', Utils::getPageCache($appConfig, 'loeye.login', ['a' => 1]));
-        Cache::getInstance($appConfig, 'templates')->delete('loeye.login?a=1');
+        Centra::init();
+        Cache::init('templates')->delete('loeye.login');
+        $this->assertNull(Utils::getPageCache('loeye.login'));
+        Utils::setPageCache('loeye.login', 'test');
+        $this->assertEquals('test', Utils::getPageCache('loeye.login'));
+        Cache::init('templates')->delete('loeye.login');
+        Utils::setPageCache('loeye.login', 'test', 0);
+        $this->assertEquals(null, Utils::getPageCache('loeye.login'));
+        Cache::init('templates')->delete('loeye.login?a=1');
+        Utils::setPageCache('loeye.login', 'test', 1, ['a' => 1]);
+        $this->assertEquals('test', Utils::getPageCache('loeye.login', ['a' => 1]));
+        Cache::init('templates')->delete('loeye.login?a=1');
     }
 
     /**
@@ -234,7 +235,7 @@ class UtilsTest extends TestCase
     {
         Centra::$appConfig = new AppConfig();
         $render = Utils::includeModule('loeyae.include.output');
-        $this->assertInstanceOf(JsonRender::class, $render);
+        $this->assertInstanceOf(SegmentRender::class, $render);
         $this->assertEquals(200, $render->code());
     }
 
@@ -265,13 +266,14 @@ class UtilsTest extends TestCase
         $this->assertRegExp('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/', $date);
     }
 
-    /**
-     * @covers \loeye\base\Utils
-     */
-    public function testAsciiToUtf8()
-    {
-        $string = Utils::asciiToUtf8('');
-    }
+//    /**
+//     * @covers \loeye\base\Utils
+//     */
+//    public function testAsciiToUtf8()
+//    {
+//        $string = Utils::asciiToUtf8('');
+//
+//    }
 
     /**
      * @covers \loeye\base\Utils
@@ -299,6 +301,7 @@ class UtilsTest extends TestCase
 
     /**
      * @covers \loeye\base\Utils
+     * @covers \loeye\base\Context
      */
     public function testLogContextTrace()
     {
@@ -430,7 +433,7 @@ class UtilsTest extends TestCase
     public function testIncludeView()
     {
         $context = new Context();
-        $context->setRouter(new Router());
+        $context->setRouter(new Router(new Request()));
         Utils::includeView('default.php', ['context' => $context]);
         $view = $this->getActualOutput();
         ob_clean();
@@ -464,7 +467,8 @@ class UtilsTest extends TestCase
         $test = new Test();
         $test->setId(1);
         $test->setName('test');
-        $data = Utils::entity2array(DB::getInstance(new AppConfig())->em(), $test);
+        Centra::init();
+        $data = Utils::entity2array(DB::init()->em(), $test);
         $this->assertNotNull($data);
         $this->assertArrayHasKey('id', $data);
         $this->assertArrayHasKey('name', $data);
@@ -555,7 +559,8 @@ class UtilsTest extends TestCase
         $test3->setId(3);
         $test3->setName('name3');
         $source = [$test1, $test2, $test3];
-        $db = DB::getInstance(new AppConfig());
+        Centra::init();
+        $db = DB::init();
         $target = Utils::entities2array($db->em(), $source);
         $this->assertIsArray($target);
         $this->assertCount(3, $target);
@@ -570,8 +575,8 @@ class UtilsTest extends TestCase
     public function testPaginator2array()
     {
         $_ENV['LOEYE_PROFILE_ACTIVE'] = 'dev';
-        $appConfig = new AppConfig();
-        $db = DB::getInstance($appConfig);
+        Centra::init();
+        $db = DB::init();
         $qb = $db->createNativeQuery('CREATE TABLE test (
             `id` int(10) NOT NULL,
             `name` varchar(64) NOT NULL,
@@ -646,6 +651,7 @@ class UtilsTest extends TestCase
 
     /**
      * @covers \loeye\base\Utils
+     * @covers \loeye\client\ParallelClientManager
      */
     public function testAddParallelClient()
     {

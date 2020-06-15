@@ -18,7 +18,7 @@ use loeye\client\Response;
 class SampleClient extends Client
 {
 
-    public function getIp($ret = false)
+    public function getIp(&$ret = false)
     {
         $path = '/ip';
         $req = new Request();

@@ -46,6 +46,7 @@ abstract class Server
     /**
      * getDispatcher
      *
+     * @param Context $context
      * @return Dispatcher
      */
     protected function getDispatcher(Context $context): Dispatcher

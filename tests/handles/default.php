@@ -8,5 +8,5 @@
  * @version 2020/5/3 12:09
  */
 if ($context instanceof \loeye\base\Context) {
-    $context->setRouter(new \loeye\base\Router());
+    $context->setRouter(new \loeye\base\Router(new \loeye\web\Request()));
 }

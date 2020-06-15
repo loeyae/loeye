@@ -23,8 +23,6 @@ class JWTUtilsTest extends TestCase
     {
         parent::setUpBeforeClass();
         Centra::$appConfig = new AppConfig();
-        Centra::$request = new Request();
-        Centra::$request->setServer($_SERVER);
     }
 
     /**
@@ -32,8 +30,8 @@ class JWTUtilsTest extends TestCase
      */
     public function testToken()
     {
-        $jwt = JWTUtils::getInstance()->createToken(['uid' => 1, 'name' => 'test']);
-        $payload = JWTUtils::getInstance()->verifyToken($jwt);
+        $jwt = JWTUtils::init(new \loeye\std\Request())->createToken(['uid' => 1, 'name' => 'test']);
+        $payload = JWTUtils::init(new \loeye\std\Request())->verifyToken($jwt);
         $this->assertEquals(1, $payload->uid);
         $this->assertEquals('test', $payload->name);
     }
@@ -44,15 +42,16 @@ class JWTUtilsTest extends TestCase
      */
     public function testTokenWithExpired()
     {
-        $jwt = JWTUtils::getInstance()->setLifeTime(-1)->createToken(['uid' => 1, 'name' => 'test']);
-        JWTUtils::getInstance()->verifyToken($jwt);
+        $jwt = JWTUtils::init(new Request())->setLifeTime(-1)->createToken(['uid' => 1, 'name' => 'test']);
+        JWTUtils::init(new Request())->verifyToken($jwt);
     }
 
     public function testVerifyToken()
     {
-        $jwt = JWTUtils::getInstance()->createToken(['uid' => 1, 'name' => 'test']);
-        Centra::$request->addHeader('Authorization', $jwt);
-        $payload = JWTUtils::getInstance()->verifyTokenByHeader();
+        $request = new Request();
+        $jwt = JWTUtils::init($request)->createToken(['uid' => 1, 'name' => 'test']);
+        $request->addHeader('Authorization', $jwt);
+        $payload = JWTUtils::init($request)->verifyTokenByHeader();
         $this->assertEquals(1, $payload->uid);
         $this->assertEquals('test', $payload->name);
         

@@ -30,19 +30,19 @@ class ExceptionTest extends TestCase
     public function testExceptionHandler()
     {
         $context = new Context();
-        $context->setRequest(new \loeye\web\Request());
-        $context->setResponse(new Response());
+        $context->setRequest(new Request());
+        $context->setResponse(new Response($context->getRequest()));
         $exc = new \Exception('error message');
         $render = ExceptionHandler($exc, $context);
         $this->assertInstanceOf(SegmentRender::class, $render);
-        $context->setResponse(new Response());
+        $context->setResponse(new Response(new Request()));
         $moduleDefinition = $this->createMock(ModuleDefinition::class);
         $moduleDefinition->method('getSetting')->willReturn(['error_page' => ['default' =>
             'DefaultError.php']]);
         $context->setModule($moduleDefinition);
         $render = ExceptionHandler(new Exception(), $context);
         $this->assertStringContainsString('<title>Error Page</title>', $render->output());
-        $context->setResponse(new Response());
+        $context->setResponse(new Response(new Request()));
         $moduleDefinition = $this->createMock(ModuleDefinition::class);
         $moduleDefinition->method('getSetting')->willReturn(['error_page' => ['default' =>
             'DefaultError.php', 500 => 'Error500.php']]);
@@ -53,7 +53,7 @@ class ExceptionTest extends TestCase
         $this->assertInstanceOf(SegmentRender::class, $render);
         $request = $this->createMock(Request::class);
         $request->method('getFormatType')->willReturn('json');
-        $context->setResponse(new Response());
+        $context->setResponse(new Response(new Request()));
         $context->setRequest($request);
         $render = ExceptionHandler($exc, $context);
         $this->assertInstanceOf(JsonRender::class, $render);
@@ -64,7 +64,7 @@ class ExceptionTest extends TestCase
         $request1 = $this->createMock(Request::class);
         $request1->method('getFormatType')->willReturn('xml');
         $context->setRequest($request1);
-        $context->setResponse(new Response());
+        $context->setResponse(new Response(new Request()));
         $render = ExceptionHandler($exc, $context);
         $this->assertInstanceOf(XmlRender::class, $render);
     }

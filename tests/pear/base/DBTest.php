@@ -22,6 +22,7 @@ use Doctrine\ORM\QueryBuilder;
 use loeye\base\AppConfig;
 use loeye\base\DB;
 use loeye\base\Exception;
+use loeye\Centra;
 use loeye\models\repository\TestRepository;
 use loeye\unit\TestCase;
 use loeye\models\entity\Test;
@@ -29,9 +30,15 @@ use loeye\models\entity\Test;
 class DBTest extends TestCase
 {
 
+    protected function setUp()
+    {
+        Centra::init();
+        parent::setUp();
+    }
+
     protected function tearDown()
     {
-        $db = DB::getInstance($this->appConfig);
+        $db = DB::init();
         try {
             $qb = $db->createNativeQuery('DROP TABLE test');
             $qb->execute();
@@ -47,13 +54,13 @@ class DBTest extends TestCase
      */
     public function testInstance()
     {
-        $db = DB::getInstance($this->appConfig);
-        $db1 = DB::getInstance($this->appConfig);
-        $this->assertSame($db, $db1);
-        $db2 = new DB($this->appConfig);
+        $db = DB::init();
+        $db1 = DB::init();
+        $this->assertNotSame($db, $db1);
+        $db2 = new DB();
         $this->assertNotSame($db, $db2);
-        $db3 = DB::getInstance($this->appConfig, 'default');
-        $this->assertSame($db, $db3);
+        $db3 = DB::init('default');
+        $this->assertNotSame($db, $db3);
     }
 
     /**
@@ -63,7 +70,7 @@ class DBTest extends TestCase
      */
     public function testInstanceWithNoExistsType()
     {
-        $db = DB::getInstance($this->appConfig, 'mysql');
+        $db = DB::init('mysql');
     }
 
     /**
@@ -73,7 +80,7 @@ class DBTest extends TestCase
      */
     public function testInstancewthBlankType()
     {
-        $db = DB::getInstance($this->appConfig, '');
+        $db = DB::init('');
     }
 
     /**
@@ -82,7 +89,7 @@ class DBTest extends TestCase
      */
     public function testEntityManager()
     {
-        $db = DB::getInstance($this->appConfig);
+        $db = DB::init();
         $em = $db->em();
         $entityManager = $db->entityManager();
         $this->assertSame($entityManager, $em);
@@ -96,7 +103,7 @@ class DBTest extends TestCase
      */
     public function testQueryBuilder()
     {
-        $db = DB::getInstance($this->appConfig);
+        $db = DB::init();
         $queryBuilder = $db->createQueryBuilder();
         $qb = $db->qb();
         $this->assertEquals($qb, $queryBuilder);
@@ -113,8 +120,8 @@ class DBTest extends TestCase
     private function initDB()
     {
         $_ENV['LOEYE_PROFILE_ACTIVE'] = 'dev';
-        $appConfig = new AppConfig();
-        $db = DB::getInstance($appConfig);
+        Centra::$appConfig = new AppConfig();
+        $db = DB::init();
         $qb = $db->createNativeQuery('CREATE TABLE test (
             `id` int(10) NOT NULL,
             `name` varchar(64) NOT NULL,
@@ -143,7 +150,7 @@ class DBTest extends TestCase
      */
     public function testRepository()
     {
-        $db = DB::getInstance($this->appConfig);
+        $db = DB::init();
         $object = $db->repository(Test::class);
         $this->assertInstanceOf(TestRepository::class, $object);
     }

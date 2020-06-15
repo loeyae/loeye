@@ -57,19 +57,12 @@ class FactoryTest extends TestCase
      */
     public function testGetRender()
     {
-        $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_HTML, new Response()));
-        $this->assertInstanceOf(HtmlRender::class, Factory::getRender(RENDER_TYPE_HTML, new Response()));
-        $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_JSON, new Response()));
-        $this->assertInstanceOf(JsonRender::class, Factory::getRender(RENDER_TYPE_JSON, new Response()));
-        $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_XML, new Response()));
-        Centra::$response = new Response();
-        $this->assertInstanceOf(XmlRender::class, Factory::getRender(RENDER_TYPE_XML));
-        $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_SEGMENT));
-        $this->assertInstanceOf(SegmentRender::class, Factory::getRender(RENDER_TYPE_SEGMENT));
-        $this->assertInstanceOf(Render::class, Factory::getRender());
-        $this->assertInstanceOf(SegmentRender::class, Factory::getRender());
-        $this->assertInstanceOf(Render::class, Factory::getRender('test'));
-        $this->assertInstanceOf(SegmentRender::class, Factory::getRender('test'));
+        $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_HTML, new Response
+        (new Request())));
+        $this->assertInstanceOf(HtmlRender::class, Factory::getRender(RENDER_TYPE_HTML, new Response(new Request())));
+        $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_JSON, new Response(new Request())));
+        $this->assertInstanceOf(JsonRender::class, Factory::getRender(RENDER_TYPE_JSON, new Response(new Request())));
+        $this->assertInstanceOf(Render::class, Factory::getRender(RENDER_TYPE_XML, new Response(new Request())));
     }
 
     /**
@@ -171,7 +164,7 @@ class FactoryTest extends TestCase
         $db1 = Factory::db();
         $this->assertInstanceOf(DB::class, $db);
         $this->assertInstanceOf(DB::class, $db1);
-        $this->assertSame($db, $db1);
+        $this->assertNotSame($db, $db1);
     }
 
     /**
@@ -227,7 +220,7 @@ class FactoryTest extends TestCase
         $cache1 = Factory::cache();
         $this->assertInstanceOf(Cache::class, $cache);
         $this->assertInstanceOf(Cache::class, $cache1);
-        $this->assertSame($cache, $cache1);
+        $this->assertNotSame($cache, $cache1);
     }
 
     /**
