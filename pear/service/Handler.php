@@ -346,12 +346,16 @@ abstract class Handler extends Resource
     {
         if ($entity) {
             try {
-                $entityObject = Validation::validate($data ?? [], $entity, $this->getFilterRule(),
-                    $group);
-                $validated = Utils::entity2array($this->context->db()->em(), $entityObject);
-                return array_filter($validated, static function ($item) {
-                    return $item !== null;
-                });
+                $entityObject = Utils::source2entity($data ?? [], $entity);
+                $validator = Validation::createValidator();
+                $violationList = $validator->validate($entityObject, null, $group);
+                if ($violationList->count() > 0) {
+                    $validateError = Validator::buildErrmsg($violationList, Validator::initTranslator
+                    ($this->context->getAppConfig()));
+                    throw new ValidateError($validateError, ValidateError::DEFAULT_ERROR_MSG,
+                        ValidateError::DEFAULT_ERROR_CODE);
+                }
+                return Utils::entity2array(Factory::db()->em(), $entityObject);
             } catch (ReflectionException $e) {
                 $validateError = ['Entity Class Not Exists.'];
                 throw new ValidateError($validateError, ValidateError::DEFAULT_ERROR_MSG,

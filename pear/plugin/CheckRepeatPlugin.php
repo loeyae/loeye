@@ -46,7 +46,7 @@ class CheckRepeatPlugin implements Plugin
      */
     public function process(Context $context, array $inputs)
     {
-        $res   = print_r($context->getRequest()->getRequest(), true);
+        $res   = print_r($context->getRequest()->request, true);
         $name  = md5($res);
         $crumb = Cookie::createCrumb($context, $name);
         $check = Utils::getData($inputs, 'check');

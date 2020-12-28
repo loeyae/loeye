@@ -33,7 +33,7 @@ class Factory
      */
     public static function create(): Server
     {
-        $appConfig = new AppConfig();
+        $appConfig = \loeye\base\Factory::appConfig();
         Centra::$appConfig = $appConfig;
         $type = $appConfig->getSetting('server.type', self::SERVER_TYPE_SWOOLE);
         if ($type !== self::SERVER_TYPE_REACT && SwooleServer::isSupported()) {

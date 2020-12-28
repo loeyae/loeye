@@ -23,6 +23,7 @@ use Doctrine\ORM\Tools\DisconnectedClassMetadataFactory;
 use Doctrine\ORM\Version;
 use loeye\base\AppConfig;
 use loeye\base\DB;
+use loeye\base\Factory;
 use loeye\commands\helper\GeneratorUtils;
 use loeye\console\Command;
 use Symfony\Component\Console\Helper\HelperSet;
@@ -58,7 +59,7 @@ class GenerateEntity extends Command
         define('LOEYE_MODE', LOEYE_MODE_DEV);
         $ui = new SymfonyStyle($input, $output);
         $dbId = $input->getOption('db-id');
-        $appConfig     = new AppConfig();
+        $appConfig     = Factory::appConfig();
         $dbKey         = $appConfig->getSetting('application.database.' . $dbId) ?? 'default';
         $db            = DB::init($dbKey);
         $entityManager = $db->em();

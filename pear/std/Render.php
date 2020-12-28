@@ -66,7 +66,7 @@ abstract class Render
      */
     public function cookie(): ?array
     {
-        return $this->response->getCookie();
+        return $this->response->headers->getCookies();
     }
 
     /**

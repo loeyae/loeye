@@ -50,7 +50,7 @@ class <{$className}> extends Client
                     return $result;
             }
         } else {
-            $req_url = $resp->getRequest()->getUri();
+            $req_url = $resp->getRequest()->getRequestUri();
             if ($code !== LOEYE_REST_STATUS_OK) {
                 $errmsg = $result['status']['message'];
                 $msg = sprintf(

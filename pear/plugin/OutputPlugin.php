@@ -18,6 +18,7 @@
 namespace loeye\plugin;
 
 use loeye\base\{Context, Exception, Factory, Utils};
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use loeye\database\Entity;
 use loeye\error\BusinessException;
 use loeye\error\ValidateError;
@@ -60,7 +61,7 @@ class OutputPlugin implements Plugin
      */
     public function process(Context $context, array $inputs)
     {
-        $format     = Utils::getData($inputs, 'format', $context->getResponse()->getFormat());
+        $format     = Utils::getData($inputs, 'format', $context->getFormat( 'json'));;
         $data       = array();
         $outDataKey = Utils::getData($inputs, $this->dataKey, null);
         if ($outDataKey === null) {
@@ -68,26 +69,29 @@ class OutputPlugin implements Plugin
         }
         if (!empty($outDataKey)) {
             $data = Utils::getData($context, $outDataKey);
-        } 
-        if (empty($data) ){
-         if (isset($inputs['error'])) {
-             $data = Utils::getErrors($context, $inputs, $inputs['error']);
-             if ($data) {
-                 $this->responseCode = LOEYE_REST_STATUS_BAD_REQUEST;
-                 $this->responseMsg = 'Internal Error';
-             }
-         } elseif (isset($inputs['validate_error'])) {
-             $data = $context->getErrors($inputs['validate_error']);
-             if ($data) {
-                 $this->responseCode = ValidateError::DEFAULT_ERROR_CODE;
-                 $this->responseMsg = ValidateError::DEFAULT_ERROR_MSG;
-             }
-         }
+        }
+        if (empty($data) && isset($inputs['error'])) {
+            $errors = Utils::getErrors($context, $inputs, $inputs['error']);
+            if (!empty($errors) && $error = current($errors)) {
+                $this->reponseCode = LOEYE_REST_STATUS_BAD_REQUEST;
+                $this->responseMsg = 'error';
+                if ($error instanceof ValidateError) {
+                    $this->reponseCode = $error->getCode();
+                    $this->responseMsg = $error->getMessage();
+                    $data = $error->getValidateMessage();
+                } elseif ($error instanceof \Throwable) {
+                    $this->responseMsg = $error->getMessage();
+                } else {
+                    $this->responseMsg = $error;
+                }
+            }
         }
         if ($data instanceof Entity) {
-            $data = Utils::entity2array($context->db()->em(), $data);
+            $data = Utils::entity2array(Factory::db()->em(), $data);
+        } elseif ($data instanceof  Paginator) {
+            $data = Utils::paginator2array(Factory::db()->em(), $data);
         } elseif (is_array($data)) {
-            $data = Utils::entities2array($context->db()->em(), $data);
+            $data = Utils::entities2array(Factory::db()->em(), $data);
         }
         $redirect  = null;
         $routerKey = Utils::getData($inputs, 'router_key');

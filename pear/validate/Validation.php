@@ -19,10 +19,8 @@ namespace loeye\validate;
 
 use Generator;
 use loeye\base\Utils;
-use loeye\database\Entity;
 use loeye\error\ValidateError;
 use ReflectionException;
-use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Validator\ValidatorBuilder;
 

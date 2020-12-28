@@ -371,6 +371,22 @@ EOF;
     }
 
     /**
+     * appConfig
+     *
+     * @staticvar \loeye\base\AppConfig $appConfig instance of AppConfig
+     *
+     * @return AppConfig
+     */
+    public static function appConfig(): AppConfig
+    {
+        static $appConfig = null;
+        if (null === $appConfig) {
+            $appConfig = new AppConfig();
+        }
+        return $appConfig;
+    }
+
+    /**
      *
      * @staticvar array  $db   array of DB's instance
      * @param string $type
@@ -378,8 +394,11 @@ EOF;
      * @throws Throwable
      * @throws InvalidArgumentException
      */
-    public static function db($type = 'default'): DB
+    public static function db($type = null): DB
     {
+        if (!$type) {
+            $type = self::appConfig()->getSetting('application.database.default', 'default');
+        }
         return DB::init($type);
     }
 

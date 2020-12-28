@@ -35,31 +35,29 @@ use Throwable;
 function ExceptionHandler(Throwable $exc, Context $context): Render
 {
     if (!($exc instanceof Exception)) {
-        Logger::exception($exc);
+        Logger::exceptionTrace($exc);
     }
     $format = null;
     $appConfig = $context->getAppConfig();
-    $request = $context->getRequest() ;
     $response = $context->getResponse();
-    $format = $appConfig->getSetting('application.response.format', $response->getFormat() ??
-        $request->getFormatType());
+    if (!$response instanceof Response) {
+        $response = new Response();
+    }
+    $format = $context->getFormat();
     $renderObj = new SegmentRender($response);
     switch ($format) {
         case 'xml':
         case 'json':
-            $debug = $appConfig->getSetting('debug', false);
-            $res = ['status' => ['code' => LOEYE_REST_STATUS_BAD_REQUEST, 'message' => 'Internal Error']];
+            $debug = $appConfig ? $appConfig->getSetting('debug', false) : false;
             if ($debug) {
-                $res['data'] = [
-                    'code' => $exc->getCode(),
-                    'message' => $exc->getMessage(),
+                $res = [
                     'traceInfo' => $exc->getTraceAsString(),
                 ];
             } else {
-                $res['data'] = $exc->getMessage();
+                $res = null;
             }
-            $response->addOutput($res['status'], 'status');
-            $response->addOutput($res['data'], 'data');
+            $response->addOutput(['code' => $exc->getCode(), 'msg' => $exc->getMessage()], 'status');
+            $response->addOutput($res, 'data');
             $renderObj = Factory::getRender($format, $response);
             break;
         default :

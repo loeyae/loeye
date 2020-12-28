@@ -12,87 +12,55 @@
  * @package  LOEYE
  * @author   Zhang Yi <loeyae@gmail.com>
  * @version  2018-07-23 22:44:28
- * @link     https://github.com/loeyae/loeye.git
+ * @link     https://github.com/loeyae/loeye2.git
  */
 
 namespace loeye\std;
 
 use GuzzleHttp\Psr7\Uri;
-use const loeye\base\RENDER_TYPE_SEGMENT;
 
 /**
  * Request
  *
  * @author   Zhang Yi <loeyae@gmail.com>
  */
-class Request
+class Request extends \Symfony\Component\HttpFoundation\Request
 {
+
+    private $_lang = 'zh_CN';
+    private $_country = 'cn';
+
     /**
      * @var Router
      */
     private $router;
 
+    private $_moduleId;
+    /**
+     * @var array
+     */
+    private $_browser;
+    private $_device;
     protected $_allowedFormatType = array();
-    private $isAjaxRequest;
+    public $isAjaxRequest;
     public $isHttps;
     public $isFlashRequest;
     public $requestMethod;
 
     /**
-     * @var string
-     */
-    private $moduleId;
-
-    /**
-     * @var array
-     */
-    private $query;
-
-    /**
-     * @var array
-     */
-    private $body;
-    /**
-     * @var string
-     */
-    private $content;
-    /**
-     * @var array
-     */
-    private $files;
-    /**
-     * @var array
-     */
-    private $header;
-    /**
-     * @var array
-     */
-    private $cookie;
-    /**
-     * @var array
-     */
-    private $server;
-    /**
-     * @var Uri
-     */
-    private $uri;
-    /**
-     * @var string
-     */
-    private $method;
-    /**
      * __construct
      *
-     * @return void
+     * @param array $query
+     * @param array $request
+     * @param array $attributes
+     * @param array $cookies
+     * @param array $files
+     * @param array $server
+     * @param string|null $content
      */
-    public function __construct()
+    public function __construct(array $query = [], array $request = [], array $attributes = [], array $cookies = [], array $files = [], array $server = [], $content = null)
     {
-        $moduleId = null;
-        $argc = func_num_args();
-        if ($argc > 0) {
-            $moduleId = func_get_arg(0);
-            $this->setModuleId($moduleId);
-        }
+        parent::__construct($query, $request, $attributes, $cookies, $files, $server, $content);
         $this->_getIsAjaxRequest();
         $this->_getIsFlashRequest();
         $this->_getIsSecureConnection();
@@ -105,7 +73,7 @@ class Request
      * @param Router $router
      * @return Request
      */
-    public function setRouter(Router $router = null): Request
+    public function setRouter(Router $router): Request
     {
         $this->router = $router;
         return $this;
@@ -134,6 +102,173 @@ class Request
         return $pathVariable[$key] ?? null;
     }
 
+
+    /**
+     * _findBrowser
+     *
+     * @return void
+     */
+    private function _findBrowser(): void
+    {
+        if (ini_get('browscap')) {
+            $browser = get_browser(null, true);
+            $this->_browser = $browser;
+        } else if (filter_has_var(INPUT_SERVER, 'HTTP_USER_AGENT')) {
+            $browser = filter_input(INPUT_SERVER, 'HTTP_USER_AGENT');
+            $this->_browser = $this->_matchBrowser($browser);
+        }
+        !empty($this->_browser) or $this->_browser = array();
+    }
+
+    /**
+     * _matchBrowser
+     *
+     * @param string $userAgent user agent
+     *
+     * @return array
+     */
+    private function _matchBrowser($userAgent): array
+    {
+        $platform = '';
+        $browser = '';
+        $version = '';
+        $platformMatchArray = array(
+            'Windows NT 6.3' => 'Windows 8',
+            'Windows NT 6.2' => 'Windows 8.1',
+            'Windows NT 6.1' => 'Windows 7',
+            'Windows NT 6.0' => 'Windows Vista',
+            'Windows NT 5.0' => 'Windows 2000',
+            'Windows NT 5' => 'Windows XP',
+            'Windows NT' => 'Windows NT',
+            'Windows 98' => 'Windows 98',
+            'Windows 95' => 'Windows 95',
+            'wds 7' => 'Windows Phone 7',
+            'wds 8' => 'Windows Phone 8',
+            'Windows Phone OS 7' => 'Windows Phone 7',
+            'Windows Phone 8' => 'Windows Phone 8',
+            'Windows Phone' => 'Windows Phone',
+            'Win 9' => 'Windows ME',
+            'Win' => 'Windows',
+            'Ipad' => 'Ipad',
+            'iPhone' => 'Iphone',
+            'Mac OS' => 'Mac OS',
+            'Android' => 'Android',
+            'Linux' => 'Linux',
+            'Unix' => 'Unix',
+        );
+        $browserMatchArray = array(
+            'MSIE' => 'IE',
+            'Firefox' => 'Firefox',
+            'Chrome' => 'Chrome',
+            'Safari' => 'Safari',
+            'Opera' => 'Opera',
+            'Maxthon' => 'Maxthon',
+            'UCBrowser' => 'UC',
+            'Android' => 'Android',
+        );
+        foreach ($platformMatchArray as $key => $value) {
+            if (mb_strpos($userAgent, $key)) {
+                $platform = $value;
+            }
+        }
+        foreach ($browserMatchArray as $key => $value) {
+            if (mb_strpos($userAgent, $key)) {
+                $browser = $value;
+                break;
+            }
+        }
+        if (empty($version)) {
+            if (preg_match("/rv:(\d+\.?\d*)/", $userAgent, $match)) {
+                $version = $match[1];
+            } else if (preg_match("/$browser\/(\d+\.?\d*)/", $userAgent, $match)) {
+                $version = $match[1];
+            } else if (preg_match("/$browser (\d+\.?\d*)/", $userAgent, $match)) {
+                $version = $match[1];
+            }
+        }
+
+        if (empty($browser)) {
+            if ($platform === 'Windows 8' || $platform === 'Windows 8.1' || $platform === 'Windows 7') {
+                $browser = 'IE';
+            }
+        }
+
+        return array(
+            'platform' => $platform,
+            'browser' => $browser,
+            'version' => $version,
+        );
+    }
+
+    /**
+     * ._findDevice
+     *
+     * @return void
+     */
+    private function _findDevice(): void
+    {
+        $clientKeywords = array(
+            'nokia',
+            'sony',
+            'ericsson',
+            'mot',
+            'samsung',
+            'htc',
+            'sgh',
+            'lg',
+            'sharp',
+            'sie-',
+            'philips',
+            'panasonic',
+            'alcatel',
+            'lenovo',
+            'iphone',
+            'ipod',
+            'blackberry',
+            'meizu',
+            'android',
+            'netfront',
+            'symbian',
+            'ucweb',
+            'windowsce',
+            'palm',
+            'operamini',
+            'operamobi',
+            'openwave',
+            'nexusone',
+            'cldc',
+            'midp',
+            'wap',
+            'mobile',
+        );
+        $isDevice = false;
+        if (isset($_SERVER['HTTP_X_WAP_PROFILE'])) {
+            $isDevice = true;
+        } else if (isset($_SERVER['HTTP_VIA']) && mb_stristr($_SERVER['HTTP_VIA'], 'wap')) {
+            $isDevice = true;
+        } else if (isset($this->_browser['platform']) && ($this->_browser['platform'] === 'Android' ||
+                $this->_browser['platform'] === 'Iphone' || $this->_browser['platform'] === 'Ipad' ||
+                $this->_browser['platform'] === 'Windows Phone7' || $this->_browser['platform'] === 'Windows Phone 8')
+        ) {
+            $isDevice = true;
+        }
+        $match = array();
+        if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match(
+                '/(' . implode('|', $clientKeywords) . ')/i',
+                mb_strtolower($_SERVER['HTTP_USER_AGENT']),
+                $match
+            )) {
+            $isDevice = true;
+        }
+        if ($isDevice) {
+            $platform = $this->_browser['platform'] ?? 'unknown';
+            $this->_device = array(
+                'platform' => $platform,
+                'device' => ($match[1] ?? 'unknown'),
+            );
+        }
+    }
+
     /**
      * _getRequestType
      *
@@ -141,7 +276,7 @@ class Request
      */
     private function _getRequestType(): void
     {
-        $this->requestMethod = &$this->method;
+        $this->requestMethod = $this->getMethod();
     }
 
     /**
@@ -151,7 +286,7 @@ class Request
      */
     private function _getIsAjaxRequest(): void
     {
-        $this->isAjaxRequest ?: $this->isAjaxRequest = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
+        $this->isAjaxRequest = $this->isXmlHttpRequest();
     }
 
     /**
@@ -172,7 +307,8 @@ class Request
      */
     private function _getIsFlashRequest(): void
     {
-        $this->isFlashRequest = isset($_SERVER['HTTP_USER_AGENT']) && (mb_stripos($_SERVER['HTTP_USER_AGENT'], 'Shockwave') !== false || mb_stripos($_SERVER['HTTP_USER_AGENT'], 'Flash') !== false);
+        $userAgent = $this->headers->get('User-Agent');
+        $this->isFlashRequest = (mb_stripos($userAgent, 'Shockwave') !== false || mb_stripos($userAgent, 'Flash') !== false);
     }
 
     /**
@@ -180,31 +316,134 @@ class Request
      *
      * @param string $moduleId module id
      *
-     * @return Request
+     * @return void
      */
-    public function setModuleId(string $moduleId = null): Request
+    public function setModuleId(string $moduleId): void
     {
-        $this->moduleId = $moduleId;
-        return $this;
+        $this->_moduleId = $moduleId;
+    }
+
+    /**
+     * getRequestTime
+     *
+     * @return mixed
+     */
+    public function getRequestTime()
+    {
+        return $this->server->get('REQUEST_TIME');
+    }
+
+    /**
+     * getRequestTimeFloat
+     *
+     * @return mixed
+     */
+    public function getRequestTimeFloat()
+    {
+        return $this->server->get('REQUEST_TIME_FLOAT');
+    }
+
+    /**
+     * getParameter
+     *
+     * @param string $key key
+     * @param int $filter filter key
+     * @param string $flag flag key
+     *
+     * @return mixed
+     */
+    public function getParameter($key = null, $filter = FILTER_DEFAULT, $flag = null)
+    {
+        if (isset($key)) {
+            if (isset($_REQUEST[$key])) {
+                return filter_var($_REQUEST[$key], $filter, $flag);
+            }
+            return null;
+        }
+        return filter_var_array($_REQUEST);
+    }
+
+    /**
+     * getEnv
+     *
+     * @param null $key key
+     * @param null $default
+     * @return mixed
+     */
+    public function getEnv($key = null, $default = null)
+    {
+        if (isset($key)) {
+            return getenv($key) ?: $default;
+        }
+        return getenv();
+    }
+
+    /**
+     * getBrowser
+     *
+     * @return array
+     */
+    public function getBrowser(): ?array
+    {
+        if (empty($this->_browser)) {
+            $this->_findBrowser();
+        }
+        return $this->_browser;
+    }
+
+    /**
+     * getProperty
+     *
+     * @return string|null
+     */
+    public function getProperty(): ?string
+    {
+        if ($this->_moduleId) {
+            $parseModule = explode('.', $this->_moduleId);
+            return $parseModule[0];
+        }
+        return null;
+    }
+
+    /**
+     * getCountry
+     *
+     * @return string
+     */
+    public function getCountry(): ?string
+    {
+        return $this->query->get('cc') ?? $this->cookies->get('cc', $this->_country);
     }
 
     /**
      * getModuleId
      *
-     * @return string|null
+     * @return string
      */
     public function getModuleId(): ?string
     {
-        $this->moduleId ?: $this->_findModuleId();
-        return $this->moduleId;
+        return $this->_moduleId ?? $this->query->get('m_id');
     }
 
     /**
+     * getDevice
+     *
      * @return array
      */
-    public function getAllowedFormatType(): array
+    public function getDevice(): ?array
     {
-        return $this->_allowedFormatType;
+        $this->_device ?: $this->_findDevice();
+        return $this->_device;
+    }
+
+    /**
+     * getLanguage
+     *
+     * @return string
+     */
+    public function getLanguage(): ?string
+    {
+        return $this->query->get('lang', $this->cookies->get('lang'), $this->_lang);
     }
 
     /**
@@ -214,348 +453,22 @@ class Request
      */
     public function getFormatType(): ?string
     {
-        $fmt = $this->getQuery('fmt');
-        if (in_array($fmt, $this->_allowedFormatType, true)) {
-            return $fmt;
+        $format = $this->query->get('fmt');
+        if (in_array($format, $this->_allowedFormatType, true)) {
+            return $format;
         }
+
         return null;
     }
 
     /**
-     * @return array|mixed|null
-     */
-    private function _findModuleId()
-    {
-        return $this->getQuery('m_id');
-    }
-
-    /**
-     * setQuery
+     * getUri
      *
-     * @param array $query
-     * @return Request
+     * @return Uri
      */
-    public function setQuery(array $query = null): Request
+    public function getUri(): ?Uri
     {
-        $this->query = $query;
-        return $this;
-    }
-
-    /**
-     * addQuery
-     *
-     * @param $key
-     * @param $value
-     * @return Request
-     */
-    public function addQuery($key, $value): Request
-    {
-        $this->query[$key] = $value;
-        return $this;
-    }
-
-    /**
-     * @param string|null $key
-     * @return array|mixed|null
-     */
-    public function getQuery(string $key = null)
-    {
-        if (null === $key) {
-            return $this->query;
-        }
-        return $this->query[$key] ?? null;
-    }
-
-    /**
-     * @param array $body
-     * @return Request
-     */
-    public function setBody(array $body = null): Request
-    {
-        $this->body = $body;
-        return $this;
-    }
-
-    /**
-     * @param $key
-     * @param $value
-     * @return Request
-     */
-    public function addBody($key, $value): Request
-    {
-        $this->body[$key] = $value;
-        return $this;
-    }
-
-    /**
-     * @param string|null $key
-     * @return array|mixed|null
-     */
-    public function getBody(string $key = null)
-    {
-        if (null === $key) {
-            return $this->body;
-        }
-        return $this->body[$key] ?? null;
-    }
-
-    /**
-     * @param $content
-     * @return Request
-     */
-    public function setContent($content = null): Request
-    {
-        $this->content = $content;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getContent(): ?string
-    {
-        return $this->content;
-    }
-
-    /**
-     * @param array $files
-     * @return Request
-     */
-    public function setFiles(array $files = null): Request
-    {
-        $this->files = $files;
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getFiles(): array
-    {
-        return $this->files;
-    }
-
-    /**
-     * @param array $header
-     * @return Request
-     */
-    public function setHeader(array $header = null): Request
-    {
-        if ($header) {
-            foreach ($header as $key => $value) {
-                $this->header[strtolower($key)] = (is_array($value) && count($value) === 1) ?
-                    current($value) : $value;
-            }
-        }
-        return $this;
-    }
-
-    /**
-     * @param $key
-     * @param $value
-     * @return Request
-     */
-    public function addHeader($key, $value): Request
-    {
-        $this->header[strtolower($key)] = $value;
-        return $this;
-    }
-
-    /**
-     * @param string|null $key
-     * @return array|mixed|null
-     */
-    public function getHeader(string $key = null)
-    {
-        if (null === $key) {
-            return $this->header;
-        }
-        return $this->header[$key] ?? null;
-    }
-
-    /**
-     * @param array $cookie
-     * @return Request
-     */
-    public function setCookie(array $cookie = null): Request
-    {
-        $this->cookie = $cookie;
-        return $this;
-    }
-
-    /**
-     * @param $key
-     * @param $value
-     * @return Request
-     */
-    public function addCookie($key, $value): Request
-    {
-        $this->cookie[$key] = $value;
-        return $this;
-    }
-
-    /**
-     * @param string|null $key
-     * @return array|mixed|null
-     */
-    public function getCookie(string $key = null)
-    {
-        if (null === $key) {
-            return $this->cookie;
-        }
-        return $this->cookie[$key] ?? null;
-    }
-
-    /**
-     * @param array $server
-     * @return Request
-     */
-    public function setServer(array $server = null): Request
-    {
-        if ($server) {
-            foreach ($server as $key => $value) {
-                $this->server[strtolower($key)] = $value;
-            }
-        }
-        return $this;
-    }
-
-    /**
-     * @param $key
-     * @param $value
-     * @return Request
-     */
-    public function addServer($key, $value): Request
-    {
-        $this->server[strtolower($key)] = $value;
-        return $this;
-    }
-
-    /**
-     * @param string|null $key
-     * @return array|mixed|null
-     */
-    public function getServer(string $key = null)
-    {
-        if (null === $key) {
-            return $this->server;
-        }
-        return $this->server[$key] ?? null;
-    }
-
-    public function setMethod(string $method)
-    {
-        $this->method = $method;
-        return $this;
-    }
-
-    public function getMethod()
-    {
-        return $this->method;
-    }
-
-    /**
-     * @param string $url
-     * @return Request
-     */
-    public function setUri(string $url): Request
-    {
-        $this->uri = new Uri($url);
-        return $this;
-    }
-
-    public function getUri(): Uri
-    {
-        return $this->uri;
-    }
-
-    /**
-     * @return array|mixed|null
-     */
-    public function getLanguage()
-    {
-        return $this->getQuery('lang');
-    }
-
-    /**
-     * @return array|mixed|null
-     */
-    public function getCountry()
-    {
-        return $this->getQuery('cc') ?? $this->getCookie('cc');
-    }
-
-    /**
-     * @param string|null $key
-     * @return mixed
-     */
-    public function getSession(string $key = null)
-    {
-        if (null === $key) {
-            return filter_input_array(INPUT_SESSION);
-        }
-        return filter_input(INPUT_SESSION, $key);
-    }
-
-
-    /**
-     * @return int|null
-     */
-    public function getRequestTime(): ?int
-    {
-        return $this->server['request_time'] ?? null;
-    }
-
-    /**
-     * @return float|null
-     */
-    public function getRequestTimeFloat(): ?float
-    {
-        return $this->server['request_time_float'] ?? null;
-    }
-
-
-    /**
-     * getContentLength
-     *
-     * @return int
-     */
-    public function getContentLength(): int
-    {
-        return strlen($this->getContent());
-    }
-
-    /**
-     * getRemoteAddr
-     *
-     * @return null|string
-     */
-    public function getRemoteAddr(): ?string
-    {
-        return $this->getServer('remote_addr') ?? $_SERVER['REMOTE_ADDR'] ?? null;
-    }
-
-    /**
-     * getServerProtocol
-     *
-     * @return string
-     */
-    public function getServerProtocol(): string
-    {
-        return $this->getServer('server_protocol') ?? $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0';
-    }
-
-    /**
-     * @param null $key
-     * @return array|mixed|null
-     */
-    public function getRequest($key = null)
-    {
-        $request = array_merge($this->body ?? [], $this->query ?? []);
-        if (null === $key) {
-            return $request;
-        }
-        return $request[$key] ?? null;
+        return new Uri($this->getRequestUri());
     }
 
 }

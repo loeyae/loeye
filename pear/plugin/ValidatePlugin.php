@@ -21,6 +21,7 @@ use loeye\base\Context;
 use loeye\base\Exception;
 use loeye\base\Utils;
 use loeye\error\BusinessException;
+use loeye\error\ValidateError;
 use loeye\std\Plugin;
 use loeye\validate\Validation;
 use loeye\validate\Validator;
@@ -78,7 +79,7 @@ class ValidatePlugin implements Plugin
             $violationList = $validator->validate($entityObject, null, $groups);
             $errors        = Validator::buildErrmsg($violationList, Validator::initTranslator());
             if ($errors) {
-                Utils::addErrors($errors, $context, $inputs, self::ERROR_KEY);
+                Utils::addErrors(new ValidateErro($errors), $context, $inputs, self::ERROR_KEY);
             }
             Utils::setContextData($data, $context, $inputs, self::DATA_KEY);
         } else {
@@ -88,7 +89,7 @@ class ValidatePlugin implements Plugin
             $report     = $validation->validate($data, $rule);
             if ($report['has_error']) {
                 Utils::addErrors(
-                        $report['error_message'], $context, $inputs, self::ERROR_KEY);
+                    new ValidateError($report['error_message']), $context, $inputs, self::ERROR_KEY);
             }
             Utils::setContextData(
                     $report['valid_data'], $context, $inputs, self::DATA_KEY);
@@ -108,10 +109,10 @@ class ValidatePlugin implements Plugin
         $type = Utils::getData($inputs, self::INPUT_TYPE_KEY, INPUT_REQUEST);
         switch ($type) {
             case INPUT_POST:
-                $data = $context->getRequest()->getBody() ?? [];
+                $data = $context->getRequest()->request->all() ?? [];
                 break;
             case INPUT_GET:
-                $data = $context->getRequest()->getQuery() ?? [];
+                $data = $context->getRequest()->query->all() ?? [];
                 break;
             case BuildQueryPlugin::INPUT_ORIGIN:
                 $content = $context->getRequest()->getContent();
@@ -121,7 +122,7 @@ class ValidatePlugin implements Plugin
                 $data = $context->getRequest()->getPathVariable();
                 break;
             default:
-                $data = $context->getRequest()->getRequest() ?? [];
+                $data = $context->getRequest()->getParameter() ?? [];
                 break;
         }
         $merge = Utils::getData($inputs, self::MERGE_KEY);

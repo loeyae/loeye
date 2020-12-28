@@ -12,7 +12,7 @@
  * @package  LOEYE
  * @author   Zhang Yi <loeyae@gmail.com>
  * @version  2018-07-23 22:44:28
- * @link     https://github.com/loeyae/loeye.git
+ * @link     https://github.com/loeyae/loeye2.git
  */
 
 namespace loeye\service;
@@ -30,9 +30,58 @@ class Request extends \loeye\std\Request
 {
 
     protected $_allowedFormatType = array(
+
         RENDER_TYPE_SEGMENT,
         RENDER_TYPE_XML,
         RENDER_TYPE_JSON,
     );
+
+    /**
+     * getFormatType
+     *
+     * @return string
+     */
+    public function getFormatType(): string
+    {
+        $format = $this->query->get('fmt') ?? RENDER_TYPE_JSON;
+        if (in_array($format, $this->_allowedFormatType, true)) {
+            return $format;
+        }
+
+        return RENDER_TYPE_SEGMENT;
+    }
+
+    /**
+     * getContentLength
+     *
+     * @return int
+     */
+    public function getContentLength(): int
+    {
+        if ($this->content == false || $this->content == null || is_resource($this->content)) {
+            return 0;
+        }
+        return strlen($this->content);
+    }
+
+    /**
+     * getRemoteAddr
+     *
+     * @return null|string
+     */
+    public function getRemoteAddr(): ?string
+    {
+        return $this->server->get('REMOTE_ADDR');
+    }
+
+    /**
+     * getServerProtocol
+     *
+     * @return string
+     */
+    public function getServerProtocol(): string
+    {
+        return $this->server->get('SERVER_PROTOCOL');
+    }
 
 }

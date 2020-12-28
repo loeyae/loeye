@@ -12,12 +12,10 @@
  * @package  LOEYE
  * @author   Zhang Yi <loeyae@gmail.com>
  * @version  2018-07-23 22:44:28
- * @link     https://github.com/loeyae/loeye.git
+ * @link     https://github.com/loeyae/loeye2.git
  */
 
 namespace loeye\service;
-
-use const loeye\base\RENDER_TYPE_JSON;
 
 /**
  * Response
@@ -27,30 +25,17 @@ use const loeye\base\RENDER_TYPE_JSON;
 class Response extends \loeye\std\Response
 {
 
-    private $_serverProtocol;
-    private $_contentType;
     /**
-     * @var string
-     */
-    private $_responseData;
-
-    /**
-     * __construct
+     * setStatusMessage
      *
-     * @param \loeye\std\Request $req request
+     * @param string $message message
      *
+     * @return void
      */
-    public function __construct(\loeye\std\Request $req)
+    public function setStatusMessage($message): void
     {
-        parent::__construct($req);
-        $this->_serverProtocol = $req->getServerProtocol();
-        $this->setStatusCode(LOEYE_REST_STATUS_OK);
-        $this->setReason('OK');
-        $this->_contentType    = 'text/plain; charset=utf-8';
-        $this->header = [];
-        $this->setFormat(RENDER_TYPE_JSON);
+        $this->statusText = $message;
     }
-
 
     /**
      * setContent
@@ -63,23 +48,11 @@ class Response extends \loeye\std\Response
     public function setContent($data, $contentType = null): void
     {
         if (!empty($contentType)) {
-            $this->_contentType = $contentType;
+            $this->headers->set('Content-Type', $contentType);
         }
         $this->output = $data;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function setHeaders(): void
-    {
-        $header = $this->_serverProtocol . ' ' . $this->getStatusCode() . ' ' . $this->getReason();
-        header($header);
-        parent::setHeaders();
-        if (!array_key_exists('Content-Type', $this->header)) {
-            header('Content-Type:'. $this->_contentType);
-        }
-    }
 
     /**
      * output

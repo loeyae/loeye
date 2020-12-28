@@ -12,7 +12,7 @@
  * @package  LOEYE
  * @author   Zhang Yi <loeyae@gmail.com>
  * @version  2018-07-23 22:44:28
- * @link     https://github.com/loeyae/loeye.git
+ * @link     https://github.com/loeyae/loeye2.git
  */
 
 namespace loeye\web;
@@ -34,16 +34,6 @@ class Response extends \loeye\std\Response
     private $_resource = array();
     private $_htmlHead = array();
     private $_redirectUrl;
-
-    /**
-     * __construct
-     * @param \loeye\std\Request $request
-     */
-    public function __construct(\loeye\std\Request $request)
-    {
-        parent::__construct($request);
-        $this->header = array();
-    }
 
     /**
      * addHtmlHead
@@ -145,6 +135,53 @@ class Response extends \loeye\std\Response
     public function getResourceTypes(): array
     {
         return array_keys($this->_resource);
+    }
+
+    /**
+     * setRedirectUrl
+     *
+     * @param string $url url
+     *
+     * @return void
+     */
+    public function setRedirectUrl($url): void
+    {
+        $this->_redirectUrl = $url;
+    }
+
+    /**
+     * getRedirectUrl
+     *
+     * @return string|null
+     */
+    public function getRedirectUrl(): ?string
+    {
+        return $this->_redirectUrl;
+    }
+
+    /**
+     * redirect
+     *
+     * @param string $redirectUrl string
+     *
+     * @return void
+     * @SuppressWarnings(PHPMD.ExitExpression)
+     * @throws BusinessException
+     */
+    public function redirect($redirectUrl = null): void
+    {
+        if (empty($redirectUrl)) {
+            $redirectUrl = $this->_redirectUrl;
+        }
+        if (!empty($redirectUrl)) {
+            $this->headers->set('Location', $redirectUrl);
+            $this->sendHeaders();
+            exit;
+        }
+        throw new BusinessException(
+            BusinessException::INVALID_PARAMETER_MSG,
+            BusinessException::INVALID_PARAMETER_CODE
+        );
     }
 
 }

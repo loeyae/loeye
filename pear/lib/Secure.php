@@ -62,7 +62,7 @@ class Secure
         } else if (isset($_SERVER['REQUEST_TIME_FLOAT'])) {
             $REQUEST_TIME_FLOAT = filter_var($_SERVER['REQUEST_TIME_FLOAT'], FILTER_SANITIZE_NUMBER_FLOAT);
         } else {
-            $REQUEST_TIME_FLOAT = $context->getRequest()->getServer('request_time_float') ??
+            $REQUEST_TIME_FLOAT = $context->getRequest()->server->get('request_time_float') ??
             microtime
             (true);
         }
@@ -72,7 +72,7 @@ class Secure
         } else if (isset($_SERVER['HTTP_USER_AGENT'])) {
             $HTTP_USER_AGENT = filter_var($_SERVER['HTTP_USER_AGENT'], FILTER_SANITIZE_STRING);
         } else {
-            $HTTP_USER_AGENT = $context->getRequest()->getServer('http_user_agent') ?? mt_rand(10000,
+            $HTTP_USER_AGENT = $context->getRequest()->server->get('http_user_agent') ?? mt_rand(10000,
                 99999);
         }
 
@@ -81,7 +81,7 @@ class Secure
         } else if (isset($_SERVER['REMOTE_ADDR'])) {
             $REMOTE_ADDR = filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP);
         } else {
-            $REMOTE_ADDR = $context->getRequest()->getServer('remote_addr') ?? mt_rand(1000, 9999);
+            $REMOTE_ADDR = $context->getRequest()->server->get('remote_addr') ?? mt_rand(1000, 9999);
         }
 
         $string = $HTTP_USER_AGENT . $REQUEST_TIME_FLOAT . $REMOTE_ADDR . $secret;
@@ -153,7 +153,7 @@ class Secure
      * @throws InvalidArgumentException
      * @throws CacheException
      */
-    public static function getKeyDb($key, $group = null, $read = false): string
+    public static function getKeyDb($key, $group = null, $read = false): ?string
     {
         $cache = SimpleCache::getInstance('keydb');
         $keyDbSetting = $cache->get('keydb');

@@ -137,7 +137,7 @@ abstract class Dispatcher
     protected function initAppConfig(): void
     {
         if (null === $this->context->getAppConfig()) {
-            $appConfig = new AppConfig();
+            $appConfig = Factory::appConfig();
             Centra::$appConfig = $appConfig;
             $this->context->setAppConfig($appConfig);
         }
@@ -288,8 +288,7 @@ abstract class Dispatcher
         $redirectUrl = $this->context->getResponse()->getRedirect();
 
         if (!empty($redirectUrl)) {
-            return Factory::getRender($this->context->getResponse()->getFormat(),
-                $this->context->getResponse());
+            return Factory::getRender($this->context->getFormat(), $this->context->getResponse());
         }
         return null;
     }
@@ -413,7 +412,7 @@ abstract class Dispatcher
     {
         $format = $this->context->getResponse()->getFormat();
         if ($format === null) {
-            $format = $this->context->getRequest()->getFormatType();
+            $format = $this->context->getFormat();
         }
 
         return Factory::getRender($format, $this->context->getResponse());

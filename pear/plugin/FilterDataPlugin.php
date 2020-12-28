@@ -140,22 +140,21 @@ class FilterDataPlugin implements Plugin
             switch ($method) {
                 case 'GET':
                     foreach ($checkKey as $key) {
-                        if ($context->getRequest()->getQuery($key) === null) {
+                        if ($context->getRequest()->query->get($key) === null) {
                             return false;
                         }
                     }
                     break;
                 case 'POST':
                     foreach ($checkKey as $key) {
-                        if ($context->getRequest()->getBody($key) === null) {
+                        if ($context->getRequest()->request->get($key) === null) {
                             return false;
                         }
                     }
                     break;
                 default :
                     foreach ($checkKey as $key) {
-                        if ($context->getRequest()->getQuery($key) === null &&
-                            $context->getRequest()->getBody($key) === null) {
+                        if ($context->getRequest()->getParameter($key) === null) {
                             return false;
                         }
                     }
@@ -267,7 +266,7 @@ class FilterDataPlugin implements Plugin
                     foreach ($data as $index => $item) {
                         foreach ($inputs['split_key'] as $key) {
                             if (!empty($item[$key]) && is_string($item['key'])) {
-                                $item[$key] = split(',', $item[$key]);
+                                $item[$key] = preg_split(',', $item[$key]);
                             }
                         }
                         $data[$index] = $item;
@@ -275,7 +274,7 @@ class FilterDataPlugin implements Plugin
                 } else {
                     foreach ($inputs['split_key'] as $key) {
                         if (!empty($data[$key]) && is_string($data['key'])) {
-                            $data[$key] = split(',', $data[$key]);
+                            $data[$key] = preg_split(',', $data[$key]);
                         }
                     }
                 }
@@ -286,7 +285,7 @@ class FilterDataPlugin implements Plugin
                         foreach ($inputs['split_key'] as $key => $setting) {
                             if (!empty($item[$key]) && !is_array($item[$key])) {
                                 $pattern = Utils::getData($setting, 'pattern', ',');
-                                $item[$key] = split($pattern, $item[$key]);
+                                $item[$key] = preg_split($pattern, $item[$key]);
                                 if (!empty($setting['key'])) {
                                     $context->set($setting['key'], $item[$key]);
                                 }

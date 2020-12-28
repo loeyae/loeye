@@ -14,14 +14,10 @@
 namespace loeye\std;
 
 
-use loeye\base\AppConfig;
 use loeye\base\Context;
-use loeye\base\Factory;
 use loeye\base\UrlManager;
 use loeye\base\Utils;
 use loeye\Centra;
-use loeye\lib\Cookie;
-use loeye\lib\Secure;
 use loeye\render\SegmentRender;
 use loeye\web\SimpleDispatcher;
 use function GuzzleHttp\Psr7\mimetype_from_extension;

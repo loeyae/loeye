@@ -53,8 +53,8 @@ class RequestDataPreparePlugin implements Plugin
         if (isset($inputs[$this->_postOnly]) && $inputs[$this->_postOnly] === 'true') {
             $postOnly = true;
         }
-        $post = $context->getRequest()->getBody();
-        $get = $context->getRequest()->getQuery();
+        $post = $context->getRequest()->request->all();
+        $get = $context->getRequest()->query->all();
         if (empty($inputs[$this->_dataKey])) {
             foreach ($keyList as $key => $value) {
                 $outKey = empty($value) ? $key : $value;

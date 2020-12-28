@@ -59,6 +59,7 @@ class Dispatcher extends \loeye\std\Dispatcher
     public function dispatch($moduleId = null): Render
     {
         try {
+            $this->context->setRequest(Request::createFromGlobals());
             $this->initAppConfig();
             $this->initConfigConstants();
             $moduleId = $this->parseUrl($moduleId);
@@ -135,7 +136,7 @@ class Dispatcher extends \loeye\std\Dispatcher
         if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL) {
             $this->setTraceDataIntoContext(array());
         }
-        $mockMode = $this->context->getRequest()->getQuery('ly_p_m');
+        $mockMode = $this->context->getRequest()->get('ly_p_m');
         if ($this->processMode > LOEYE_PROCESS_MODE__NORMAL && $mockMode === 'mock') {
             $mockPlugins = $this->_mDfnObj->getMockPlugins();
             [$returnStatus] = $this->_executePlugin($mockPlugins, false, true);
@@ -163,12 +164,14 @@ class Dispatcher extends \loeye\std\Dispatcher
     protected function initIOObject($moduleId): void
     {
         $request = $this->context->getRequest();
-        $request->setRouter($this->context->getRouter());
         $request->setModuleId($moduleId);
-        $response = $this->context->getResponse();
+        $request->setRouter($this->context->getRouter());
+
+        $response = Response::create($request);
         if (defined('MOBILE_RENDER_ENABLE') && MOBILE_RENDER_ENABLE && $request->getDevice()) {
             $response->setRenderId(Response::DEFAULT_MOBILE_RENDER_ID);
         }
+        $this->context->setResponse($response);
     }
 
 
@@ -183,10 +186,10 @@ class Dispatcher extends \loeye\std\Dispatcher
         $moduleId = null;
         $router = new Router($this->context->getRequest());
         $this->context->setRouter($router);
-        if ($this->context->getRequest()->getQuery('m_id')) {
-            $moduleId = $this->context->getRequest()->getQuery('m_id');
+        if ($this->context->getRequest()->get('m_id')) {
+            $moduleId = $this->context->getRequest()->get('m_id');
         } else {
-            $requestUrl = $this->context->getRequest()->getUri()->getPath();
+            $requestUrl = $this->context->getRequest()->getRequestUri();
             $moduleId = $router->match($requestUrl);
         }
         return $moduleId;
@@ -492,7 +495,7 @@ class Dispatcher extends \loeye\std\Dispatcher
     {
         if (is_array($inputs)) {
             foreach ($inputs as $key => $value) {
-                $this->context->set($key, $value);
+                $this->context->set($key, $value, 0);
             }
         }
     }
@@ -635,7 +638,7 @@ class Dispatcher extends \loeye\std\Dispatcher
     {
         if (empty($moduleId)) {
             if ($this->context->getRouter() instanceof UrlManager) {
-                $moduleId = $this->context->getRouter()->match(filter_input(INPUT_SERVER, 'REQUEST_URI'));
+                $moduleId = $this->context->getRouter()->match($this->context->getRequest()->getRequestUri());
             } else {
                 $moduleId = $this->_executeRouter();
             }

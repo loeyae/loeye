@@ -65,13 +65,13 @@ class SessionPlugin implements Plugin
         $key = Utils::getData($inputs, 'get', null);
         $data = array();
         if (empty($key)) {
-            $session = $context->getRequest()->getSession();
+            $session = $context->getRequest()->getSession()->all();
             foreach ($session as $key => $value) {
                 $data[$key] = $value;
             }
         } else {
             foreach ((array)$key as $item) {
-                $data[$item] = $context->getRequest()->getSession($item);
+                $data[$item] = $context->getRequest()->getSession()->get($item);
             }
         }
         Utils::setContextData($data, $context, $inputs, $this->outKey);

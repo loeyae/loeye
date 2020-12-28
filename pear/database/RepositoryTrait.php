@@ -82,7 +82,7 @@ trait RepositoryTrait
             $offset = 200;
         }
         if ($criteria === null) {
-            return $this->db->repository($this->entityClass)->findAll();
+            return $this->db->repository($this->entityClass)->findBy([], $orderBy, $offset, $start);
         }
         return $this->db->repository($this->entityClass)->findBy($criteria, $orderBy, $offset, $start);
     }
@@ -97,14 +97,13 @@ trait RepositoryTrait
      * @param mixed $groupBy
      *
      * @param null $having
-     * @return array|null
+     * @return Paginator
      *
      * @throws QueryException
-     * @throws ReflectionException
      * @throws BusinessException
      * @throws DAOException
      */
-    public function page($query, $start = 0, $offset = 10, $orderBy = null, $groupBy = null, $having = null): ?array
+    public function page($query, $start = 0, $offset = 10, $orderBy = null, $groupBy = null, $having = null): Paginator
     {
         if ($query instanceof Query) {
             $query->setFirstResult($start)->setMaxResults($offset);
@@ -138,8 +137,7 @@ trait RepositoryTrait
         } else {
             throw new BusinessException(BusinessException::INVALID_PARAMETER_MSG, BusinessException::INVALID_PARAMETER_CODE);
         }
-        $paginator = new Paginator($query);
-        return Utils::paginator2array($this->db->em(), $paginator);
+        return new Paginator($query);
     }
 
     /**
@@ -149,7 +147,7 @@ trait RepositoryTrait
      *
      * @return QueryBuilder
      */
-    private function parseOrderBy(QueryBuilder $qb, $orderBy): QueryBuilder
+    protected function parseOrderBy(QueryBuilder $qb, $orderBy): QueryBuilder
     {
         if ($orderBy) {
             $expr = new OrderBy();
@@ -176,7 +174,7 @@ trait RepositoryTrait
      * @param mixed $groupBy groupBy
      * @return QueryBuilder
      */
-    private function parseGroupBy(QueryBuilder $qb, $groupBy): QueryBuilder
+    protected function parseGroupBy(QueryBuilder $qb, $groupBy): QueryBuilder
     {
         if ($groupBy) {
             if (is_array($groupBy)) {
@@ -198,7 +196,7 @@ trait RepositoryTrait
      * @return QueryBuilder
      * @throws DAOException
      */
-    private function parseHaving(QueryBuilder $qb, $having): QueryBuilder
+    protected function parseHaving(QueryBuilder $qb, $having): QueryBuilder
     {
         if ($having) {
             $object = null;

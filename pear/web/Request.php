@@ -12,7 +12,7 @@
  * @package  LOEYE
  * @author   Zhang Yi <loeyae@gmail.com>
  * @version  2018-07-23 22:44:28
- * @link     https://github.com/loeyae/loeye.git
+ * @link     https://github.com/loeyae/loeye2.git
  */
 
 namespace loeye\web;
@@ -36,13 +36,5 @@ class Request extends \loeye\std\Request
         RENDER_TYPE_XML,
         RENDER_TYPE_JSON,
     );
-
-    /**
-     * @return null
-     */
-    public function getDevice()
-    {
-        return null;
-    }
 
 }

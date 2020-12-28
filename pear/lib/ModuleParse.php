@@ -27,7 +27,7 @@ use loeye\base\Context;
 class ModuleParse
 {
 
-    public const MAGIC_VAR_REGEX_PATTERN = '/^\$_(PATH|GET|POST|REQUEST|HEADER|SERVER|COOKIE|SESSION|CONST|CONTEXT)\[(.*?)\]$/';
+    public const MAGIC_VAR_REGEX_PATTERN = '/^\$_(PATH|GET|POST|REQUEST|HEADER|SERVER|COOKIE|SESSION|CONST|CONTEXT|ENV|FILES)\[(.*?)\]$/';
     public const MAGIC_FUNC_REGEX_PATTERN = '/^__([a-z]\w*)\[(.*?)\]$/';
     public const CONDITION_KEY = 'if';
     public const PARALLEL_KEY = 'parallel';
@@ -71,30 +71,34 @@ class ModuleParse
                             }
                             break;
                         case 'SESSION':
-                            if (isset($_SESSION[$matchedValue])) {
-                                $input = $_SESSION[$matchedValue];
-                            }
+                            $input = $context->getRequest()->getSession()->get($matchedValue);
                             break;
                         case 'REQUEST':
-                            $input = $context->getRequest()->getRequest($matchedValue);
+                            $input = $context->getRequest()->getParameter($matchedValue);
                             break;
                         case 'GET':
-                            $input = $context->getRequest()->getQuery($matchedValue);
+                            $input = $context->getRequest()->query->get($matchedValue);
                             break;
                         case 'POST':
-                            $input = $context->getRequest()->getBody($matchedValue);
+                            $input = $context->getRequest()->request->get($matchedValue);
                             break;
                         case 'COOKIE':
-                            $input = $context->getRequest()->getCookie($matchedValue);
+                            $input = $context->getRequest()->cookies->get($matchedValue);
                             break;
                         case 'HEADER':
-                            $input = $context->getRequest()->getHeader($matchedValue);
+                            $input = $context->getRequest()->headers->get($matchedValue);
                             break;
                         case 'PATH':
                             $input = $context->getRequest()->getPathVariable($matchedValue);
                             break;
+                        case 'ENV':
+                            $input = $context->getRequest()->getEnv($matchedValue);
+                            break;
+                        case 'FILES':
+                            $input = $context->getRequest()->files->get($matchedValue);
+                            break;
                         default :
-                            $input = $context->getRequest()->getServer($matchedValue) ??
+                            $input = $context->getRequest()->server->get($matchedValue) ??
                                 $_SERVER[$matchedValue] ?? null;
                             break;
                     }

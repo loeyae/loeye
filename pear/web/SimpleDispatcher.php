@@ -18,6 +18,7 @@
 namespace loeye\web;
 
 use loeye\base\Exception;
+use loeye\base\Factory;
 use loeye\base\UrlManager;
 use loeye\base\Utils;
 use loeye\error\ResourceException;
@@ -102,12 +103,17 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
      */
     protected function initIOObject($moduleId): void
     {
-        $this->context->getRequest()->setModuleId($moduleId);
+        $request = $this->context->getRequest();
+        $request->setModuleId($moduleId);
+
+        $response =  Response::create($request);
 
         if (defined('MOBILE_RENDER_ENABLE') && MOBILE_RENDER_ENABLE && $this->context->getRequest
             ()->getDevice()) {
-            $this->context->getResponse()->setRenderId(Response::DEFAULT_MOBILE_RENDER_ID);
+            $response->setRenderId(Response::DEFAULT_MOBILE_RENDER_ID);
         }
+        $response->setFormat($this->context->getFormat());
+        $this->context->setResponse($response);
     }
 
     /**
@@ -150,6 +156,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
         }
         $ref    = new ReflectionClass($controller);
         $object = $ref->newInstance($this->context);
+
         if (!($object instanceof Controller)) {
             throw new ResourceException(ResourceException::INVALID_CONTROLLER_CODE,
                 ResourceException::INVALID_CONTROLLER_MSG);
@@ -198,7 +205,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
      */
     protected function parseUrl(): void
     {
-        $requestUrl = $this->context->getRequest()->getUri()->getPath();
+        $requestUrl = $this->context->getRequest()->getRequestUri();
         $path       = null;
         if ($this->context->getRouter() instanceof UrlManager) {
             $path   = $this->context->getRouter()->match($requestUrl);
@@ -207,7 +214,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
             }
         }
         if ($path === null) {
-            $path = $this->context->getRequest()->getQuery(self::KEY_REQUEST_URI);
+            $path = $this->context->getRequest()->query->get(self::KEY_REQUEST_URI);
         }
         if (!empty($path)) {
             $parts = explode('/', trim($path, '/'));
@@ -222,10 +229,10 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
                 $this->controller = Utils::camelize($parts[0]);
             }
         } else {
-            $this->module = $this->context->getRequest()->getQuery(self::KEY_REQUEST_MODULE);
-            $this->controller = Utils::camelize($this->context->getRequest()->getQuery
+            $this->module = $this->context->getRequest()->query->get(self::KEY_REQUEST_MODULE);
+            $this->controller = Utils::camelize($this->context->getRequest()->query->get
             (self::KEY_REQUEST_CONTROLLER));
-            $this->action = Utils::camelize($this->context->getRequest()->getQuery(self::KEY_REQUEST_ACTION));
+            $this->action = Utils::camelize($this->context->getRequest()->query->get(self::KEY_REQUEST_ACTION));
         }
         if (empty($this->module) && empty($this->controller)) {
             throw new ResourceException(ResourceException::PAGE_NOT_FOUND_MSG, ResourceException::PAGE_NOT_FOUND_CODE);

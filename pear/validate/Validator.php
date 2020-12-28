@@ -98,7 +98,7 @@ class Validator
      * @param array $data data
      * @param string $rule rule
      *
-     * @return array()
+     * @return array
      * @throws BusinessException
      * @throws Exception
      * @throws ReflectionException

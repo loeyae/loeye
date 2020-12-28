@@ -161,9 +161,13 @@ class Dispatcher extends \loeye\std\Dispatcher
      */
     protected function initIOObject($moduleId): void
     {
-        $request = $this->context->getRequest();
+        $request = Request::createFromGlobals();
         $request->setModuleId($moduleId);
         $request->setRouter($this->context->getRouter());
+        $this->context->setRequest($request);
+        $response = Response::create($request);
+        $response->setFormat($request->getFormatType());
+        $this->context->setResponse($response);
     }
 
     /**
@@ -174,7 +178,7 @@ class Dispatcher extends \loeye\std\Dispatcher
      */
     protected function parseUrl(): void
     {
-        $requestUrl = $this->context->getRequest()->getUri()->getPath();
+        $requestUrl = $this->context->getRequest()->getRequestUri();
         $path = null;
         if ($this->context->getRouter()  instanceof  UrlManager) {
             $path = $this->context->getRouter() ->match($requestUrl);
@@ -201,8 +205,8 @@ class Dispatcher extends \loeye\std\Dispatcher
         }
         $moduleKey = UrlManager::REWRITE_KEY_PREFIX . self::KEY_MODULE;
         $serviceKey = UrlManager::REWRITE_KEY_PREFIX . self::KEY_SERVICE;
-        $this->context->getRequest()->addQuery($moduleKey, $this->module);
-        $this->context->getRequest()->addQuery($serviceKey, $this->service);
+        $this->context->getRequest()->query->set($moduleKey, $this->module);
+        $this->context->getRequest()->query->set($serviceKey, $this->service);
     }
 
 }

@@ -17,12 +17,14 @@
 
 namespace loeye\base;
 
+use Doctrine\Common\Collections\AbstractLazyCollection;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use IntlDateFormatter;
 use loeye\Centra;
 use loeye\client\Client;
 use loeye\error\{BusinessException, DataException, LogicException, ResourceException};
+use loeye\database\Entity;
 use loeye\std\Render;
 use loeye\web\Dispatcher;
 use loeye\web\Request;
@@ -317,7 +319,7 @@ class Utils
             self::throwException('data key for set not exists in setting',
                 BusinessException::INVALID_PLUGIN_SET_CODE, [], BusinessException::class);
         }
-        $expire = $setting['expire'] ?? null;
+        $expire = isset($setting['expire']) ? intval($setting['expire']) : null;
         $context->set($key, $data, $expire);
     }
 
@@ -1219,9 +1221,11 @@ class Utils
                 $rs = null;
                 $ignoreClass[] = $target;
                 $value = self::getReadMethodValue($entity, $key);
-                if (is_array($value)) {
+                if ($value instanceof AbstractLazyCollection) {
+                    $rs = self::entities2array($em, $value->toArray(), $ignoreClass);
+                } else if (is_array($value)) {
                     $rs = self::entities2array($em, $value, $ignoreClass);
-                } else if ($value) {
+                } else if ($value instanceof Entity) {
                     $rs = self::entity2array($em, $value, $ignoreClass);
                 }
                 $r[$key] = $rs;

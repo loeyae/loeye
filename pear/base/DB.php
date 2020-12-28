@@ -12,7 +12,7 @@
  * @package  LOEYE
  * @author   Zhang Yi <loeyae@gmail.com>
  * @version  2018-07-23 22:44:28
- * @link     https://github.com/loeyae/loeye.git
+ * @link     https://github.com/loeyae/loeye2.git
  */
 
 namespace loeye\base;
@@ -32,7 +32,6 @@ use Doctrine\ORM\ORMException;
 use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\TransactionRequiredException;
-use loeye\Centra;
 use loeye\error\BusinessException;
 use loeye\lib\Secure;
 use loeye\std\CacheTrait;
@@ -68,29 +67,20 @@ class DB
     /**
      * __construct
      *
+     * @param AppConfig $appConfig AppConfig
      * @param string|null $type type
      * @throws Throwable
      * @throws InvalidArgumentException
      */
-    public function __construct($type = null)
+    public function __construct(AppConfig $appConfig, $type = null)
     {
-        $settings = Centra::$appConfig->getSetting('application.database');
-        $config = $this->databaseConfig();
+        $property = $appConfig->getPropertyName();
+        $settings = $appConfig->getSetting('application.database');
+        $config = $this->databaseConfig($appConfig);
         $this->defaultType = $settings['default'] ?? null;
         $this->isDevMode = $settings['is_dev_mode'] ?? false;
         $this->encryptMode = $settings['encrypt_mode'] ?? ENCRYPT_MODE_EXPLICIT;
-        $this->_getEntityManager($config, $type);
-    }
-
-    /**
-     * @param null $type
-     * @return DB
-     * @throws InvalidArgumentException
-     * @throws Throwable
-     */
-    public static function init($type = null): DB
-    {
-        return new self($type);
+        $this->_getEntityManager($appConfig, $config, $property, $type);
     }
 
     /**
@@ -103,9 +93,32 @@ class DB
     }
 
     /**
+     * getInstance
+     *
+     * @param AppConfig $appConfig AppConfig
+     * @param string|null $type type
+     * @param string|null $sign sign
+     *
+     * @return DB
+     * @throws InvalidArgumentException
+     * @throws Throwable
+     */
+    public static function getInstance(AppConfig $appConfig, $type = null, $sign = null): DB
+    {
+        $it = ($type ?? 'default');
+        $it = md5($it . $sign);
+        if (!isset(self::$_instance[$it])) {
+            self::$_instance[$it] = new self($appConfig, $type);
+        }
+        return self::$_instance[$it];
+    }
+
+    /**
      * _getEntityManager
      *
+     * @param AppConfig $appConfig AppConfig
      * @param Configuration $config Configuration
+     * @param string $property property
      * @param string $type type
      *
      * @return void
@@ -115,7 +128,7 @@ class DB
      * @throws InvalidArgumentException
      * @throws ORMException
      */
-    private function _getEntityManager(Configuration $config, $type): void
+    private function _getEntityManager(AppConfig $appConfig, Configuration $config, $property, $type): void
     {
         $key = $type ?? $this->defaultType;
         if (!$key) {
@@ -126,20 +139,25 @@ class DB
             throw new BusinessException('Invalid db setting', BusinessException::INVALID_CONFIG_SET_CODE);
         }
         if (ENCRYPT_MODE_CRYPT === $this->encryptMode && $dbSetting['password']) {
-            $dbSetting['password'] = Secure::crypt($key, $dbSetting['password'], true);
+            $dbSetting['password'] = Secure::crypt($property, $dbSetting['password'], true);
         } elseif (ENCRYPT_MODE_KEYDB === $this->encryptMode && $dbSetting['password']) {
-            $dbSetting['password'] = Secure::getKeyDb($key, $dbSetting['password']);
+            $dbSetting['password'] = Secure::getKeyDb($property, $dbSetting['password']);
         }
-        $cache = $this->getCache();
-        $this->em = \loeye\database\EntityManager::getManager($dbSetting, $cache);
+        $cache = $this->getCache($appConfig);
+        $this->em = \loeye\database\EntityManager::getManager($dbSetting, $property, $cache);
+        if (!isset($dbSetting['softAble']) || $dbSetting['softAble']) {
+            $this->em->getFilters()->enable("soft-deleteable");
+        }
+
     }
 
     /**
      * getCache
      *
+     * @param AppConfig $appConfig AppConfig
      * @return \Doctrine\Common\Cache\Cache
      */
-    protected function getCache(): \Doctrine\Common\Cache\Cache
+    protected function getCache(AppConfig $appConfig): \Doctrine\Common\Cache\Cache
     {
         if ($this->isDevMode) {
             return new ArrayCache();
@@ -147,16 +165,16 @@ class DB
         if (ApcuAdapter::isSupported()) {
             return new ApcuCache();
         }
-        $cacheType = Centra::$appConfig->getSetting('application.cache');
+        $cacheType = $appConfig->getSetting('application.cache');
         if (Cache::CACHE_TYPE_REDIS === $cacheType) {
             $cache = new RedisCache();
-            $config = $this->cacheConfig();
+            $config = $this->cacheConfig($appConfig);
             $setting = $config->get($cacheType);
             $redis = $this->getRedisClient($setting);
             $cache->setRedis($redis);
         } elseif (Cache::CACHE_TYPE_MEMCACHED === $cacheType) {
             $cache = new MemcachedCache();
-            $config = $this->cacheConfig();
+            $config = $this->cacheConfig($appConfig);
             $setting = $config->get($cacheType);
             $memcached = $this->getMemcachedClient($setting);
             $cache->setMemcached($memcached);
@@ -286,15 +304,15 @@ class DB
      *
      * @param object $entity
      *
-     * @return object
+     * @return bool
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    public function save($entity)
+    public function save($entity): bool
     {
         $this->em->persist($entity);
-        $this->flush();
-        return $entity;
+        $this->em->flush();
+        return true;
     }
 
     /**
@@ -336,7 +354,7 @@ class DB
     public function remove($entity): bool
     {
         $this->em->remove($entity);
-        $this->flush();
+        $this->em->flush();
         return true;
     }
 

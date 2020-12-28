@@ -27,7 +27,6 @@ $command         = $_SERVER['argv'][1] ?? null;
 if ($command === 'convert:mapping') {
     $_SERVER['argv'][1] = 'orm:convert-mapping';
     $_SERVER['argv'][] = '--from-database';
-    $_SERVER['argv'][] = '-f';
     $_SERVER['argv'][] = '--namespace=app\\models\\entity\\';
     $_SERVER['argv'][] = 'annotation';
     $_SERVER['argv'][] = dirname(PROJECT_DIR) . '/';

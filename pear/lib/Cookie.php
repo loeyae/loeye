@@ -56,7 +56,7 @@ class Cookie
     {
         $cookie = \Symfony\Component\HttpFoundation\Cookie::create($name, $value, $expire, $path,
         $domain, $secure, $httpOnly);
-        $context->getResponse()->addCookie($cookie);
+        $context->getResponse()->headers->setCookie($cookie);
         return true;
     }
 
@@ -70,7 +70,7 @@ class Cookie
      */
     public static function getCookie(Context $context, $name=null): ?string
     {
-        return $context->getRequest()->getCookie($name);
+        return $context->getRequest()->cookies->get($name);
     }
 
     /**
@@ -83,7 +83,7 @@ class Cookie
      */
     public static function destructCookie(Context $context, $name): bool
     {
-        return self::setCookie($context, $name, null, -1, '/');
+        return $context->getResponse()->headers->removeCookie($name);
     }
 
     /**
@@ -129,7 +129,7 @@ class Cookie
      */
     public static function getLoeyeCookie(Context $context, $name = null, $decode = true)
     {
-        if ($cookie = $context->getRequest()->getCookie(self::USRE_MESSAGE_INFO)) {
+        if ($cookie = $context->getRequest()->cookies->get(self::USRE_MESSAGE_INFO)) {
             $userMessageInfo = json_decode($cookie, true);
             $cryptFields     = json_decode(Secure::crypt
             (self::uniqueId($context), $userMessageInfo[self::CRYPT_COOKIE_FIELDS], true), true);
@@ -162,7 +162,7 @@ class Cookie
         if ($sessionId) {
             return $sessionId;
         }
-        if ($cookie = $context->getRequest()->getCookie(self::UNIQUE_ID_NAME)) {
+        if ($cookie = $context->getRequest()->cookies->get(self::UNIQUE_ID_NAME)) {
             return $cookie;
         }
         $uniqueId = Secure::uniqueId($context);
