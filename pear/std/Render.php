@@ -58,7 +58,7 @@ abstract class Render
      */
     public function version(): string
     {
-        return $this->response->getVersion();
+        return $this->response->getProtocolVersion();
     }
 
     /**

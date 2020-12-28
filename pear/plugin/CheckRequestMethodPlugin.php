@@ -29,8 +29,8 @@ class CheckRequestMethodPlugin implements Plugin
         $allowed = Utils::getData($inputs, 'allowed', 'GET');
         $upperAllowed = strtoupper($allowed);
         if (strtoupper($context->getRequest()->requestMethod) !== $upperAllowed) {
-            $context->getResponse()->setStatusCode(RequestMethodNotSupportedException::DEFAULT_ERROR_CODE);
-            $context->getResponse()->setReason(RequestMethodNotSupportedException::DEFAULT_ERROR_MSG);
+            $context->getResponse()->setStatusCode(RequestMethodNotSupportedException::DEFAULT_ERROR_CODE,
+                RequestMethodNotSupportedException::DEFAULT_ERROR_MSG);
             return Factory::getRender($context->getResponse()->getFormat(), $context->getResponse());
         }
         return PROJECT_SUCCESS;

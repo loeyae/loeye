@@ -28,6 +28,10 @@ abstract class Response extends \Symfony\Component\HttpFoundation\Response
 {
     protected $output = array();
     protected $format;
+    /**
+     * @var string
+     */
+    private $redirect;
 
     /**
      * __construct
@@ -134,4 +138,33 @@ abstract class Response extends \Symfony\Component\HttpFoundation\Response
     }
 
     abstract public function getOutput();
+
+    /**
+     * getReason
+     *
+     * @return string
+     */
+    public function getReason()
+    {
+        return $this->statusText ?? 'Ok';
+    }
+
+
+    /**
+     * @param string $url
+     * @return Response
+     */
+    public function setRedirect(string $url): Response
+    {
+        $this->redirect = $url;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getRedirect(): ?string
+    {
+        return $this->redirect;
+    }
 }

@@ -481,7 +481,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param string $url
      * @return Request
      */
-    public function setUri(string $url)
+    public function setUri(?string $url)
     {
         $this->requestUri = $url;
         return $this;
@@ -493,7 +493,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param string $method
      * @return Request
      */
-    public function setRequestMethod(string $method)
+    public function setRequestMethod(?string $method)
     {
         parent::setMethod($method);
         $this->requestMethod = $method;
@@ -506,9 +506,11 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param array $server
      * @return Request
      */
-    public function setServer(array $server)
+    public function setServer(?array $server)
     {
-        $this->server = new ServerBag($server);
+        if ($server) {
+            $this->server = new ServerBag($server);
+        }
         return $this;
     }
 
@@ -518,9 +520,11 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param array $cookies
      * @return Request
      */
-    public function setCookie(array $cookies)
+    public function setCookie(?array $cookies)
     {
-        $this->cookies = new ParameterBag($cookies);
+        if ($cookies) {
+            $this->cookies = new ParameterBag($cookies);
+        }
         return $this;
     }
 
@@ -530,9 +534,11 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param array $query
      * @return Request
      */
-    public function setQuery(array $query)
+    public function setQuery(?array $query)
     {
-        $this->query = new ParameterBag($query);
+        if ($query) {
+            $this->query = new ParameterBag($query);
+        }
         return $this;
     }
 
@@ -542,9 +548,11 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param array $query
      * @return Request
      */
-    public function setBody(array $query)
+    public function setBody(?array $query)
     {
-        $this->request = new ParameterBag($query);
+        if ($query) {
+            $this->request = new ParameterBag($query);
+        }
         return $this;
     }
 
@@ -554,9 +562,11 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param array $query
      * @return Request
      */
-    public function setFiles(array $query)
+    public function setFiles(?array $query)
     {
-        $this->files = new FileBag($query);
+        if ($query) {
+            $this->files = new FileBag($query);
+        }
         return $this;
     }
 
@@ -566,9 +576,11 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param array $query
      * @return Request
      */
-    public function setHeader(array $query)
+    public function setHeader(?array $query)
     {
-        $this->headers = new HeaderBag($query);
+        if ($query) {
+            $this->headers = new HeaderBag($query);
+        }
         return $this;
     }
 
