@@ -116,7 +116,7 @@ class SwooleServer extends Server
         $router = $this->createRouter($myRequest);
         $myRequest->setRouter($router)
             ->setUri($request->server['request_uri'])
-            ->setMethod($request->server['request_method'])
+            ->setRequestMethod($request->server['request_method'])
             ->setServer($request->server)
             ->setCookie($request->cookie)
             ->setQuery($request->get)

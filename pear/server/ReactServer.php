@@ -121,7 +121,7 @@ class ReactServer extends Server
     {
         $myRequest = $this->createRequest();
         $myRequest->setUri($request->getUri()->__toString())
-            ->setMethod($request->getMethod())
+            ->setRequestMethod($request->getMethod())
             ->setQuery($request->getQueryParams())
             ->setBody($request->getParsedBody())
             ->setContent($request->getBody()->getContents())
