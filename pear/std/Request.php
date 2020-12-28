@@ -18,6 +18,10 @@
 namespace loeye\std;
 
 use GuzzleHttp\Psr7\Uri;
+use Symfony\Component\HttpFoundation\FileBag;
+use Symfony\Component\HttpFoundation\HeaderBag;
+use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\HttpFoundation\ServerBag;
 
 /**
  * Request
@@ -470,5 +474,115 @@ class Request extends \Symfony\Component\HttpFoundation\Request
     {
         return new Uri($this->getRequestUri());
     }
+
+    /**
+     * setUri
+     *
+     * @param string $url
+     * @return Request
+     */
+    public function setUri(string $url)
+    {
+        $this->requestUri = $url;
+        return $this;
+    }
+
+    /**
+     * setMethod
+     *
+     * @param string $method
+     * @return Request
+     */
+    public function setMethod(string $method)
+    {
+        $this->method = $method;
+        $this->requestMethod = $method;
+        return $this;
+    }
+
+    /**
+     * setServer
+     *
+     * @param array $server
+     * @return Request
+     */
+    public function setServer(array $server)
+    {
+        $this->server = new ServerBag($server);
+        return $this;
+    }
+
+    /**
+     * setCookie
+     *
+     * @param array $cookies
+     * @return Request
+     */
+    public function setCookie(array $cookies)
+    {
+        $this->cookies = new ParameterBag($cookies);
+        return $this;
+    }
+
+    /**
+     * setQuery
+     *
+     * @param array $query
+     * @return Request
+     */
+    public function setQuery(array $query)
+    {
+        $this->query = new ParameterBag($query);
+        return $this;
+    }
+
+    /**
+     * setBody
+     *
+     * @param array $query
+     * @return Request
+     */
+    public function setBody(array $query)
+    {
+        $this->request = new ParameterBag($query);
+        return $this;
+    }
+
+    /**
+     * setFiles
+     *
+     * @param array $query
+     * @return Request
+     */
+    public function setFiles(array $query)
+    {
+        $this->files = new FileBag($query);
+        return $this;
+    }
+
+    /**
+     * setBody
+     *
+     * @param array $query
+     * @return Request
+     */
+    public function setHeader(array $query)
+    {
+        $this->headers = new HeaderBag($query);
+        return $this;
+    }
+
+    /**
+     * setContent
+     *
+     * @param null|string|resource $content
+     * @return Request
+     */
+    public function setContent($content)
+    {
+        $this->content = $content;
+        return $this;
+    }
+
 
 }

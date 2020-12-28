@@ -14,13 +14,13 @@
 namespace loeye\std;
 
 
+use GuzzleHttp\Psr7\MimeType;
 use loeye\base\Context;
 use loeye\base\UrlManager;
 use loeye\base\Utils;
 use loeye\Centra;
 use loeye\render\SegmentRender;
 use loeye\web\SimpleDispatcher;
-use function GuzzleHttp\Psr7\mimetype_from_extension;
 
 abstract class Server
 {
@@ -107,7 +107,7 @@ abstract class Server
             $response->setStatusCode(404);
             $response->setReason('Bad Request');
             $response->addHeader('Content-Type',
-                mimetype_from_extension(pathinfo($path, PATHINFO_EXTENSION)));
+                MimeType::fromExtension(pathinfo($path, PATHINFO_EXTENSION)));
         } else {
             $response->addHeader('Content-Type', Utils::mimeType($path));
             $response->addOutput(file_get_contents($path));
@@ -135,8 +135,8 @@ abstract class Server
     protected function createRequest(): Request
     {
         $dispatcher = Centra::$appConfig->getSetting('server.dispatcher', self::DEFAULT_DISPATCHER);
-        return ($dispatcher === self::SERVICE_DISPATCHER) ? new \loeye\service\Request() : new
-        \loeye\web\Request();
+        return ($dispatcher === self::SERVICE_DISPATCHER) ? \loeye\service\Request::createFromGlobals() :
+        \loeye\web\Request::createFromGlobals();
     }
 
     /**
@@ -148,8 +148,8 @@ abstract class Server
     protected function createResponse(Request $request): Response
     {
         $dispatcher = Centra::$appConfig->getSetting('server.dispatcher', self::DEFAULT_DISPATCHER);
-        return ($dispatcher === self::SERVICE_DISPATCHER) ? new \loeye\service\Response($request) : new
-        \loeye\web\Response($request);
+        return ($dispatcher === self::SERVICE_DISPATCHER) ? \loeye\service\Response::createFromRequest($request) :
+        \loeye\web\Response::createFromRequest($request);
     }
 
     /**
