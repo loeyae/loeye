@@ -488,19 +488,6 @@ class Request extends \Symfony\Component\HttpFoundation\Request
     }
 
     /**
-     * setMethod
-     *
-     * @param string $method
-     * @return Request
-     */
-    public function setMethod(string $method)
-    {
-        $this->method = $method;
-        $this->requestMethod = $method;
-        return $this;
-    }
-
-    /**
      * setServer
      *
      * @param array $server
