@@ -601,7 +601,7 @@ class Context implements ArrayAccess
      */
     public function getResponse()
     {
-        return $this->_response ?? \loeye\web\Response::create($this->getRequest());
+        return $this->_response ?? \loeye\web\Response::createFromRequest($this->getRequest());
     }
 
     /**

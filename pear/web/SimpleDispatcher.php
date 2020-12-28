@@ -106,7 +106,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
         $request = $this->context->getRequest();
         $request->setModuleId($moduleId);
 
-        $response =  Response::create($request);
+        $response =  Response::createFromRequest($request);
 
         if (defined('MOBILE_RENDER_ENABLE') && MOBILE_RENDER_ENABLE && $this->context->getRequest
             ()->getDevice()) {

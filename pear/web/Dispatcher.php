@@ -167,7 +167,7 @@ class Dispatcher extends \loeye\std\Dispatcher
         $request->setModuleId($moduleId);
         $request->setRouter($this->context->getRouter());
 
-        $response = Response::create($request);
+        $response = Response::createFromRequest($request);
         if (defined('MOBILE_RENDER_ENABLE') && MOBILE_RENDER_ENABLE && $request->getDevice()) {
             $response->setRenderId(Response::DEFAULT_MOBILE_RENDER_ID);
         }
