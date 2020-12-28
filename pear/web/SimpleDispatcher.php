@@ -205,7 +205,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
      */
     protected function parseUrl(): void
     {
-        $requestUrl = $this->context->getRequest()->getRequestUri();
+        $requestUrl = $this->context->getRequest()->getUri()->getPath();
         $path       = null;
         if ($this->context->getRouter() instanceof UrlManager) {
             $path   = $this->context->getRouter()->match($requestUrl);

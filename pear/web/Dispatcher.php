@@ -638,7 +638,7 @@ class Dispatcher extends \loeye\std\Dispatcher
     {
         if (empty($moduleId)) {
             if ($this->context->getRouter() instanceof UrlManager) {
-                $moduleId = $this->context->getRouter()->match($this->context->getRequest()->getRequestUri());
+                $moduleId = $this->context->getRouter()->match($this->context->getRequest()->getUri()->getPath());
             } else {
                 $moduleId = $this->_executeRouter();
             }

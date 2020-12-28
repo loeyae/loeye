@@ -318,11 +318,11 @@ class Request extends \Symfony\Component\HttpFoundation\Request
     /**
      * setModuleId
      *
-     * @param string $moduleId module id
+     * @param string|null $moduleId module id
      *
      * @return void
      */
-    public function setModuleId(string $moduleId): void
+    public function setModuleId(?string $moduleId): void
     {
         $this->_moduleId = $moduleId;
     }

@@ -59,9 +59,9 @@ class UrlManager extends \loeye\std\Router
         $path = parse_url($url, PHP_URL_PATH) or $path = '/';
         foreach ($this->_rule as $key => $item) {
             if (strpos($key, '#') !== false) {
-                $key = '#' . str_replace('#', '\#', $key);
+                $key = str_replace('#', '\#', $key);
             }
-            $pattern = '#^' . preg_replace('#<([\w-_]+):([^>]+)>#', '(?\'$1\'$2)', $key) . '$#';
+            $pattern = '#^' . preg_replace('#<([\w\-_]+):([^>]+)>#', '(?P<\1>\2)', $key) . '$#';
             $matches = [];
             if (preg_match($pattern, $path, $matches)) {
                 $this->setMatchedRule($key);
@@ -84,12 +84,12 @@ class UrlManager extends \loeye\std\Router
                         $rKeys = array_keys($replaceKey, $pkey);
                         if (!empty($rKeys)) {
                             $replace[$rKeys[0]] = $value;
-                            $this->request->addQuery(self::REWRITE_KEY_PREFIX . $pkey, $value);
+                            $this->request->query->add(self::REWRITE_KEY_PREFIX . $pkey, $value);
                             $this->addSetting($pkey, $value);
                             unset($replaceKey[$rKeys[0]]);
                         } else {
                             $this->addPathVariable($pkey, $value);
-                            $this->request->addQuery($pkey, $value);
+                            $this->request->query->add($pkey, $value);
                         }
                     }
                     if (count($replaceKey) > 1) {
