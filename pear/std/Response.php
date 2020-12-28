@@ -133,16 +133,5 @@ abstract class Response extends \Symfony\Component\HttpFoundation\Response
         $this->sendHeaders();
     }
 
-    /**
-     * setStatusCode
-     *
-     * @param int $statusCode
-     */
-    public function setStatusCode(int $statusCode)
-    {
-        $this->statusCode = $statusCode;
-    }
-
-
     abstract public function getOutput();
 }
