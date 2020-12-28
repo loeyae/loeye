@@ -80,8 +80,7 @@ abstract class Controller
      */
     protected function response($type, $data, $code = 200, $reason = 'Ok'): Render
     {
-        $this->context->getResponse()->setStatusCode($code);
-        $this->context->getResponse()->setReason($reason);
+        $this->context->getResponse()->setStatusCode($code, $reason);
         $this->context->getResponse()->addOutput($data);
         return Factory::getRender($type, $this->context->getResponse());
     }

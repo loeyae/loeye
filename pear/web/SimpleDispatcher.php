@@ -67,7 +67,7 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
             $this->initAppConfig();
             $this->initConfigConstants();
             $this->parseUrl();
-            $this->initIOObject($moduleId ?? $this->module);
+            $this->initIOObject($moduleId ?? $this->buildModuleId());
             $this->initLogger();
             $this->setTimezone();
             $this->initComponent();
@@ -307,6 +307,16 @@ class SimpleDispatcher extends \loeye\std\Dispatcher
             $cacheId .= '.' . $this->context->get($view['id']);
         }
         return $cacheId;
+    }
+
+    /**
+     * buildModuleId
+     *
+     * @return string
+     */
+    private function buildModuleId()
+    {
+        return ($this->module ? $this->module . '.' : '') . $this->controller .'.'. $this->action;
     }
 
 }

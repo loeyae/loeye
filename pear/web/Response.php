@@ -174,6 +174,7 @@ class Response extends \loeye\std\Response
             $redirectUrl = $this->_redirectUrl;
         }
         if (!empty($redirectUrl)) {
+            $this->setStatusCode(302);
             $this->headers->set('Location', $redirectUrl);
             $this->sendHeaders();
             exit;
