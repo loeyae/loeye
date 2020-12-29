@@ -73,7 +73,7 @@ class UrlManager extends \loeye\std\Router
                 if (preg_match_all('({[\w\-_]+})', $item, $iMatches)) {
                     foreach ($iMatches[0] as $match) {
                         $search[] = $match;
-                        $replaceKey[] = mb_substr($match, 1, -1, '7bit');
+                        $replaceKey[] = mb_substr($match, 1, -1);
                     }
                 }
                 if (!empty($replaceKey)) {
