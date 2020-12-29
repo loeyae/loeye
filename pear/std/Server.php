@@ -104,8 +104,7 @@ abstract class Server
     {
         $response = new \loeye\web\Response(new \loeye\web\Request());
         if(!is_file($path)) {
-            $response->setStatusCode(404);
-            $response->setReason('Bad Request');
+            $response->setStatusCode(404, "Not Exists");
             $response->addHeader('Content-Type',
                 MimeType::fromExtension(pathinfo($path, PATHINFO_EXTENSION)));
         } else {
