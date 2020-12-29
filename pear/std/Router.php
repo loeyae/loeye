@@ -49,6 +49,8 @@ abstract class Router
     public function __construct(Request $request)
     {
         $this->request = $request;
+        $this->settings = [];
+        $this->pathVariable = [];
     }
 
     /**

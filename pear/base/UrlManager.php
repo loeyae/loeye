@@ -84,12 +84,12 @@ class UrlManager extends \loeye\std\Router
                         $rKeys = array_keys($replaceKey, $pkey);
                         if (!empty($rKeys)) {
                             $replace[$rKeys[0]] = $value;
-                            $this->request->query->add(self::REWRITE_KEY_PREFIX . $pkey, $value);
+                            $this->request->query->set(self::REWRITE_KEY_PREFIX . $pkey, $value);
                             $this->addSetting($pkey, $value);
                             unset($replaceKey[$rKeys[0]]);
                         } else {
                             $this->addPathVariable($pkey, $value);
-                            $this->request->query->add($pkey, $value);
+                            $this->request->query->set($pkey, $value);
                         }
                     }
                     if (count($replaceKey) > 1) {

@@ -10,13 +10,14 @@
  * @author   Zhang Yi <loeyae@gmail.com>
  * @license  http://www.apache.org/licenses/LICENSE-2.0 Apache License
  * @version  2018-07-23 22:44:28
- * @link     https://github.com/loeyae/loeye2.git
+ * @link     https://github.com/loeyae/loeye.git
  */
 
 namespace loeye\base;
 
 use ArrayAccess;
 use Generator;
+use loeye\Centra;
 use loeye\client\ParallelClientManager;
 use loeye\std\Request;
 use loeye\std\Response;
@@ -30,7 +31,7 @@ use Throwable;
  *
  * @author   Zhang Yi <loeyae@gmail.com>
  */
-class Context implements ArrayAccess
+class Context
 {
 
     public const ERRORS_KEY = 'errors';
@@ -84,27 +85,13 @@ class Context implements ArrayAccess
      * @var ModuleDefinition
      */
     private $_mDfnObj;
-    /**
-     * @var Cache
-     */
-    private $_cache;
-    /**
-     * @var array
-     */
-    private $_object = array(
-        'AppConfig',
-        'Request',
-        'Response',
-        'Router',
-        'ParallelClientManager',
-        'Expire',
-        'Template',
-        'Module',
-    );
+
     /**
      * @var bool
      */
     private $_errorProcessed;
+    private $db = [];
+    private $cache = [];
 
     /**
      * __construct
@@ -115,7 +102,7 @@ class Context implements ArrayAccess
      */
     public function __construct(AppConfig $appConfig = null)
     {
-        $this->_appConfig = $appConfig;
+        $this->_appConfig = $appConfig ?? Centra::$appConfig ?? new AppConfig();
         $this->_data = array();
         $this->_cdata = array();
         $this->_traceData = array();
@@ -148,15 +135,39 @@ class Context implements ArrayAccess
     }
 
     /**
+     * @param string $type
+     * @return DB
+     * @throws InvalidArgumentException
+     * @throws Throwable
+     */
+    public function db($type = 'default'): DB
+    {
+        if (!isset($this->db[$type])) {
+            $this->db[$type] = DB::init($type);
+        }
+        return $this->db[$type];
+    }
+
+    /**
+     * @param null $type
+     * @return Cache
+     */
+    public function cache($type = null): Cache
+    {
+        $sType = $type ?? 'default';
+        if (!isset($this->cache[$sType])) {
+            $this->cache[$sType] = Cache::init($type);
+        }
+        return $this->cache[$sType];
+    }
+
+    /**
      * cacheData
      *
      * @return void
      */
     public function cacheData(): void
     {
-        if (!$this->_cache){
-            $this->_cache = Factory::cache();
-        }
         $g = $this->getDataGenerator();
         $data = [];
         foreach ($g as $key => $value) {
@@ -165,7 +176,7 @@ class Context implements ArrayAccess
             }
         }
         if ($data) {
-            $this->_cache->set($this->getRequest()->getModuleId(), $data, $this->getExpire());
+            $this->cache()->set($this->getRequest()->getModuleId(), $data, $this->getExpire());
         }
     }
 
@@ -177,10 +188,7 @@ class Context implements ArrayAccess
      */
     public function loadCacheData(): void
     {
-        if (!$this->_cache){
-            $this->_cache = Factory::cache();
-        }
-        $array = $this->_cache->get($this->getRequest()->getModuleId());
+        $array = $this->cache()->get($this->getRequest()->getModuleId());
         if ($array) {
             foreach ($array as $key => $value) {
                 $cdata = unserialize($value, ['allowed_classes' => true]);
@@ -190,111 +198,6 @@ class Context implements ArrayAccess
                 }
             }
         }
-    }
-
-    /**
-     * offsetSet
-     *
-     * @param mixed $offset offset
-     * @param mixed $value value
-     *
-     * @return void
-     */
-    public function offsetSet($offset, $value): void
-    {
-        if ($offset === self::ERRORS_KEY) {
-            if (is_array($value)) {
-                foreach ($value as $key => $error) {
-                    if (is_numeric($key)) {
-                        $key = $this->_errors ? count($this->_errors) : $key;
-                    }
-                    $this->addErrors($key, $error);
-                }
-            } else {
-                $this->addErrors($this->_errors ? count($this->_errors) : 0, $value);
-            }
-        } else if (in_array($offset, $this->_object, true)) {
-            $method = 'set' . $offset;
-            $this->$method($value);
-        } else {
-            $this->_data[$offset] = ContextData::init($value);
-        }
-    }
-
-    /**
-     * offsetExists
-     *
-     * @param mixed $offset offset
-     *
-     * @return boolean
-     */
-    public function offsetExists($offset): bool
-    {
-        if ($offset === self::ERRORS_KEY) {
-            return $this->hasErrors();
-        }
-        if (in_array($offset, $this->_object, true)) {
-            $method = 'get' . $offset;
-            return $this->$method() ? true : false;
-        }
-        return isset($this->_data[$offset]);
-    }
-
-    /**
-     * offsetGet
-     *
-     * @param mixed $offset offset
-     *
-     * @return  mixed
-     */
-    public function offsetGet($offset)
-    {
-        if ($offset === self::ERRORS_KEY) {
-            return $this->getErrors();
-        }
-        if (in_array($offset, $this->_object, true)) {
-            $method = 'get' . $offset;
-            return $this->$method();
-        }
-
-        return isset($this->_data[$offset]) ? $this->_data[$offset]->getData() : null;
-    }
-
-    /**
-     * offsetUnset
-     *
-     * @param mixed $offset offset
-     *
-     * @return void
-     */
-    public function offsetUnset($offset): void
-    {
-        if ($offset === self::ERRORS_KEY) {
-            $this->_errors = [];
-        } else if (in_array($offset, $this->_object, true)) {
-            $method = 'set' . $offset;
-            $this->$method(null);
-        } else if (isset($this->_data[$offset])) {
-            unset($this->_data[$offset]);
-        }
-    }
-
-    /**
-     * __destruct
-     *
-     * @return void
-     */
-    public function __destruct()
-    {
-        $this->_appConfig = null;
-        $this->_data = null;
-        $this->_errors = null;
-        $this->_parallelClientManager = null;
-        $this->_request = null;
-        $this->_response = null;
-        $this->_router = null;
-        $this->_template = null;
-        $this->_traceData = null;
     }
 
     /**
@@ -360,11 +263,8 @@ class Context implements ArrayAccess
      *
      * @return void
      */
-    public function set(string $key, $value, $expire = 1): void
+    public function set($key, $value, $expire = 1): void
     {
-        if (isset($this->_data[$key])) {
-            unset($this->_data[$key]);
-        }
         $this->_data[$key] = ContextData::init($value, $expire);
     }
 
@@ -429,19 +329,6 @@ class Context implements ArrayAccess
     public function getTraceData($key)
     {
         return $this->_traceData[$key] ?? null;
-    }
-
-
-    /**
-     * db
-     *
-     * @return DB
-     * @throws InvalidArgumentException
-     * @throws Throwable
-     */
-    public function db(): DB
-    {
-        return DB::getInstance($this->getAppConfig());
     }
 
     /**

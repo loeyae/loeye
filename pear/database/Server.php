@@ -62,6 +62,7 @@ class Server
      */
     public function __construct(Context $context, $type = null, $singleConnection = true)
     {
+        $this->appConfig = $context->getAppConfig();
         $this->db = $singleConnection ? $context->db($type) : new DB($type);
     }
 
