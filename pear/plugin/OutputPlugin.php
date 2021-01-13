@@ -73,10 +73,10 @@ class OutputPlugin implements Plugin
         if (empty($data) && isset($inputs['error'])) {
             $errors = Utils::getErrors($context, $inputs, $inputs['error']);
             if (!empty($errors) && $error = current($errors)) {
-                $this->reponseCode = LOEYE_REST_STATUS_BAD_REQUEST;
+                $this->responseCode = LOEYE_REST_STATUS_BAD_REQUEST;
                 $this->responseMsg = 'error';
                 if ($error instanceof ValidateError) {
-                    $this->reponseCode = $error->getCode();
+                    $this->responseCode = $error->getCode();
                     $this->responseMsg = $error->getMessage();
                     $data = $error->getValidateMessage();
                 } elseif ($error instanceof \Throwable) {
@@ -108,12 +108,7 @@ class OutputPlugin implements Plugin
         }
         $context->getResponse()->setFormat($format);
         if ($format === RENDER_TYPE_SEGMENT) {
-            $status = Utils::getData($inputs, 'code');
             $header = Utils::getData($inputs, 'header', null);
-            if (!empty($status)) {
-                $context->getResponse()->setStatusCode($status);
-
-            }
             if (!empty($header)) {
                 foreach ($header as $key => $value) {
                     $context->getResponse()->addHeader($key, $value);

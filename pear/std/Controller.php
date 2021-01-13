@@ -67,7 +67,9 @@ abstract class Controller
      */
     protected function json($data, $code = 200, $reason = 'Ok'): Render
     {
-        return $this->response(RENDER_TYPE_JSON, $data, $code, $reason);
+        $this->context->getResponse()->addOutput(['code' => $code, 'msg' => $reason]);
+        $this->context->getResponse()->addOutput($data, 'data');
+        return Factory::getRender(RENDER_TYPE_JSON, $this->context->getResponse());
     }
 
     /**
